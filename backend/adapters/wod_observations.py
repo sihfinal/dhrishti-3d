@@ -2,11 +2,54 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+import threading
 from typing import Any, Optional
 import netCDF4
 import numpy as np
 
+from backend.adapters.base import BaseObservationAdapter
+from backend.registry.adapters import adapter_registry
+
 log = logging.getLogger(__name__)
+
+class CastProfileSpan:
+    """
+    Lightweight in-memory record of pre-computed ragged-array offsets and counts
+    for a single observation cast. Eliminates repeated disk scanning and np.sum() loops.
+    """
+    __slots__ = (
+        "dtype",
+        "file_type",
+        "cast_id",
+        "latitude",
+        "longitude",
+        "timestamp",
+        "z_start",
+        "z_count",
+        "var_spans",
+    )
+
+    def __init__(
+        self,
+        dtype: str,
+        file_type: str,
+        cast_id: int,
+        latitude: float,
+        longitude: float,
+        timestamp: Optional[str],
+        z_start: int,
+        z_count: int,
+        var_spans: dict[str, tuple[int, int]],
+    ):
+        self.dtype = dtype
+        self.file_type = file_type
+        self.cast_id = cast_id
+        self.latitude = latitude
+        self.longitude = longitude
+        self.timestamp = timestamp
+        self.z_start = z_start
+        self.z_count = z_count
+        self.var_spans = var_spans
 
 def _to_float(val: Any) -> Optional[float]:
     if val is None or np.ma.is_masked(val):
@@ -28,7 +71,7 @@ def _format_date(d_val: Any) -> Optional[str]:
     except (ValueError, TypeError):
         return None
 
-class WODObservationAdapter:
+class WODObservationAdapter(BaseObservationAdapter):
     """
     High-performance indexed adapter for NOAA/WOD Discrete Sampling Geometries (DSG)
     Ragged Array NetCDF files:
@@ -38,22 +81,57 @@ class WODObservationAdapter:
       - Genuine Biogeochemical (BGC) Profiles
     """
 
+    @property
+    def dataset_id(self) -> str:
+        return "wod-in-situ-profiles"
+
+    def fetch_metadata(self) -> dict[str, Any]:
+        return {
+            "id": self.dataset_id,
+            "name": "World Ocean Database 2023 In-Situ Profile Archive",
+            "source": "NOAA / NCEI",
+            "platform_counts": self.get_counts(),
+            "supported_types": ["argo", "glider", "ctd", "bgc"],
+            "variables": ["temperature", "salinity", "chlorophyll", "oxygen", "nitrate", "ph"],
+        }
+
     def __init__(self, data_dir: Path):
         self.data_dir = data_dir
         self.argo_path = data_dir / "argo" / "ocldb1788270080.21439_PFL.nc"
         self.glider_path = data_dir / "glider" / "ocldb1788270080.21439_GLD.nc"
         self.ctd_path = data_dir / "ctd" / "ocldb1788270080.21439_CTD.nc"
         
+        self._file_map = {
+            "argo": self.argo_path,
+            "glider": self.glider_path,
+            "ctd": self.ctd_path,
+        }
+
         self._index_cache: dict[str, list[dict[str, Any]]] = {}
         self._counts_by_type: dict[str, int] = {}
+        self._profile_index: dict[str, CastProfileSpan] = {}
+        self._open_datasets: dict[str, netCDF4.Dataset] = {}
+        self._lock = threading.Lock()
         self._build_index()
 
     def _build_index(self) -> None:
-        """Extract lightweight cast index (id, lat, lon, time) into memory."""
+        """
+        Extract lightweight cast index and pre-compute cumulative ragged-array
+        offsets for all variables in memory once at startup.
+        """
         datasets = [
             ("argo", self.argo_path),
             ("glider", self.glider_path),
             ("ctd", self.ctd_path),
+        ]
+
+        var_mappings = [
+            ("temperature", "Temperature"),
+            ("salinity", "Salinity"),
+            ("chlorophyll", "Chlorophyll"),
+            ("oxygen", "Oxygen"),
+            ("nitrate", "Nitrate"),
+            ("ph", "pH"),
         ]
 
         bgc_records = []
@@ -66,57 +144,89 @@ class WODObservationAdapter:
 
             try:
                 nc = netCDF4.Dataset(str(path), "r")
+                self._open_datasets[dtype] = nc
+
                 cast_ids = nc.variables["wod_unique_cast"][:]
+                n_casts = len(cast_ids)
                 lats = nc.variables["lat"][:]
                 lons = nc.variables["lon"][:]
-                dates = nc.variables["date"][:] if "date" in nc.variables else [None] * len(cast_ids)
-                
-                # Check for available sensor row sizes
-                temp_sizes = nc.variables["Temperature_row_size"][:] if "Temperature_row_size" in nc.variables else np.zeros(len(cast_ids))
-                sal_sizes = nc.variables["Salinity_row_size"][:] if "Salinity_row_size" in nc.variables else np.zeros(len(cast_ids))
-                chl_sizes = nc.variables["Chlorophyll_row_size"][:] if "Chlorophyll_row_size" in nc.variables else np.zeros(len(cast_ids))
-                oxy_sizes = nc.variables["Oxygen_row_size"][:] if "Oxygen_row_size" in nc.variables else np.zeros(len(cast_ids))
-                nit_sizes = nc.variables["Nitrate_row_size"][:] if "Nitrate_row_size" in nc.variables else np.zeros(len(cast_ids))
-                ph_sizes = nc.variables["pH_row_size"][:] if "pH_row_size" in nc.variables else np.zeros(len(cast_ids))
+                dates = nc.variables["date"][:] if "date" in nc.variables else [None] * n_casts
+
+                # 1. Pre-compute depth (z) cumulative offsets via np.cumsum
+                z_sizes_raw = nc.variables["z_row_size"][:] if "z_row_size" in nc.variables else np.zeros(n_casts)
+                z_sizes = np.ma.filled(z_sizes_raw, 0).astype(np.int64)
+                z_offsets = np.empty(n_casts + 1, dtype=np.int64)
+                z_offsets[0] = 0
+                np.cumsum(z_sizes, out=z_offsets[1:])
+
+                # 2. Pre-compute per-variable cumulative offsets independently
+                # Each sensor variable maintains its own disparate ragged-array row size.
+                var_offsets_dict: dict[str, np.ndarray] = {}
+                var_sizes_dict: dict[str, np.ndarray] = {}
+
+                for v_key, nc_var in var_mappings:
+                    rs_name = f"{nc_var}_row_size"
+                    if nc_var in nc.variables and rs_name in nc.variables:
+                        v_sizes_raw = nc.variables[rs_name][:]
+                        v_sizes = np.ma.filled(v_sizes_raw, 0).astype(np.int64)
+                        v_offsets = np.empty(n_casts + 1, dtype=np.int64)
+                        v_offsets[0] = 0
+                        np.cumsum(v_sizes, out=v_offsets[1:])
+                        var_offsets_dict[v_key] = v_offsets
+                        var_sizes_dict[v_key] = v_sizes
 
                 records = []
-                for i in range(len(cast_ids)):
+                for i in range(n_casts):
                     cid = int(cast_ids[i])
                     d_str = _format_date(dates[i])
-                    
-                    # Discover specific measured variables for this cast based on positive row size
-                    var_names = []
-                    if not np.ma.is_masked(temp_sizes[i]) and int(temp_sizes[i]) > 0:
-                        var_names.append("temperature")
-                    if not np.ma.is_masked(sal_sizes[i]) and int(sal_sizes[i]) > 0:
-                        var_names.append("salinity")
+                    lat = float(lats[i])
+                    lon = float(lons[i])
+                    z_start = int(z_offsets[i])
+                    z_count = int(z_sizes[i])
 
+                    # Build independent variable spans for this cast
+                    var_spans: dict[str, tuple[int, int]] = {}
+                    var_names = []
                     is_bgc_cast = False
-                    if not np.ma.is_masked(chl_sizes[i]) and int(chl_sizes[i]) > 0:
-                        var_names.append("chlorophyll")
-                        is_bgc_cast = True
-                    if not np.ma.is_masked(oxy_sizes[i]) and int(oxy_sizes[i]) > 0:
-                        var_names.append("oxygen")
-                        is_bgc_cast = True
-                    if not np.ma.is_masked(nit_sizes[i]) and int(nit_sizes[i]) > 0:
-                        var_names.append("nitrate")
-                        is_bgc_cast = True
-                    if not np.ma.is_masked(ph_sizes[i]) and int(ph_sizes[i]) > 0:
-                        var_names.append("ph")
-                        is_bgc_cast = True
+
+                    for v_key, _ in var_mappings:
+                        if v_key in var_sizes_dict:
+                            cnt = int(var_sizes_dict[v_key][i])
+                            if cnt > 0:
+                                start = int(var_offsets_dict[v_key][i])
+                                var_spans[v_key] = (start, cnt)
+                                var_names.append(v_key)
+                                if v_key in ["chlorophyll", "oxygen", "nitrate", "ph"]:
+                                    is_bgc_cast = True
 
                     rec = {
                         "id": f"{dtype}_{cid}",
                         "cast_id": cid,
                         "type": dtype,
                         "platform_id": str(cid),
-                        "latitude": float(lats[i]),
-                        "longitude": float(lons[i]),
+                        "latitude": lat,
+                        "longitude": lon,
                         "timestamp": d_str,
                         "variables": var_names,
                         "source": "NOAA / NCEI World Ocean Database",
                     }
                     records.append(rec)
+
+                    # Store precomputed span in index for O(1) profile retrieval
+                    span = CastProfileSpan(
+                        dtype=dtype,
+                        file_type=dtype,
+                        cast_id=cid,
+                        latitude=lat,
+                        longitude=lon,
+                        timestamp=d_str,
+                        z_start=z_start,
+                        z_count=z_count,
+                        var_spans=var_spans,
+                    )
+                    self._profile_index[f"{dtype}_{cid}"] = span
+                    if str(cid) not in self._profile_index:
+                        self._profile_index[str(cid)] = span
 
                     # If this cast is equipped with genuine BGC sensors, index in bgc pool
                     if is_bgc_cast and dtype == "argo":
@@ -125,7 +235,19 @@ class WODObservationAdapter:
                         bgc_rec["type"] = "bgc"
                         bgc_records.append(bgc_rec)
 
-                nc.close()
+                        bgc_span = CastProfileSpan(
+                            dtype="bgc",
+                            file_type=dtype,
+                            cast_id=cid,
+                            latitude=lat,
+                            longitude=lon,
+                            timestamp=d_str,
+                            z_start=z_start,
+                            z_count=z_count,
+                            var_spans=var_spans,
+                        )
+                        self._profile_index[f"bgc_{cid}"] = bgc_span
+
                 self._index_cache[dtype] = records
                 self._counts_by_type[dtype] = len(records)
                 log.info(f"Indexed {len(records)} {dtype.upper()} casts from {path.name}")
@@ -229,89 +351,54 @@ class WODObservationAdapter:
     def get_profile(self, obs_id: str) -> Optional[dict[str, Any]]:
         """
         Extract depth-resolved vertical profile for a specific observation ID.
-        Uses independent per-variable row_size offsets to correctly index
-        disparate ragged arrays. Supports both 'argo_20059500' and '20059500'.
+        Uses pre-computed cumulative offsets (O(1) dictionary lookup) to read
+        only the exact ragged-array slices from disk.
+        Supports both prefixed IDs ('argo_20059500', 'bgc_19770878') and raw numeric IDs ('20059500').
         """
-        parts = obs_id.split("_")
-        if len(parts) >= 2:
-            dtype = parts[0].lower()
-            try:
-                cid = int(parts[1])
-            except ValueError:
-                return None
-        else:
-            try:
-                cid = int(obs_id)
-                dtype = None
-            except ValueError:
-                return None
+        span = self._profile_index.get(obs_id)
+        if not span:
+            obs_id_clean = obs_id.strip()
+            span = self._profile_index.get(obs_id_clean) or self._profile_index.get(obs_id_clean.lower())
+            if not span and "_" in obs_id_clean:
+                parts = obs_id_clean.split("_")
+                span = self._profile_index.get(f"{parts[0].lower()}_{parts[1]}")
+            elif not span:
+                span = self._profile_index.get(obs_id_clean)
 
-        file_map = {
-            "argo": self.argo_path,
-            "glider": self.glider_path,
-            "ctd": self.ctd_path,
-            "bgc": self.argo_path,
-        }
+        if not span or span.z_count <= 0:
+            return None
 
-        search_targets = [(dtype, file_map[dtype])] if dtype and dtype in file_map else [
-            ("argo", file_map["argo"]),
-            ("glider", file_map["glider"]),
-            ("ctd", file_map["ctd"]),
+        var_mappings = [
+            ("temperature", "Temperature"),
+            ("salinity", "Salinity"),
+            ("chlorophyll", "Chlorophyll"),
+            ("oxygen", "Oxygen"),
+            ("nitrate", "Nitrate"),
+            ("ph", "pH"),
         ]
 
-        for d_type, path in search_targets:
-            if not path or not path.exists():
-                continue
+        with self._lock:
+            nc = self._open_datasets.get(span.file_type)
+            if nc is None:
+                path = self._file_map.get(span.file_type)
+                if not path or not path.exists():
+                    return None
+                nc = netCDF4.Dataset(str(path), "r")
+                self._open_datasets[span.file_type] = nc
 
             try:
-                nc = netCDF4.Dataset(str(path), "r")
-                cast_ids = nc.variables["wod_unique_cast"][:]
-                
-                match_indices = np.where(cast_ids == cid)[0]
-                if len(match_indices) == 0:
-                    nc.close()
-                    continue
-                
-                cast_idx = match_indices[0]
-                lat = float(nc.variables["lat"][cast_idx])
-                lon = float(nc.variables["lon"][cast_idx])
-                d_str = _format_date(nc.variables["date"][cast_idx]) if "date" in nc.variables else None
+                depths = nc.variables["z"][span.z_start : span.z_start + span.z_count]
 
-                z_sizes = nc.variables["z_row_size"][:]
-                if np.ma.is_masked(z_sizes[cast_idx]) or int(z_sizes[cast_idx]) <= 0:
-                    nc.close()
-                    return None
-
-                z_count = int(z_sizes[cast_idx])
-                z_start = int(np.sum(np.ma.filled(z_sizes[:cast_idx], 0)))
-                depths = nc.variables["z"][z_start : z_start + z_count]
-
-                # Extract each variable independently using its own row_size array
                 var_slices: dict[str, Any] = {}
-                var_mappings = [
-                    ("temperature", "Temperature"),
-                    ("salinity", "Salinity"),
-                    ("chlorophyll", "Chlorophyll"),
-                    ("oxygen", "Oxygen"),
-                    ("nitrate", "Nitrate"),
-                    ("ph", "pH"),
-                ]
-
-                for v_key, nc_var_name in var_mappings:
-                    rs_name = f"{nc_var_name}_row_size"
-                    if nc_var_name in nc.variables and rs_name in nc.variables:
-                        v_rs = nc.variables[rs_name][:]
-                        if not np.ma.is_masked(v_rs[cast_idx]) and int(v_rs[cast_idx]) > 0:
-                            v_count = int(v_rs[cast_idx])
-                            v_start = int(np.sum(np.ma.filled(v_rs[:cast_idx], 0)))
-                            var_slices[v_key] = nc.variables[nc_var_name][v_start : v_start + v_count]
-                        else:
-                            var_slices[v_key] = None
+                for v_key, nc_var in var_mappings:
+                    if v_key in span.var_spans:
+                        v_start, v_count = span.var_spans[v_key]
+                        var_slices[v_key] = nc.variables[nc_var][v_start : v_start + v_count]
                     else:
                         var_slices[v_key] = None
 
                 profile_points = []
-                for i in range(z_count):
+                for i in range(span.z_count):
                     d_val = _to_float(depths[i])
                     if d_val is None:
                         continue
@@ -324,17 +411,18 @@ class WODObservationAdapter:
 
                 valid_depths = [p["depth"] for p in profile_points]
                 max_d = float(max(valid_depths)) if valid_depths else 0.0
-                nc.close()
-
-                active_vars = [k for k in ["temperature", "salinity", "chlorophyll", "oxygen", "nitrate", "ph"] if any(p.get(k) is not None for p in profile_points)]
+                active_vars = [
+                    k for k in ["temperature", "salinity", "chlorophyll", "oxygen", "nitrate", "ph"]
+                    if any(p.get(k) is not None for p in profile_points)
+                ]
 
                 return {
-                    "id": f"{d_type}_{cid}",
-                    "type": d_type,
-                    "platform_id": str(cid),
-                    "timestamp": d_str,
-                    "latitude": lat,
-                    "longitude": lon,
+                    "id": f"{span.dtype}_{span.cast_id}",
+                    "type": span.dtype,
+                    "platform_id": str(span.cast_id),
+                    "timestamp": span.timestamp,
+                    "latitude": span.latitude,
+                    "longitude": span.longitude,
                     "max_depth": max_d,
                     "variables": active_vars,
                     "source": "NOAA / NCEI World Ocean Database",
@@ -344,4 +432,21 @@ class WODObservationAdapter:
                 log.error(f"Error reading profile {obs_id}: {e}")
                 return None
 
-        return None
+    def close(self) -> None:
+        """Close open NetCDF file handles cleanly upon application shutdown."""
+        with self._lock:
+            for ftype, nc in list(self._open_datasets.items()):
+                try:
+                    nc.close()
+                except Exception as e:
+                    log.warning("Error closing WOD dataset %s: %s", ftype, e)
+            self._open_datasets.clear()
+
+
+# Register with central adapter registry
+adapter_registry.register_observation_adapter("wod", WODObservationAdapter)
+adapter_registry.register_observation_adapter("wod-argo", WODObservationAdapter)
+adapter_registry.register_observation_adapter("wod-glider", WODObservationAdapter)
+adapter_registry.register_observation_adapter("wod-ctd", WODObservationAdapter)
+
+

@@ -15,7 +15,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { Stars, useTexture } from "@react-three/drei"
 import { useOcean } from "@/lib/store"
 
-const EARTH_TEXTURE = "/textures/earth_atmos_2048.jpg"
+const EARTH_TEXTURE = "/textures/earth_4k_v3.jpg"
 
 // Indian Ocean ROI center
 const ROI_LAT = -2.5

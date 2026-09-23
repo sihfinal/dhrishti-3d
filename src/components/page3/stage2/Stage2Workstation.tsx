@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useOcean } from "@/lib/store"
 import { GeographicBounds } from "../globe/RegionSelectionBox"
 import ModelControlPanel, { ModelControlState } from "./ModelControlPanel"
@@ -10,12 +11,19 @@ import RegionInformationPanel from "./RegionInformationPanel"
 import ObservationDetailModal from "../ObservationDetailModal"
 import Manual from "@/ui/Manual"
 import { fetchObservations, ObservationItem } from "@/lib/observationsApi"
-import { fetchModelField, ModelFieldResponse } from "@/lib/modelApi"
+import { fetchModelFieldStack, ModelFieldResponse } from "@/lib/modelApi"
 
 interface Stage2WorkstationProps {
   selectedRegion: GeographicBounds | null
   onBackToGlobal: () => void
   onOpenManual?: () => void
+}
+
+interface InfoModalData {
+  title: string
+  subtitle: string
+  icon: string
+  sections: { heading: string; body: string }[]
 }
 
 // 7 Representative valid model depth levels spanning the water column
@@ -42,6 +50,10 @@ export default function Stage2Workstation({
     colorScale: "turbo",
   })
 
+  // Search & Navigation Modals
+  const [searchQuery, setSearchQuery] = useState("")
+  const [infoModal, setInfoModal] = useState<InfoModalData | null>(null)
+
   // Real Regional Observations State
   const [observations, setObservations] = useState<ObservationItem[]>([])
   const [regionalCounts, setRegionalCounts] = useState<Record<string, number>>({
@@ -61,22 +73,8 @@ export default function Stage2Workstation({
   const [modelLoading, setModelLoading] = useState<boolean>(false)
   const [modelError, setModelError] = useState<string | null>(null)
 
-  // Data Status Popup State
-  const [showDataStatus, setShowDataStatus] = useState<boolean>(false)
   const [is3DMaximized, setIs3DMaximized] = useState<boolean>(false)
   const [manualOpen, setManualOpen] = useState<boolean>(false)
-  const dataStatusRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!showDataStatus) return
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dataStatusRef.current && !dataStatusRef.current.contains(e.target as Node)) {
-        setShowDataStatus(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [showDataStatus])
 
   // Convert timeline index (0..89) to date string (2026-01-01 to 2026-03-31)
   const getDateStr = useCallback((idx: number) => {
@@ -157,39 +155,20 @@ export default function Stage2Workstation({
     const stride = span > 20 ? 3 : span > 10 ? 2 : 1
 
     if (modelState.variable === "currents") {
-      // Parallel fetch for 3D u and v depth slices
-      Promise.all(
-        TARGET_DEPTH_LEVELS.map((d) =>
-          Promise.all([
-            fetchModelField({
-              variable: "u_velocity",
-              time: currentDate,
-              depth: d,
-              lat_min: latMin,
-              lat_max: latMax,
-              lon_min: lonMin,
-              lon_max: lonMax,
-              stride,
-            }),
-            fetchModelField({
-              variable: "v_velocity",
-              time: currentDate,
-              depth: d,
-              lat_min: latMin,
-              lat_max: latMax,
-              lon_min: lonMin,
-              lon_max: lonMax,
-              stride,
-            }),
-          ])
-        )
-      )
-        .then((results) => {
+      fetchModelFieldStack({
+        variable: "currents",
+        time: currentDate,
+        depths: TARGET_DEPTH_LEVELS,
+        lat_min: latMin,
+        lat_max: latMax,
+        lon_min: lonMin,
+        lon_max: lonMax,
+        stride,
+      })
+        .then(({ uSlices, vSlices }) => {
           if (!isMounted) return
-          const uSlices = results.map((r) => r[0])
-          const vSlices = results.map((r) => r[1])
-          setUDepthStack(uSlices)
-          setVDepthStack(vSlices)
+          setUDepthStack(uSlices || [])
+          setVDepthStack(vSlices || [])
           setDepthStack([])
           setModelLoading(false)
           setModelError(null)
@@ -201,7 +180,6 @@ export default function Stage2Workstation({
           setModelError("3D Currents model data unavailable")
         })
     } else {
-      // Scalar variables: temperature, salinity, chlorophyll
       const varName =
         modelState.variable === "salinity"
           ? "salinity"
@@ -209,21 +187,17 @@ export default function Stage2Workstation({
           ? "chlorophyll"
           : "temperature"
 
-      Promise.all(
-        TARGET_DEPTH_LEVELS.map((d) =>
-          fetchModelField({
-            variable: varName,
-            time: currentDate,
-            depth: d,
-            lat_min: latMin,
-            lat_max: latMax,
-            lon_min: lonMin,
-            lon_max: lonMax,
-            stride,
-          })
-        )
-      )
-        .then((slices) => {
+      fetchModelFieldStack({
+        variable: varName,
+        time: currentDate,
+        depths: TARGET_DEPTH_LEVELS,
+        lat_min: latMin,
+        lat_max: latMax,
+        lon_min: lonMin,
+        lon_max: lonMax,
+        stride,
+      })
+        .then(({ slices }) => {
           if (!isMounted) return
           setDepthStack(slices)
           setUDepthStack([])
@@ -249,8 +223,88 @@ export default function Stage2Workstation({
   const activeUSlice = uDepthStack.find((s) => s.depth && Math.abs(s.depth - modelState.depth) < 100) || uDepthStack[0] || null
   const activeVSlice = vDepthStack.find((s) => s.depth && Math.abs(s.depth - modelState.depth) < 100) || vDepthStack[0] || null
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+  }
+
+  const navModals: Record<string, InfoModalData> = {
+    observations: {
+      title: "In-situ Ocean Observations",
+      subtitle: "Real-time and archived observational platforms across the Indian Ocean basin.",
+      icon: "📡",
+      sections: [
+        {
+          heading: "Autonomous Argo Floats (22,000+ Profiles)",
+          body: "Autonomous profilers descending to 2000m depth every 10 days, delivering CTD and bio-geochemical profiles.",
+        },
+        {
+          heading: "Gliders, CTD & BGC Platforms",
+          body: "High-resolution spatial cross-sections along critical maritime corridors and EEZ boundaries.",
+        },
+      ],
+    },
+    dataServices: {
+      title: "Scientific Data Services & APIs",
+      subtitle: "Enterprise oceanographic data distribution and high-throughput analytical query endpoints.",
+      icon: "🌐",
+      sections: [
+        {
+          heading: "Copernicus Marine Service Integration",
+          body: "Native ingestion of 3D physical ocean variables (thetao, so, uo, vo) and bio-geochemical indicators (chl).",
+        },
+        {
+          heading: "WOD & In-situ Archival Feeds",
+          body: "Unified query layer connecting NOAA/NCEI World Ocean Database repositories with INCOIS repositories.",
+        },
+      ],
+    },
+    operationalApps: {
+      title: "Operational Oceanographic Applications",
+      subtitle: "Mission-critical decision support tools for maritime safety and disaster risk reduction.",
+      icon: "⚙️",
+      sections: [
+        {
+          heading: "Maritime Security & Search and Rescue (SAR)",
+          body: "High-resolution 3D drift and current velocity analysis for emergency rescue operations.",
+        },
+        {
+          heading: "Cyclone Heat Potential & Marine Heatwaves",
+          body: "Sub-surface thermal structure tracking to predict cyclone intensification dynamics.",
+        },
+      ],
+    },
+    resources: {
+      title: "Technical Resources & Documentation",
+      subtitle: "Comprehensive scientific documentation, user manuals, and system architectural specifications.",
+      icon: "📚",
+      sections: [
+        {
+          heading: "Standard Operating Procedures (SOP)",
+          body: "Guidelines for observational data validation, quality control flags, and numerical model interpolation.",
+        },
+        {
+          heading: "SagarDrishti Architecture Guide",
+          body: "Complete documentation for WebGL 3D volumetric rendering, shaders, and binary field cache protocols.",
+        },
+      ],
+    },
+    about: {
+      title: "About SagarDrishti-3D",
+      subtitle: "Ministry of Earth Sciences (MoES) & INCOIS Ocean Intelligence Platform",
+      icon: "🇮🇳",
+      sections: [
+        {
+          heading: "Executive Vision",
+          body: "An interactive, web-based 3D visualization and analytical workstation built to democratize ocean intelligence for researchers, disaster managers, and the blue economy.",
+        },
+      ],
+    },
+  }
+
   return (
-    <div className="relative w-screen h-screen flex flex-col justify-between overflow-hidden select-none bg-[#030914] text-slate-100 font-sans">
+    <div className="relative w-screen h-screen flex flex-col justify-between overflow-hidden select-none bg-[#f0f6fc] text-slate-900 font-sans">
+      
       {/* ─── Observation Detail Modal / Inspector ─── */}
       <ObservationDetailModal
         observation={selectedObs}
@@ -260,124 +314,328 @@ export default function Stage2Workstation({
       {/* ─── User Manual Modal Dialog ─── */}
       <Manual open={manualOpen} onClose={() => setManualOpen(false)} />
 
-      {/* ─── WORKSTATION HEADER ─── */}
-      <header className="relative z-30 h-14 px-4 md:px-6 flex items-center justify-between border-b border-sky-500/20 bg-[#051124]/90 backdrop-blur-md">
-        {/* Left: Branding & Subtitle */}
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="h-6 w-6 rounded-lg bg-gradient-to-br from-sky-400 to-teal-300 shadow shadow-sky-500/40" />
-            <div className="flex flex-col">
-              <span className="font-black text-sm md:text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">
-                SAGARDRISHTI-3D
-              </span>
-              <span className="text-[10px] text-sky-400/80 font-semibold tracking-wider -mt-1">
-                Ocean Observation & Model Explorer
-              </span>
-            </div>
-          </Link>
-        </div>
-
-        {/* Right: Data Status, Back to Global, Manual & Theme Buttons */}
-        <div className="flex items-center gap-2.5">
-          {/* Data Status Button & Popover */}
-          <div ref={dataStatusRef} className="relative">
+      {/* ─── Header Info Modal ─── */}
+      {infoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative">
             <button
-              type="button"
-              onClick={() => setShowDataStatus((prev) => !prev)}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5 shadow-sm ${
-                showDataStatus
-                  ? "bg-[#0f2d59] border-sky-400 text-white shadow-sky-500/20"
-                  : "text-slate-300 hover:text-white bg-[#0a1f3d]/60 hover:bg-[#0f2d59] border-slate-700/60 hover:border-sky-500/40"
-              }`}
-              title="View Ocean Data Sources & Status"
+              onClick={() => setInfoModal(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 transition"
             >
-              <span className="text-sky-400 font-mono text-[11px]">↻</span>
-              <span>Data Status</span>
+              ✕
             </button>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">{infoModal.icon}</span>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">{infoModal.title}</h3>
+                <p className="text-xs text-slate-500">{infoModal.subtitle}</p>
+              </div>
+            </div>
+            <div className="space-y-4 my-4 border-t border-b border-slate-100 py-4 max-h-[60vh] overflow-y-auto">
+              {infoModal.sections.map((sec, idx) => (
+                <div key={idx} className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5">
+                  <h4 className="text-xs font-bold text-[#0284c7] mb-1">{sec.heading}</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">{sec.body}</p>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setInfoModal(null)}
+                className="px-4 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-semibold rounded-lg shadow-sm transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-            {/* Popover */}
-            {showDataStatus && (
-              <div className="absolute top-full right-0 md:left-0 mt-2 z-50 w-56 rounded-xl border border-sky-500/30 bg-[#061426]/95 p-3 text-xs font-sans text-slate-200 shadow-2xl backdrop-blur-xl">
-                <div className="flex items-center justify-between pb-2 border-b border-sky-500/20">
-                  <span className="font-mono text-[10px] font-bold tracking-widest text-sky-300 uppercase">
-                    DATA STATUS
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowDataStatus(false)}
-                    className="text-slate-400 hover:text-white text-xs leading-none"
+      {/* ────────────────────────────────────────────────────────────
+          1. TOP INSTITUTIONAL HEADER (ROW 1 + ROW 2)
+      ──────────────────────────────────────────────────────────── */}
+      <header className="w-full bg-white border-b border-slate-100 z-30 sticky top-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)] shrink-0">
+        
+        {/* Row 1: Institutional Badges, Tagline, Search, User */}
+        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-[64px] sm:h-[66px] gap-4">
+            
+            {/* Left: MoES Emblem & INCOIS Logo */}
+            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+              <Link href="/" className="flex items-center cursor-pointer">
+                <Image
+                  src="/landing/header-emblem-moes.png"
+                  alt="Ministry of Earth Sciences, Government of India"
+                  width={220}
+                  height={64}
+                  priority
+                  unoptimized
+                  className="h-10 sm:h-11 w-auto object-contain"
+                />
+              </Link>
+
+              {/* Vertical divider */}
+              <div className="h-8 w-[1px] bg-slate-200" />
+
+              <Link href="/" className="flex items-center cursor-pointer">
+                <Image
+                  src="/landing/header-incois.png"
+                  alt="INCOIS - Indian National Centre for Ocean Information Services"
+                  width={340}
+                  height={64}
+                  priority
+                  unoptimized
+                  className="h-10 sm:h-11 w-auto object-contain"
+                />
+              </Link>
+            </div>
+
+            {/* Center: National Tagline + Tricolor Swirl Ribbon */}
+            <div className="hidden xl:flex items-center justify-center flex-1 px-4">
+              <Image
+                src="/landing/header-tagline-swirl.png"
+                alt="Oceans for a Safer, Sustainable and Prosperous India"
+                width={400}
+                height={70}
+                priority
+                unoptimized
+                className="h-[52px] sm:h-[54px] w-auto object-contain -translate-x-24"
+              />
+            </div>
+
+            {/* Right: Search Pill Input & User Avatar */}
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Search Bar */}
+              <form onSubmit={handleSearchSubmit} className="relative hidden md:flex items-center">
+                <div className="relative flex items-center bg-white border border-slate-200/90 rounded-full px-3.5 py-1 w-60 lg:w-64 shadow-[0_1px_2px_rgba(0,0,0,0.04)] focus-within:ring-2 focus-within:ring-sky-500/40 focus-within:border-sky-500 transition-all">
+                  <svg
+                    className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    ✕
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search datasets, variables, regions..."
+                    className="w-full text-xs text-slate-700 bg-transparent placeholder-slate-400 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="ml-1 text-slate-400 hover:text-sky-600 transition cursor-pointer"
+                    title="Search"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
                   </button>
                 </div>
+              </form>
 
-                <div className="flex flex-col gap-2.5 pt-2.5">
-                  <div>
-                    <div className="text-[10px] font-medium text-slate-400">Model Source</div>
-                    <div className="text-[11px] font-semibold text-white">Copernicus Marine Service</div>
-                  </div>
+              {/* User Avatar Circle */}
+              <button
+                type="button"
+                onClick={() => setInfoModal(navModals.about)}
+                className="w-8 h-8 rounded-full bg-[#0a2540] flex items-center justify-center text-white shadow-sm hover:bg-[#0f3458] transition-colors cursor-pointer"
+                title="User Profile & Ministry Session"
+              >
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.8}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </button>
+            </div>
 
-                  <div>
-                    <div className="text-[10px] font-medium text-slate-400">In-situ Source</div>
-                    <div className="text-[11px] font-semibold text-white">IFREMER / NOAA / NCEI WOD</div>
-                  </div>
-
-                  <div className="pt-1 border-t border-sky-900/30 flex items-center justify-between">
-                    <span className="text-[10px] font-medium text-slate-400">Current Status</span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      Available
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
+        </div>
 
-          <button
-            type="button"
-            onClick={onBackToGlobal}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-sky-300 hover:text-white bg-[#0a1f3d]/60 hover:bg-[#0f2d59] border border-sky-500/30 transition-all flex items-center gap-1 shadow-sm"
-            title="Return to Stage 1: Global Overview"
-          >
-            <span>←</span>
-            <span>Global Overview</span>
-          </button>
+        {/* Row 2: Institutional Navbar with EXPLORER ACTIVE */}
+        <div className="w-full bg-white border-t border-slate-100">
+          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-[38px] sm:h-[40px]">
+              
+              {/* Navigation Links */}
+              <nav className="flex items-center gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-0.5">
+                {/* Home */}
+                <Link
+                  href="/"
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                  </svg>
+                  <span>Home</span>
+                </Link>
 
-          <button
-            type="button"
-            onClick={() => {
-              if (onOpenManual) onOpenManual()
-              setManualOpen(true)
-            }}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:text-white bg-[#0a1f3d]/60 hover:bg-[#0f2d59] border border-slate-700/60 hover:border-sky-400/50 transition-all flex items-center gap-1.5 shadow-sm"
-          >
-            <span>📖</span>
-            <span>Manual</span>
-          </button>
+                {/* Study Region */}
+                <Link
+                  href="/study-region"
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Study Region</span>
+                </Link>
 
-          <button
-            type="button"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-sky-300 hover:text-white bg-[#0a1f3d]/60 hover:bg-[#0f2d59] border border-slate-700/60 hover:border-sky-400/50 transition-all shadow-sm"
-            title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
+                {/* Explorer (ACTIVE) */}
+                <button
+                  type="button"
+                  onClick={onBackToGlobal}
+                  className="relative flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-[#0284c7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" strokeWidth="1.8" />
+                    <path strokeWidth="1.8" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+                  </svg>
+                  <span>Explorer</span>
+                  {/* Blue Active Indicator Bar */}
+                  <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#0284c7] rounded-full" />
+                </button>
+
+                {/* Observations */}
+                <Link
+                  href="/observations"
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 17l6-6 4 4 8-8M17 7h4v4" />
+                  </svg>
+                  <span>Observations</span>
+                </Link>
+
+                {/* Data Services */}
+                <Link
+                  href="/data-services"
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <ellipse cx="12" cy="5" rx="9" ry="3" strokeWidth={1.8} />
+                    <path strokeWidth={1.8} d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                    <path strokeWidth={1.8} d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                  </svg>
+                  <span>Data Services</span>
+                </Link>
+
+                {/* Operational Applications */}
+                <Link
+                  href="/operational-applications"
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5" strokeWidth="1.8" />
+                    <rect x="14" y="3" width="7" height="7" rx="1.5" strokeWidth="1.8" />
+                    <rect x="14" y="14" width="7" height="7" rx="1.5" strokeWidth="1.8" />
+                    <rect x="3" y="14" width="7" height="7" rx="1.5" strokeWidth="1.8" />
+                  </svg>
+                  <span>Operational Applications</span>
+                </Link>
+
+                {/* Resources */}
+                <button
+                  type="button"
+                  onClick={() => setInfoModal(navModals.resources)}
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <span>Resources</span>
+                </button>
+
+                {/* About */}
+                <button
+                  type="button"
+                  onClick={() => setInfoModal(navModals.about)}
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" strokeWidth="1.8" />
+                    <path strokeLinecap="round" strokeWidth={1.8} d="M12 16v-4m0-4h.01" />
+                  </svg>
+                  <span>About</span>
+                </button>
+              </nav>
+
+              {/* Right CTA: Launch Explorer Button */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onBackToGlobal}
+                  className="flex items-center gap-1.5 px-3 py-1 bg-[#0a2540] hover:bg-[#0f3458] text-white text-xs font-semibold rounded-md shadow-sm transition cursor-pointer"
+                >
+                  <span>Launch Explorer</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </button>
+              </div>
+
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* ─── MAIN 3-COLUMN WORKSPACE: 20% LEFT | 50% CENTER | 30% RIGHT ─── */}
-      <main className="relative flex-1 w-full flex flex-col lg:flex-row gap-3 p-3 md:p-4 overflow-y-auto lg:overflow-hidden">
-        {/* ─── LEFT 20% PANEL: Model Controls (Hidden when 3D Model is Maximized) ─── */}
+      {/* ────────────────────────────────────────────────────────────
+          2. BREADCRUMB ROW
+      ──────────────────────────────────────────────────────────── */}
+      <div className="w-full bg-transparent px-4 sm:px-6 lg:px-8 py-1.5 shrink-0">
+        <div className="max-w-[1536px] mx-auto flex items-center justify-between text-xs text-slate-500 font-sans">
+          <div className="flex items-center gap-1.5 text-xs">
+            <Link href="/" className="hover:text-[#0284c7] transition flex items-center gap-1 text-slate-600">
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+              </svg>
+            </Link>
+            <span className="text-slate-400">›</span>
+            <button onClick={onBackToGlobal} className="hover:text-[#0284c7] transition text-slate-600">
+              Explorer
+            </button>
+            <span className="text-slate-400">›</span>
+            <button onClick={onBackToGlobal} className="hover:text-[#0284c7] transition text-slate-600">
+              Indian Ocean
+            </button>
+            <span className="text-slate-400">›</span>
+            <span className="text-[#0284c7] font-semibold">3D Depth View</span>
+          </div>
+
+          <button
+            onClick={onBackToGlobal}
+            className="flex items-center gap-1 px-2.5 py-0.5 text-xs font-semibold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-md transition shadow-xs cursor-pointer"
+          >
+            <span>←</span>
+            <span>Back to Global View</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ────────────────────────────────────────────────────────────
+          3. MAIN 3-COLUMN WORKSPACE: 21% LEFT | 54% CENTER | 25% RIGHT
+      ──────────────────────────────────────────────────────────── */}
+      <main className="relative flex-1 w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pb-2 overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row gap-3">
+        
+        {/* ─── LEFT COLUMN: Model Controls & Visualization Options ─── */}
         {!is3DMaximized && (
-          <section className="w-full lg:w-[20%] h-full flex flex-col">
+          <section className="w-full lg:w-[22%] h-full flex flex-col shrink-0 overflow-y-auto pr-0 lg:pr-1 no-scrollbar">
             <ModelControlPanel state={modelState} onChange={setModelState} />
           </section>
         )}
 
-        {/* ─── CENTER 50% VIEWPORT: 3D Depth-Resolved Model & Observation View (Expands to 100% when Maximized) ─── */}
-        <section className={`w-full ${is3DMaximized ? "lg:w-full" : "lg:w-[50%]"} h-full flex flex-col`}>
+        {/* ─── CENTER COLUMN: Selected Region — 3D Depth-Resolved View ─── */}
+        <section className={`w-full ${is3DMaximized ? "lg:w-full" : "lg:w-[53%]"} h-full flex flex-col overflow-hidden`}>
           <Region3DViewport
             selectedRegion={selectedRegion}
             modelState={modelState}
@@ -389,15 +647,16 @@ export default function Stage2Workstation({
             observations={observations}
             obsLoading={obsLoading}
             obsError={obsError}
+            selectedObsId={selectedObs?.id}
             onSelectObservation={setSelectedObs}
             isMaximized={is3DMaximized}
             onToggleMaximize={() => setIs3DMaximized((prev) => !prev)}
           />
         </section>
 
-        {/* ─── RIGHT 30% PANEL: Region Information & Real Model Metadata (Hidden when 3D Model is Maximized) ─── */}
+        {/* ─── RIGHT COLUMN: Region Info, Model Data, Instruments & How To Use ─── */}
         {!is3DMaximized && (
-          <section className="w-full lg:w-[30%] h-full flex flex-col">
+          <section className="w-full lg:w-[25%] h-full flex flex-col shrink-0 overflow-y-auto pl-0 lg:pl-1 no-scrollbar">
             <RegionInformationPanel
               selectedRegion={selectedRegion}
               modelState={modelState}
@@ -412,18 +671,37 @@ export default function Stage2Workstation({
         )}
       </main>
 
-      {/* ─── WORKSTATION FOOTER ─── */}
-      <footer className="relative z-30 h-9 px-4 md:px-6 flex items-center justify-between border-t border-sky-500/20 bg-[#051124]/90 backdrop-blur-md text-[10px] md:text-[11px] text-slate-400">
-        <div className="flex items-center gap-2">
-          <span>Data Source:</span>
-          <span className="text-slate-200 font-medium">
-            Copernicus Marine Service • IFREMER • NOAA / NCEI WOD
-          </span>
+      {/* ────────────────────────────────────────────────────────────
+          4. WORKSTATION INSTITUTIONAL FOOTER
+      ──────────────────────────────────────────────────────────── */}
+      <footer className="w-full bg-white border-t border-slate-200/80 px-4 sm:px-6 lg:px-8 h-8 flex items-center justify-between shrink-0 text-[11px] text-slate-500 font-sans">
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-slate-700">Data Sources:</span>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1 hover:text-slate-800 transition">
+              <span className="text-[#0284c7] font-bold">●</span> Copernicus Marine Service (CMEMS)
+            </span>
+            <span className="flex items-center gap-1 hover:text-slate-800 transition">
+              <span className="text-sky-500 font-bold">●</span> IFREMER
+            </span>
+            <span className="flex items-center gap-1 hover:text-slate-800 transition">
+              <span className="text-blue-500 font-bold">●</span> NOAA
+            </span>
+            <span className="flex items-center gap-1 hover:text-slate-800 transition">
+              <span className="text-indigo-500 font-bold">●</span> NCEI WOD
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-sky-400 font-semibold font-mono">
-          <span className="w-2 h-2 rounded-full bg-sky-400 inline-block shadow-[0_0_8px_#38bdf8]" />
-          <span>Stage 2.2: 3D Depth-Resolved Ocean Model Active</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-emerald-600 font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
+            <span>Official Data Sources Configured</span>
+          </div>
+          <span className="text-slate-400">|</span>
+          <span className="text-slate-500">
+            Last Updated: 15 Feb 2026, 12:30 UTC
+          </span>
         </div>
       </footer>
     </div>

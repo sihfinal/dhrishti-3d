@@ -294,3 +294,536 @@ def test_observation_profile_glider_multi_channel(client):
     assert "temperature" in prof["variables"]
     assert "salinity" in prof["variables"]
     assert "oxygen" in prof["variables"]
+
+def test_gzip_compression_large_field(client):
+    """
+    Verify Step 2 HTTP transport compression on large model grid payload.
+    Ensures Content-Encoding: gzip is set, content is reduced, and decompressed data matches.
+    """
+    r = client.get(
+        "/api/v1/model/field?variable=temperature&time=2026-02-15&depth=250.0&stride=2",
+        headers={"Accept-Encoding": "gzip"},
+    )
+    assert r.status_code == 200
+    assert r.headers.get("content-encoding") == "gzip"
+    data = r.json()
+    assert data["variable"] == "temperature"
+    assert "values" in data
+    assert len(data["values"]) > 0
+
+def test_gzip_compression_observations(client):
+    """
+    Verify Step 2 HTTP transport compression on observation list.
+    """
+    r = client.get(
+        "/api/v1/observations?limit=500",
+        headers={"Accept-Encoding": "gzip"},
+    )
+    assert r.status_code == 200
+    assert r.headers.get("content-encoding") == "gzip"
+    data = r.json()
+    assert "items" in data
+    assert len(data["items"]) == 500
+
+def test_gzip_bypass_small_endpoint(client):
+    """
+    Verify Step 2 bypass: responses smaller than minimum_size (1400B) must NOT be compressed.
+    """
+    r = client.get("/api/v1/health", headers={"Accept-Encoding": "gzip"})
+    assert r.status_code == 200
+    assert r.headers.get("content-encoding") is None
+    assert len(r.content) < 1400
+
+def test_step3_precomputed_offsets_argo(client):
+    """
+    Step 3 test: Verify fast profile retrieval using precomputed cumulative offsets for Argo.
+    """
+    r = client.get("/api/v1/observations/argo_19770705/profile")
+    assert r.status_code == 200
+    prof = r.json()
+    assert prof["id"] == "argo_19770705"
+    assert prof["type"] == "argo"
+    assert len(prof["data"]) == 101
+    assert "temperature" in prof["variables"]
+    assert "salinity" in prof["variables"]
+
+def test_step3_precomputed_offsets_ctd(client):
+    """
+    Step 3 test: Verify high-resolution CTD cast profile retrieval using precomputed offsets.
+    """
+    r = client.get("/api/v1/observations/ctd_20314995/profile")
+    assert r.status_code == 200
+    prof = r.json()
+    assert prof["id"] == "ctd_20314995"
+    assert prof["type"] == "ctd"
+    assert len(prof["data"]) == 4761
+    assert "chlorophyll" in prof["variables"]
+    assert "oxygen" in prof["variables"]
+
+def test_step3_precomputed_offsets_bgc(client):
+    """
+    Step 3 test: Verify BGC float multi-sensor profile retrieval (5+ biochemical sensors).
+    """
+    r = client.get("/api/v1/observations/bgc_19770878/profile")
+    assert r.status_code == 200
+    prof = r.json()
+    assert prof["id"] == "bgc_19770878"
+    assert prof["type"] == "bgc"
+    assert len(prof["data"]) == 396
+    assert "nitrate" in prof["variables"]
+    assert "chlorophyll" in prof["variables"]
+
+def test_step3_profile_invalid_id(client):
+    """
+    Step 3 test: Verify non-existent observation profile returns 404 cleanly.
+    """
+    r = client.get("/api/v1/observations/nonexistent_99999999/profile")
+    assert r.status_code == 404
+
+def test_step3_profile_alias_raw_id(client):
+    """
+    Step 3 test: Verify raw numeric ID without type prefix works through precomputed index.
+    """
+    r = client.get("/api/v1/observations/19770705/profile")
+    assert r.status_code == 200
+    prof = r.json()
+    assert prof["platform_id"] == "19770705"
+    assert len(prof["data"]) == 101
+
+
+# ===========================================================================
+# Step 4 Tests: Batch Stage-2 Depth Requests
+# ===========================================================================
+
+def test_step4_field_stack_temperature(client):
+    """
+    Step 4 test: Batch query 7 depth levels for temperature in a single request.
+    """
+    r = client.get(
+        "/api/v1/model/field-stack",
+        params={
+            "variable": "temperature",
+            "time": "2026-02-15",
+            "depths": "0,25,50,100,250,500,1000",
+            "lat_min": -15.0,
+            "lat_max": -5.0,
+            "lon_min": 65.0,
+            "lon_max": 80.0,
+            "stride": 2,
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["variable"] == "temperature"
+    assert data["unit"] == "°C"
+    assert len(data["slices"]) == 7
+    # Check depth levels are preserved in order
+    depths = [s["actual_depth"] for s in data["slices"]]
+    assert depths[0] < 1.0  # surface ~0.49m
+    assert any(abs(d - 1000.0) < 100.0 for d in depths)
+    # Check dimensions
+    assert data["width"] > 0
+    assert data["height"] > 0
+    for s in data["slices"]:
+        assert len(s["values"]) == data["height"]
+        assert len(s["values"][0]) == data["width"]
+        assert s["min_value"] is not None
+        assert s["max_value"] is not None
+
+
+def test_step4_field_stack_salinity(client):
+    """
+    Step 4 test: Batch query salinity stack.
+    """
+    r = client.get(
+        "/api/v1/model/field-stack",
+        params={
+            "variable": "salinity",
+            "time": "2026-01-10",
+            "depths": "0,50,100,250",
+            "lat_min": 0.0,
+            "lat_max": 10.0,
+            "lon_min": 70.0,
+            "lon_max": 80.0,
+            "stride": 2,
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["variable"] == "salinity"
+    assert data["unit"] == "PSU"
+    assert len(data["slices"]) == 4
+
+
+def test_step4_field_stack_chlorophyll(client):
+    """
+    Step 4 test: Batch query BGC chlorophyll stack across multiple depths.
+    """
+    r = client.get(
+        "/api/v1/model/field-stack",
+        params={
+            "variable": "chlorophyll",
+            "time": "2026-02-15",
+            "depths": "0,25,50,100",
+            "lat_min": -10.0,
+            "lat_max": 5.0,
+            "lon_min": 60.0,
+            "lon_max": 75.0,
+            "stride": 2,
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["variable"] == "chlorophyll"
+    assert data["unit"] == "mg/m³"
+    assert len(data["slices"]) == 4
+
+
+def test_step4_field_stack_currents(client):
+    """
+    Step 4 test: Batch query 3D currents stack returning both u and v components.
+    """
+    r = client.get(
+        "/api/v1/model/field-stack",
+        params={
+            "variable": "currents",
+            "time": "2026-02-15",
+            "depths": "0,25,50,100,250,500,1000",
+            "lat_min": -15.0,
+            "lat_max": -5.0,
+            "lon_min": 65.0,
+            "lon_max": 80.0,
+            "stride": 2,
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["variable"] == "currents"
+    assert data["u_slices"] is not None
+    assert data["v_slices"] is not None
+    assert len(data["u_slices"]) == 7
+    assert len(data["v_slices"]) == 7
+
+
+def test_step4_field_stack_data_integrity_matches_single_field(client):
+    """
+    Step 4 test: Bit-for-bit exact match between single-depth endpoint and batch endpoint.
+    """
+    single_res = client.get(
+        "/api/v1/model/field",
+        params={
+            "variable": "temperature",
+            "time": "2026-02-15",
+            "depth": 250.0,
+            "lat_min": -10.0,
+            "lat_max": 0.0,
+            "lon_min": 65.0,
+            "lon_max": 75.0,
+            "stride": 2,
+        },
+    )
+    assert single_res.status_code == 200
+    single_data = single_res.json()
+
+    stack_res = client.get(
+        "/api/v1/model/field-stack",
+        params={
+            "variable": "temperature",
+            "time": "2026-02-15",
+            "depths": "0,250,500",
+            "lat_min": -10.0,
+            "lat_max": 0.0,
+            "lon_min": 65.0,
+            "lon_max": 75.0,
+            "stride": 2,
+        },
+    )
+    assert stack_res.status_code == 200
+    stack_data = stack_res.json()
+
+    # Find the 250m slice in the stack
+    slice_250 = next(s for s in stack_data["slices"] if abs(s["requested_depth"] - 250.0) < 1.0)
+    assert slice_250["actual_depth"] == single_data["depth"]
+    assert stack_data["width"] == single_data["width"]
+    assert stack_data["height"] == single_data["height"]
+    assert slice_250["min_value"] == single_data["min_value"]
+    assert slice_250["max_value"] == single_data["max_value"]
+    assert slice_250["values"] == single_data["values"]
+
+
+# ===========================================================================
+# Step 5 Tests: Smart Spatial / Depth / Time / Variable Subsetting
+# ===========================================================================
+
+def test_step5_spatial_subsetting_small_vs_large(client):
+    """
+    Step 5 test: Verify small region (5x5 deg) retrieves significantly fewer cells than large region.
+    """
+    r_small = client.get(
+        "/api/v1/model/field-stack",
+        params={
+            "variable": "temperature",
+            "time": "2026-02-15",
+            "depths": "0,250",
+            "lat_min": 10.0,
+            "lat_max": 15.0,
+            "lon_min": 70.0,
+            "lon_max": 75.0,
+            "stride": 1,
+        },
+    )
+    assert r_small.status_code == 200
+    d_small = r_small.json()
+    assert d_small["width"] == 61
+    assert d_small["height"] == 61
+    assert d_small["latitudes"][0] >= 10.0
+    assert d_small["latitudes"][-1] <= 15.0
+    assert d_small["longitudes"][0] >= 70.0
+    assert d_small["longitudes"][-1] <= 75.0
+
+    r_large = client.get(
+        "/api/v1/model/field-stack",
+        params={
+            "variable": "temperature",
+            "time": "2026-02-15",
+            "depths": "0,250",
+            "lat_min": -15.0,
+            "lat_max": 15.0,
+            "lon_min": 60.0,
+            "lon_max": 95.0,
+            "stride": 3,
+        },
+    )
+    assert r_large.status_code == 200
+    d_large = r_large.json()
+    assert d_large["width"] == 141
+    assert d_large["height"] == 121
+
+
+def test_step5_depth_subsetting_configurations(client):
+    """
+    Step 5 test: Verify varying depth configurations (single, dual, quad, non-contiguous).
+    """
+    # 1. Single depth
+    r1 = client.get("/api/v1/model/field-stack?variable=temperature&depths=0&stride=2")
+    assert r1.status_code == 200
+    assert len(r1.json()["slices"]) == 1
+
+    # 2. Dual depth
+    r2 = client.get("/api/v1/model/field-stack?variable=temperature&depths=0,25&stride=2")
+    assert r2.status_code == 200
+    assert len(r2.json()["slices"]) == 2
+
+    # 3. Quad depth
+    r3 = client.get("/api/v1/model/field-stack?variable=salinity&depths=0,25,50,100&stride=2")
+    assert r3.status_code == 200
+    assert len(r3.json()["slices"]) == 4
+
+    # 4. Non-contiguous depths in specific order
+    r4 = client.get("/api/v1/model/field-stack?variable=chlorophyll&depths=25,250,1000&stride=2")
+    assert r4.status_code == 200
+    slices = r4.json()["slices"]
+    assert len(slices) == 3
+    assert [s["requested_depth"] for s in slices] == [25.0, 250.0, 1000.0]
+
+
+def test_step5_time_subsetting_dates(client):
+    """
+    Step 5 test: Verify time subsetting accesses specific dates accurately.
+    """
+    for target_date in ["2026-01-01", "2026-02-15", "2026-03-31"]:
+        r = client.get(f"/api/v1/model/field-stack?variable=temperature&time={target_date}&depths=0&stride=4")
+        assert r.status_code == 200
+        assert r.json()["time"] == target_date
+
+
+def test_step5_boundary_edge_cases(client):
+    """
+    Step 5 test: Verify queries near domain edges (North, South, East, West).
+    """
+    # Northern boundary
+    r_n = client.get("/api/v1/model/field-stack?variable=temperature&lat_min=28&lat_max=30&lon_min=50&lon_max=60&depths=0&stride=2")
+    assert r_n.status_code == 200
+    assert r_n.json()["width"] > 0 and r_n.json()["height"] > 0
+
+    # Southern boundary
+    r_s = client.get("/api/v1/model/field-stack?variable=temperature&lat_min=-35&lat_max=-33&lon_min=50&lon_max=60&depths=0&stride=2")
+    assert r_s.status_code == 200
+    assert r_s.json()["width"] > 0 and r_s.json()["height"] > 0
+
+    # Western boundary
+    r_w = client.get("/api/v1/model/field-stack?variable=temperature&lat_min=0&lat_max=5&lon_min=40&lon_max=43&depths=0&stride=2")
+    assert r_w.status_code == 200
+    assert r_w.json()["width"] > 0 and r_w.json()["height"] > 0
+
+    # Eastern boundary
+    r_e = client.get("/api/v1/model/field-stack?variable=temperature&lat_min=0&lat_max=5&lon_min=97&lon_max=100&depths=0&stride=2")
+    assert r_e.status_code == 200
+    assert r_e.json()["width"] > 0 and r_e.json()["height"] > 0
+
+
+def test_step5_invalid_bounding_box(client):
+    """
+    Step 5 test: Verify invalid degenerate bounding boxes return 400.
+    """
+    # Inverted lat
+    r = client.get("/api/v1/model/field-stack?variable=temperature&lat_min=15&lat_max=5&lon_min=60&lon_max=70&depths=0")
+    assert r.status_code == 400
+
+    # Inverted lon
+    r2 = client.get("/api/v1/model/field-stack?variable=temperature&lat_min=5&lat_max=15&lon_min=80&lon_max=70&depths=0")
+    assert r2.status_code == 400
+
+    # 0-area box
+    r3 = client.get("/api/v1/model/field-stack?variable=temperature&lat_min=10&lat_max=10&lon_min=70&lon_max=70&depths=0")
+    assert r3.status_code == 400
+
+
+def test_step10_binary_field_content_negotiation(client):
+    """
+    Step 10 test: Verify content negotiation on /api/v1/model/field returning SD3D binary Float32.
+    """
+    import struct
+    import json
+    import numpy as np
+
+    r = client.get(
+        "/api/v1/model/field?variable=temperature&depth=0&lat_min=10&lat_max=15&lon_min=68&lon_max=73&stride=1",
+        headers={"Accept": "application/octet-stream"},
+    )
+    assert r.status_code == 200
+    assert "application/octet-stream" in r.headers.get("content-type", "")
+    content = r.content
+    assert len(content) > 16
+
+    magic, version, fmt_type, meta_len, data_len = struct.unpack_from("<4sHHII", content, 0)
+    assert magic == b"SD3D"
+    assert version == 1
+    assert fmt_type == 1
+
+    meta_json = content[16 : 16 + meta_len].decode("utf-8")
+    meta = json.loads(meta_json)
+    assert meta["variable"] == "temperature"
+    assert meta["width"] > 0 and meta["height"] > 0
+
+    pad_len = (4 - (16 + meta_len) % 4) % 4
+    data_offset = 16 + meta_len + pad_len
+    assert data_offset % 4 == 0
+
+    payload = np.frombuffer(content, dtype="<f4", offset=data_offset, count=data_len // 4)
+    assert len(payload) == meta["width"] * meta["height"]
+
+
+def test_step10_binary_field_stack_scalar(client):
+    """
+    Step 10 test: Verify multi-depth scalar field stack binary transport and numerical equivalence.
+    """
+    import struct
+    import json
+    import numpy as np
+
+    # Fetch JSON
+    r_json = client.get(
+        "/api/v1/model/field-stack?variable=temperature&depths=0,50,100&lat_min=10&lat_max=15&lon_min=68&lon_max=73&stride=1",
+        headers={"Accept": "application/json"},
+    )
+    assert r_json.status_code == 200
+    json_data = r_json.json()
+
+    # Fetch Binary
+    r_bin = client.get(
+        "/api/v1/model/field-stack?variable=temperature&depths=0,50,100&lat_min=10&lat_max=15&lon_min=68&lon_max=73&stride=1",
+        headers={"Accept": "application/octet-stream"},
+    )
+    assert r_bin.status_code == 200
+    content = r_bin.content
+
+    magic, version, fmt_type, meta_len, data_len = struct.unpack_from("<4sHHII", content, 0)
+    assert magic == b"SD3D"
+    assert fmt_type == 2
+
+    meta = json.loads(content[16 : 16 + meta_len].decode("utf-8"))
+    assert meta["width"] == json_data["width"]
+    assert meta["height"] == json_data["height"]
+    assert len(meta["depths"]) == 3
+
+    pad_len = (4 - (16 + meta_len) % 4) % 4
+    data_offset = 16 + meta_len + pad_len
+    payload = np.frombuffer(content, dtype="<f4", offset=data_offset, count=data_len // 4)
+
+    expected_len = 3 * meta["height"] * meta["width"]
+    assert len(payload) == expected_len
+
+    # Compare first depth slice values
+    s0_json = json_data["slices"][0]["values"]
+    s0_flat = []
+    for row in s0_json:
+        s0_flat.extend([np.nan if v is None else v for v in row])
+    s0_src = np.array(s0_flat, dtype=np.float64)
+    s0_bin = payload[: meta["height"] * meta["width"]]
+
+    mask = ~np.isnan(s0_src)
+    assert np.all(np.isnan(s0_bin[~mask]))  # NaNs preserved
+    max_diff = np.max(np.abs(s0_src[mask] - s0_bin[mask]))
+    assert max_diff < 1e-5  # Within Float32 tolerance
+
+
+def test_step10_binary_field_stack_currents(client):
+    """
+    Step 10 test: Verify currents (uo and vo components) multi-depth binary transport.
+    """
+    import struct
+    import json
+    import numpy as np
+
+    r = client.get(
+        "/api/v1/model/field-stack?variable=currents&depths=0,25&lat_min=10&lat_max=15&lon_min=68&lon_max=73&stride=1",
+        headers={"Accept": "application/octet-stream"},
+    )
+    assert r.status_code == 200
+    content = r.content
+
+    magic, version, fmt_type, meta_len, data_len = struct.unpack_from("<4sHHII", content, 0)
+    assert magic == b"SD3D"
+    assert fmt_type == 3  # TYPE_STACK_CURRENTS
+
+    meta = json.loads(content[16 : 16 + meta_len].decode("utf-8"))
+    assert "u_slices" in meta and "v_slices" in meta
+
+    pad_len = (4 - (16 + meta_len) % 4) % 4
+    data_offset = 16 + meta_len + pad_len
+    payload = np.frombuffer(content, dtype="<f4", offset=data_offset, count=data_len // 4)
+
+    # Expected: 2 (u+v) * 2 depths * height * width
+    expected_len = 2 * 2 * meta["height"] * meta["width"]
+    assert len(payload) == expected_len
+
+
+def test_step10_explicit_binary_endpoints(client):
+    """
+    Step 10 test: Verify explicit aliases /model/field-binary and /model/field-stack-binary.
+    """
+    r1 = client.get("/api/v1/model/field-binary?variable=salinity&depth=0&lat_min=10&lat_max=15&lon_min=68&lon_max=73&stride=1")
+    assert r1.status_code == 200
+    assert r1.content.startswith(b"SD3D")
+
+    r2 = client.get("/api/v1/model/field-stack-binary?variable=chlorophyll&depths=0,50&lat_min=10&lat_max=15&lon_min=68&lon_max=73&stride=1")
+    assert r2.status_code == 200
+    assert r2.content.startswith(b"SD3D")
+
+
+def test_step10_binary_gzip(client):
+    """
+    Step 10 test: Verify GZip middleware compresses binary responses appropriately.
+    """
+    r = client.get(
+        "/api/v1/model/field-stack-binary?variable=temperature&depths=0,25,50,100,250,500,1000&lat_min=10&lat_max=25&lon_min=65&lon_max=80&stride=2",
+        headers={"Accept-Encoding": "gzip"},
+    )
+    assert r.status_code == 200
+    assert r.headers.get("content-encoding") == "gzip"
+
+
+
+
+

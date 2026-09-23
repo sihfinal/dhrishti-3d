@@ -1,0 +1,36 @@
+# SagarDrishti-3D - Full Python Environment Requirements
+# Includes all packages for the FastAPI Backend, OGC Services (WMS/WCS/OPeNDAP),
+# CMEMS NetCDF lazy slicing, and automated data ingestion pipelines.
+
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.7.0
+pydantic-settings>=2.2.0
+
+# Scientific computation and multidimensional grid processing
+numpy>=1.26.0
+scipy>=1.12.0
+pandas>=2.2.0
+xarray>=2024.2.0
+netCDF4>=1.7.0
+cftime>=1.6.0
+h5netcdf>=1.3.0
+h5py>=3.10.0
+
+# Scientific colormaps, tile generation & OGC WMS/WCS services
+matplotlib>=3.8.0
+Pillow>=10.0.0
+
+# OPeNDAP DAP 2.0 / THREDDS service
+pydap>=3.4.0
+WebOb>=1.8.7
+
+# Ingest, HTTP communication & environment configuration
+requests>=2.31.0
+httpx>=0.27.0
+python-dotenv>=1.0.0
+huggingface_hub>=0.23.0
+
+# Automated Testing
+pytest>=8.2.0
+pytest-asyncio>=0.23.0

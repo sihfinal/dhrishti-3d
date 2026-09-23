@@ -6,13 +6,14 @@ import { useTexture } from "@react-three/drei"
 import { ThreeEvent } from "@react-three/fiber"
 import AtmosphereGlow from "./AtmosphereGlow"
 import CountryBoundaries from "./CountryBoundaries"
+import IndianEEZLayer from "./IndianEEZLayer"
 import RegionSelectionBox, { GeographicBounds } from "./RegionSelectionBox"
 import ObservationLayers from "./ObservationLayers"
 import ModelLayerManager from "./ModelLayerManager"
 import { ObservationItem } from "@/lib/observationsApi"
 import { ModelFieldResponse } from "@/lib/modelApi"
 
-const EARTH_TEXTURE = "/textures/earth_atmos_2048.jpg"
+const EARTH_TEXTURE = "/textures/earth_4k_v3.jpg"
 const INITIAL_ROTATION_Y = -Math.PI / 2
 
 interface EarthSphereProps {
@@ -32,6 +33,7 @@ interface EarthSphereProps {
   uFieldData?: ModelFieldResponse | null
   vFieldData?: ModelFieldResponse | null
   vectorDensity?: "low" | "medium" | "high"
+  showEEZ?: boolean
 }
 
 export default function EarthSphere({
@@ -50,6 +52,7 @@ export default function EarthSphere({
   uFieldData = null,
   vFieldData = null,
   vectorDensity = "medium",
+  showEEZ = true,
 }: EarthSphereProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   const isDraggingRef = useRef(false)
@@ -60,6 +63,8 @@ export default function EarthSphere({
     t.colorSpace = THREE.SRGBColorSpace
     t.generateMipmaps = true
     t.minFilter = THREE.LinearMipmapLinearFilter
+    t.magFilter = THREE.LinearFilter
+    t.anisotropy = 16
     t.needsUpdate = true
   })
 
@@ -94,11 +99,19 @@ export default function EarthSphere({
     })
   }
 
-  const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
-    const coords = getGeoCoordsFromEvent(e)
-    if (coords) onHoverCoordinates?.(coords)
+  const lastHoverTimeRef = useRef(0)
 
-    if (!selectionMode || !isDraggingRef.current || !dragStartCoordsRef.current || !coords) return
+  const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
+    const now = performance.now()
+    if (now - lastHoverTimeRef.current > 60) {
+      lastHoverTimeRef.current = now
+      const coords = getGeoCoordsFromEvent(e)
+      if (coords) onHoverCoordinates?.(coords)
+    }
+
+    if (!selectionMode || !isDraggingRef.current || !dragStartCoordsRef.current) return
+    const coords = getGeoCoordsFromEvent(e)
+    if (!coords) return
     e.stopPropagation()
 
     const start = dragStartCoordsRef.current
@@ -149,7 +162,7 @@ export default function EarthSphere({
         onPointerUp={handlePointerUp}
         onPointerOut={handlePointerOut}
       >
-        <sphereGeometry args={[radius, 64, 64]} />
+        <sphereGeometry args={[radius, 128, 128]} />
         <meshStandardMaterial
           map={texture}
           roughness={0.65}
@@ -170,6 +183,9 @@ export default function EarthSphere({
 
       {/* ─── 3. Natural Earth Country Boundary Outlines (R = 2.008) ─── */}
       <CountryBoundaries radius={radius + 0.008} />
+
+      {/* ─── 3b. Indian Exclusive Economic Zone (EEZ) Boundary (R = 2.010) ─── */}
+      <IndianEEZLayer radius={radius + 0.010} visible={showEEZ} />
 
       {/* ─── 4. Real In-Situ Observation Markers (R = 2.014) ─── */}
       <ObservationLayers

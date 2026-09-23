@@ -114,10 +114,10 @@ export default function ObservationProfileChart({
   }, [points, minVal, maxVal, minDepth, maxDepth])
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-[#040e1b]/90 border border-sky-500/20 p-3 select-none">
+    <div className="flex flex-col gap-2 rounded-xl bg-white border border-slate-200/90 p-3 select-none shadow-xs">
       {/* Variable Switcher Tabs */}
-      <div className="flex items-center justify-between pb-1 border-b border-sky-900/30">
-        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+      <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
           PROFILE VARIABLE
         </span>
         <div className="flex items-center gap-1 flex-wrap">
@@ -129,10 +129,10 @@ export default function ObservationProfileChart({
                 key={v}
                 type="button"
                 onClick={() => setActiveVar(v)}
-                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                className={`px-2.5 py-0.5 rounded-md text-[10.5px] font-mono font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? "bg-sky-500/30 border border-sky-400 text-white shadow-sm"
-                    : "bg-[#081a33]/60 border border-slate-700/50 text-slate-400 hover:text-slate-200"
+                    ? "bg-[#0284c7] text-white shadow-xs"
+                    : "bg-slate-100 border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70"
                 }`}
               >
                 {vConf.label}
@@ -143,18 +143,18 @@ export default function ObservationProfileChart({
       </div>
 
       {/* Profile Chart Header */}
-      <div className="flex items-center justify-between text-[10px] font-mono">
-        <span className="font-bold text-white">
+      <div className="flex items-center justify-between text-[10.5px] font-mono">
+        <span className="font-bold text-slate-800">
           {config.label} {config.unit && `(${config.unit})`} vs Depth (m)
         </span>
-        <span className="text-sky-400">
+        <span className="text-[#0284c7] font-semibold">
           {points.length} levels · 0 to {maxDepth.toFixed(0)}m
         </span>
       </div>
 
       {/* SVG Scientific Depth Profile Graph */}
       {points.length === 0 ? (
-        <div className="w-full h-44 flex items-center justify-center text-slate-500 text-xs font-mono">
+        <div className="w-full h-44 flex items-center justify-center text-slate-400 text-xs font-mono">
           No depth-resolved {config.label.toLowerCase()} measurements available.
         </div>
       ) : (
@@ -169,9 +169,10 @@ export default function ObservationProfileChart({
               y={PAD_T}
               width={plotW}
               height={plotH}
-              fill="#020712"
-              stroke="#0f2942"
+              fill="#f8fafc"
+              stroke="#e2e8f0"
               strokeWidth="1"
+              rx="4"
             />
 
             {/* Depth Horizontal Grid Lines & Ticks (Downward) */}
@@ -185,15 +186,15 @@ export default function ObservationProfileChart({
                     y1={y}
                     x2={PAD_L + plotW}
                     y2={y}
-                    stroke="#1e3a5f"
-                    strokeWidth="0.75"
-                    strokeDasharray="2,2"
+                    stroke="#e2e8f0"
+                    strokeWidth="1"
+                    strokeDasharray="3,3"
                   />
                   <text
                     x={PAD_L - 6}
                     y={y + 3}
                     textAnchor="end"
-                    fill="#94a3b8"
+                    fill="#64748b"
                     fontSize="9"
                     fontFamily="monospace"
                   >
@@ -214,15 +215,15 @@ export default function ObservationProfileChart({
                     y1={PAD_T}
                     x2={x}
                     y2={PAD_T + plotH}
-                    stroke="#1e3a5f"
-                    strokeWidth="0.75"
-                    strokeDasharray="2,2"
+                    stroke="#e2e8f0"
+                    strokeWidth="1"
+                    strokeDasharray="3,3"
                   />
                   <text
                     x={x}
                     y={PAD_T - 6}
                     textAnchor={frac === 0 ? "start" : frac === 1 ? "end" : "middle"}
-                    fill="#94a3b8"
+                    fill="#64748b"
                     fontSize="9"
                     fontFamily="monospace"
                   >
@@ -235,8 +236,8 @@ export default function ObservationProfileChart({
             {/* Scientific Profile Connecting Polyline */}
             <polyline
               fill="none"
-              stroke={config.lineColor}
-              strokeWidth="2"
+              stroke={config.color}
+              strokeWidth="2.5"
               strokeLinejoin="round"
               strokeLinecap="round"
               points={polylinePoints}
@@ -251,10 +252,10 @@ export default function ObservationProfileChart({
                   key={idx}
                   cx={cx}
                   cy={cy}
-                  r="2.5"
+                  r="3"
                   fill={config.color}
-                  stroke="#020712"
-                  strokeWidth="0.75"
+                  stroke="#ffffff"
+                  strokeWidth="1.5"
                   className="cursor-pointer hover:r-4 transition-all"
                   onMouseEnter={() => setHoveredPoint({ depth: p.depth, value: p.value, x: cx, y: cy })}
                   onMouseLeave={() => setHoveredPoint(null)}
@@ -270,17 +271,17 @@ export default function ObservationProfileChart({
                   y1={hoveredPoint.y}
                   x2={PAD_L + plotW}
                   y2={hoveredPoint.y}
-                  stroke="#ffffff"
-                  strokeWidth="0.75"
-                  strokeDasharray="1,1"
+                  stroke="#0284c7"
+                  strokeWidth="1"
+                  strokeDasharray="2,2"
                 />
                 <circle
                   cx={hoveredPoint.x}
                   cy={hoveredPoint.y}
-                  r="4"
+                  r="4.5"
                   fill="#ffffff"
                   stroke={config.color}
-                  strokeWidth="2"
+                  strokeWidth="2.5"
                 />
               </g>
             )}
@@ -288,9 +289,9 @@ export default function ObservationProfileChart({
 
           {/* Hover Readout Tooltip */}
           {hoveredPoint && (
-            <div className="absolute top-2 right-2 px-2 py-1 rounded bg-[#081a33]/95 border border-sky-400/50 text-[10px] font-mono text-white shadow-lg pointer-events-none">
+            <div className="absolute top-2 right-2 px-2.5 py-1.5 rounded-lg bg-slate-900/95 border border-slate-700 text-[10px] font-mono text-white shadow-xl pointer-events-none">
               <div>Depth: <span className="text-sky-300 font-bold">{hoveredPoint.depth.toFixed(1)} m</span></div>
-              <div>{config.label}: <span className="text-emerald-300 font-bold">{hoveredPoint.value.toFixed(3)} {config.unit}</span></div>
+              <div>{config.label}: <span className="text-emerald-400 font-bold">{hoveredPoint.value.toFixed(3)} {config.unit}</span></div>
             </div>
           )}
         </div>

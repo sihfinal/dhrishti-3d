@@ -32,6 +32,7 @@ interface Page3CenterViewportProps {
   modelLoading?: boolean
   modelError?: string | null
   vectorDensity?: "low" | "medium" | "high"
+  showEEZ?: boolean
 }
 
 export default function Page3CenterViewport({
@@ -56,14 +57,22 @@ export default function Page3CenterViewport({
   modelLoading = false,
   modelError = null,
   vectorDensity = "medium",
+  showEEZ = true,
 }: Page3CenterViewportProps) {
   const [zoomTrigger, setZoomTrigger] = useState<number>(0)
-  const [compassHeading, setCompassHeading] = useState<number>(currentOrientation)
+  const [resetTrigger, setResetTrigger] = useState<number>(0)
+  const compassNeedleRef = React.useRef<SVGSVGElement>(null)
   const [selectionMode, setSelectionMode] = useState<boolean>(false)
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false)
   const [internalHoverCoords, setInternalHoverCoords] = useState<{ lat: number; lon: number } | null>(null)
 
   const activeHover = externalHoverCoords !== undefined ? externalHoverCoords : internalHoverCoords
+
+  const handleOrientationChange = React.useCallback((heading: number) => {
+    if (compassNeedleRef.current) {
+      compassNeedleRef.current.style.transform = `rotate(${-heading}deg)`
+    }
+  }, [])
 
   const handleHover = (coords: { lat: number; lon: number } | null) => {
     setInternalHoverCoords(coords)
@@ -72,6 +81,13 @@ export default function Page3CenterViewport({
 
   const handleZoomIn = () => setZoomTrigger((prev) => prev + 1)
   const handleZoomOut = () => setZoomTrigger((prev) => prev - 1)
+  const handleResetView = () => {
+    setResetTrigger((prev) => prev + 1)
+    if (compassNeedleRef.current) {
+      compassNeedleRef.current.style.transform = "rotate(0deg)"
+    }
+    onOrientationReset?.()
+  }
 
   const handleRegionSelect = (bounds: GeographicBounds | null) => {
     onRegionChange?.(bounds)
@@ -88,7 +104,12 @@ export default function Page3CenterViewport({
   }
 
   return (
-    <div className="relative w-full h-full min-h-[500px] flex flex-col justify-between overflow-hidden rounded-2xl border border-sky-500/20 bg-gradient-to-b from-[#030914] via-[#051124] to-[#02060e] shadow-2xl p-3 md:p-4 select-none">
+    <div
+      className="relative w-full h-full min-h-[520px] flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 shadow-sm select-none bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: `url('/textures/globe-sky-background.jpg')`,
+      }}
+    >
       {/* ─── Confirmation Modal after Region Selection ─── */}
       <RegionConfirmationModal
         open={showConfirmModal}
@@ -103,99 +124,102 @@ export default function Page3CenterViewport({
         onClose={() => onSelectObservation?.(null)}
       />
 
-      {/* ─── Top Left: Selection Mode Switch & Loading Status ─── */}
-      <div className="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-2 pointer-events-auto">
+      {/* ─── Top Left Region Selection Button ─── */}
+      <div className="absolute left-3.5 top-3.5 z-20 pointer-events-auto">
         <button
           type="button"
-          onClick={() => {
-            setSelectionMode(!selectionMode)
-            onSelectObservation?.(null)
-          }}
-          className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold font-mono tracking-wider flex items-center gap-2 transition-all shadow-lg ${
+          onClick={() => setSelectionMode(!selectionMode)}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-md border transition-all cursor-pointer ${
             selectionMode
-              ? "bg-gradient-to-r from-sky-400 to-teal-300 text-slate-950 border border-white/50 shadow-sky-400/30 scale-[1.03]"
-              : "bg-[#081a33]/90 text-slate-200 border border-sky-400/40 hover:border-sky-300 hover:text-white backdrop-blur-md"
+              ? "bg-[#0284c7] text-white border-sky-400 shadow-sky-500/20 ring-2 ring-sky-300"
+              : "bg-white/95 hover:bg-white text-slate-700 hover:text-[#0284c7] border-slate-200/90 backdrop-blur-md hover:shadow-lg"
           }`}
-          title={selectionMode ? "Click to disable region selection mode" : "Click to enable click & drag region selection"}
+          title={selectionMode ? "Cancel Region Selection" : "Click to select the region"}
         >
-          <span className="text-xs">⛶</span>
-          <span>SELECT REGION: {selectionMode ? "ON" : "OFF"}</span>
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+            />
+          </svg>
+          <span>{selectionMode ? "Cancel selection" : "Click to select the region"}</span>
         </button>
-
-        {/* Observation Status Badges */}
-        {obsLoading && (
-          <span className="px-2.5 py-1 rounded bg-[#040e1b]/90 border border-sky-500/30 text-[10px] text-sky-300 font-mono flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full border border-sky-400 border-t-transparent animate-spin inline-block" />
-            Loading observations…
-          </span>
-        )}
-
-        {obsError && (
-          <span className="px-2.5 py-1 rounded bg-rose-950/80 border border-rose-500/30 text-[10px] text-rose-300 font-mono">
-            Observation data unavailable
-          </span>
-        )}
-
-        {/* Model Data Layer Status Badges */}
-        {modelLoading && (
-          <span className="px-2.5 py-1 rounded bg-[#040e1b]/90 border border-emerald-500/30 text-[10px] text-emerald-300 font-mono flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full border border-emerald-400 border-t-transparent animate-spin inline-block" />
-            Loading {activeLayerId}…
-          </span>
-        )}
-
-        {modelError && (
-          <span className="px-2.5 py-1 rounded bg-amber-950/80 border border-amber-500/30 text-[10px] text-amber-300 font-mono">
-            {modelError}
-          </span>
-        )}
       </div>
 
-      {/* ─── Top Right Navigation & Zoom Controls ─── */}
-      <div className="absolute top-4 right-4 z-20 flex flex-col items-center gap-2.5 pointer-events-auto">
+      {/* ─── Active Selection Mode Helper Banner ─── */}
+      {selectionMode && (
+        <div className="absolute top-3.5 inset-x-0 z-20 flex justify-center pointer-events-none">
+          <div className="bg-[#0a2540]/90 backdrop-blur-md text-white px-4 py-1.5 rounded-full shadow-lg border border-sky-400/40 text-xs font-semibold flex items-center gap-2 pointer-events-auto">
+            <span>📐</span>
+            <span>Click & drag on globe to draw a region box</span>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Right Floating Camera Toolbar ─── */}
+      <div className="absolute right-3 top-4 z-20 pointer-events-auto flex flex-col items-center gap-1.5 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-md p-1.5">
+        {/* Reset / Center View Button */}
         <button
           type="button"
-          onClick={() => {
-            onOrientationReset?.()
-            setCompassHeading(0)
-          }}
-          className="w-10 h-10 rounded-xl bg-[#081a33]/90 border border-sky-400/40 text-sky-300 hover:text-white hover:border-sky-300 flex items-center justify-center shadow-lg transition-all active:scale-95"
-          title="Reset to North"
+          onClick={handleResetView}
+          className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 hover:text-[#0284c7] text-xs transition-colors cursor-pointer"
+          title="Reset View & Orientation"
         >
-          <span
-            className="text-base font-bold transition-transform duration-200 inline-block select-none"
-            style={{ transform: `rotate(${-compassHeading}deg)` }}
-          >
-            🧭
-          </span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" strokeWidth={2} />
+            <circle cx="12" cy="12" r="3" strokeWidth={2} />
+            <path strokeWidth={2} d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+          </svg>
         </button>
 
-        <div className="flex flex-col rounded-xl overflow-hidden border border-sky-500/30 bg-[#081a33]/90 shadow-lg backdrop-blur-md">
-          <button
-            type="button"
-            onClick={handleZoomIn}
-            className="w-10 h-9 flex items-center justify-center text-slate-200 hover:text-white hover:bg-sky-500/20 text-lg font-bold transition-colors border-b border-sky-500/20 active:scale-95 select-none"
-            title="Zoom In"
+        {/* Zoom In (+) */}
+        <button
+          type="button"
+          onClick={handleZoomIn}
+          className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-[#0284c7] text-base font-bold transition-colors cursor-pointer select-none"
+          title="Zoom In"
+        >
+          +
+        </button>
+
+        {/* Zoom Out (−) */}
+        <button
+          type="button"
+          onClick={handleZoomOut}
+          className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-[#0284c7] text-base font-bold transition-colors cursor-pointer select-none"
+          title="Zoom Out"
+        >
+          −
+        </button>
+      </div>
+
+      {/* ─── Elevated Compass Rose Indicator ─── */}
+      <div className="absolute bottom-10 left-5 z-20 pointer-events-none select-none">
+        <div className="relative w-16 h-16 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/90 flex items-center justify-center p-1.5">
+          <span className="absolute top-1 text-[9px] font-bold text-[#0284c7]">N</span>
+          <span className="absolute bottom-1 text-[9px] font-bold text-slate-500">S</span>
+          <span className="absolute left-1.5 text-[9px] font-bold text-slate-500">W</span>
+          <span className="absolute right-1.5 text-[9px] font-bold text-slate-500">E</span>
+          <svg
+            ref={compassNeedleRef}
+            className="w-7 h-7 fill-current text-[#0284c7] opacity-90 transition-transform duration-75"
+            viewBox="0 0 24 24"
+            style={{ transform: "rotate(0deg)" }}
           >
-            +
-          </button>
-          <button
-            type="button"
-            onClick={handleZoomOut}
-            className="w-10 h-9 flex items-center justify-center text-slate-200 hover:text-white hover:bg-sky-500/20 text-lg font-bold transition-colors active:scale-95 select-none"
-            title="Zoom Out"
-          >
-            −
-          </button>
+            <path d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z" />
+          </svg>
         </div>
       </div>
 
-      {/* ─── Interactive 3D Earth Globe ─── */}
-      <div className="relative flex-1 w-full h-full min-h-[360px]">
+      {/* ─── Interactive 3D Earth Globe Canvas ─── */}
+      <div className="relative flex-1 w-full h-full min-h-[400px]">
         <Page3Globe
           onHoverCoordinates={handleHover}
           zoomTrigger={zoomTrigger}
-          onOrientationChange={setCompassHeading}
+          resetTrigger={resetTrigger}
+          onOrientationChange={handleOrientationChange}
           selectionMode={selectionMode}
           selectedRegion={selectedRegion}
           onRegionSelect={handleRegionSelect}
@@ -209,36 +233,38 @@ export default function Page3CenterViewport({
           uFieldData={uFieldData}
           vFieldData={vFieldData}
           vectorDensity={vectorDensity}
+          showEEZ={showEEZ}
         />
       </div>
 
-      {/* ─── Bottom Status Bar: Coordinates Readout & Selected ROI ─── */}
-      <div className="relative z-20 flex items-center justify-between px-3 py-1.5 rounded-lg bg-[#040e1b]/85 border border-sky-500/20 backdrop-blur-md text-[11px] font-mono text-slate-400 mt-2">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-slate-300 font-semibold uppercase">Global Stage 1</span>
-          </span>
+      {/* ─── Bottom Sub-status Bar ─── */}
+      <div className="relative z-20 flex items-center justify-between px-4 py-1.5 bg-white/80 border-t border-slate-200/60 backdrop-blur-xs text-[10.5px] font-mono text-slate-500">
+        <div className="flex items-center gap-2">
           {activeHover ? (
-            <span className="text-sky-300 font-bold">
-              Lat: {activeHover.lat >= 0 ? `${activeHover.lat.toFixed(2)}°N` : `${Math.abs(activeHover.lat).toFixed(2)}°S`}, Lon: {activeHover.lon >= 0 ? `${activeHover.lon.toFixed(2)}°E` : `${Math.abs(activeHover.lon).toFixed(2)}°W`} ({activeHover.lat.toFixed(2)}°, {activeHover.lon.toFixed(2)}°)
+            <span className="text-slate-700 font-bold">
+              Lat: {activeHover.lat >= 0 ? `${activeHover.lat.toFixed(2)}°N` : `${Math.abs(activeHover.lat).toFixed(2)}°S`}, Lon: {activeHover.lon >= 0 ? `${activeHover.lon.toFixed(2)}°E` : `${Math.abs(activeHover.lon).toFixed(2)}°W`}
             </span>
           ) : (
-            <span className="text-slate-500">Lat: — | Lon: —</span>
+            <span>Center Lat: 0.00° · Lon: 75.00°E (Indian Ocean Basin)</span>
           )}
         </div>
 
         <div className="flex items-center gap-3">
-          {selectedRegion ? (
-            <span className="text-teal-300 text-[10px] font-mono">
-              ROI: Lat {Math.min(selectedRegion.latMin, selectedRegion.latMax).toFixed(2)}° → {Math.max(selectedRegion.latMin, selectedRegion.latMax).toFixed(2)}°, Lon {Math.min(selectedRegion.lonMin, selectedRegion.lonMax).toFixed(2)}° → {Math.max(selectedRegion.lonMin, selectedRegion.lonMax).toFixed(2)}°
+          {obsLoading && (
+            <span className="text-sky-600 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-ping" />
+              Loading observations…
             </span>
-          ) : (
-            <span className="text-slate-500 text-[10px] font-mono">ROI: None</span>
           )}
-          <span className="text-[10px] text-slate-500">
-            {selectionMode ? "Drag to box region" : "Orbit & Zoom enabled"}
-          </span>
+          {modelLoading && (
+            <span className="text-emerald-600 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+              Loading {activeLayerId} model layer…
+            </span>
+          )}
+          {!obsLoading && !modelLoading && (
+            <span className="text-slate-400">Orbit, pan & zoom enabled</span>
+          )}
         </div>
       </div>
     </div>

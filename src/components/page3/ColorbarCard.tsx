@@ -9,6 +9,8 @@ interface ColorbarCardProps {
   minVal?: number | null
   maxVal?: number | null
   unit?: string
+  depth?: number
+  currentDateStr?: string
 }
 
 export default function ColorbarCard({
@@ -16,76 +18,114 @@ export default function ColorbarCard({
   minVal,
   maxVal,
   unit,
+  depth = 75,
+  currentDateStr = "15 Feb 2026",
 }: ColorbarCardProps) {
-  // If no model layer is selected -> Show Global Ocean View
-  if (!activeLayer) {
-    return (
-      <div className="bg-[#08172b]/85 backdrop-blur-xl border border-sky-500/20 rounded-xl p-3.5 shadow-lg shadow-black/40">
-        <h3 className="text-[10px] font-bold tracking-[0.2em] text-slate-300 uppercase mb-1 flex items-center justify-between">
-          <span>GLOBAL OCEAN VIEW</span>
-        </h3>
-        <p className="text-xs text-slate-300 leading-relaxed mb-2 font-medium">
-          No model data layer selected.
-        </p>
-        <p className="text-[11px] text-slate-400 leading-relaxed mb-2">
-          The globe is showing the base Earth imagery and real in-situ observation locations.
-        </p>
-        <p className="text-[11px] text-sky-300/90 font-mono">
-          Select Temperature, Salinity, Currents, or Chlorophyll to display a model layer.
-        </p>
-      </div>
-    )
-  }
-
-  const isCurrents = activeLayer.id === "currents"
-  const displayUnit = unit || activeLayer.unit
+  // If no model layer is selected -> Default to Base Ocean explanation or Temperature default
+  const isBase = !activeLayer
+  const label = isBase ? "Base Ocean" : activeLayer.label
+  const icon = isBase ? "🌍" : activeLayer.icon
+  const dataset =
+    activeLayer?.id === "chlorophyll"
+      ? "CMEMS Global Ocean Biogeochemistry"
+      : isBase
+      ? "GEBCO & Blue Marble High-Res Imagery"
+      : "CMEMS Global Ocean Physics"
+  const displayUnit = isBase ? "—" : unit || activeLayer.unit
 
   // Scientific Min / Max
-  const effMin = minVal !== undefined && minVal !== null ? minVal : activeLayer.defaultMin
-  const effMax = maxVal !== undefined && maxVal !== null ? maxVal : activeLayer.defaultMax
+  const effMin = isBase
+    ? 0
+    : minVal !== undefined && minVal !== null
+    ? minVal
+    : activeLayer.defaultMin
+  const effMax = isBase
+    ? 30
+    : maxVal !== undefined && maxVal !== null
+    ? maxVal
+    : activeLayer.defaultMax
 
   // Palette gradient
   const palette: PaletteId =
-    activeLayer.id === "salinity" ? "viridis" : activeLayer.id === "chlorophyll" ? "plasma" : "turbo"
+    activeLayer?.id === "salinity"
+      ? "viridis"
+      : activeLayer?.id === "chlorophyll"
+      ? "plasma"
+      : "turbo"
   const gradient = cssGradient(palette, 32)
 
   return (
-    <div className="bg-[#08172b]/85 backdrop-blur-xl border border-sky-500/20 rounded-xl p-3.5 shadow-lg shadow-black/40">
-      <h3 className="text-[10px] font-bold tracking-[0.2em] text-slate-300 uppercase mb-1 flex items-center justify-between">
-        <span>COLOR SCALE & LEGEND</span>
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] p-3.5 select-none">
+      <h3 className="text-[11px] font-bold tracking-[0.14em] text-slate-800 uppercase mb-2.5">
+        LAYER INFORMATION
       </h3>
-      <p className="text-[11px] text-slate-400 mb-2.5">
-        {isCurrents
-          ? "Current speed magnitude \u221a(u\u00b2 + v\u00b2) & directional flow vectors."
-          : `CMEMS real-time ${activeLayer.label.toLowerCase()} model distribution.`}
-      </p>
 
-      {/* Active Variable Title */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-bold text-white tracking-wide">
-          {activeLayer.label} ({displayUnit})
-        </span>
-        <span className="text-[10px] font-mono text-sky-400">
-          {effMin.toFixed(1)} \u2192 {effMax.toFixed(1)} {displayUnit}
-        </span>
+      {/* Layer Header */}
+      <div className="flex items-center gap-2 mb-2.5">
+        <span className="text-lg select-none">{icon}</span>
+        <h4 className="text-sm font-bold text-slate-900 tracking-tight">
+          {label}
+        </h4>
       </div>
 
-      {/* Gradient Bar */}
-      <div className="relative flex flex-col gap-1.5">
-        <div
-          className="w-full h-3 rounded-md shadow-inner border border-white/20"
-          style={{ background: gradient }}
-        />
-
-        {/* Dynamic 5-Tick Range */}
-        <div className="flex justify-between text-[10px] font-mono text-slate-300 px-0.5">
-          <span>{effMin.toFixed(1)}</span>
-          <span>{(effMin + (effMax - effMin) * 0.25).toFixed(1)}</span>
-          <span>{(effMin + (effMax - effMin) * 0.5).toFixed(1)}</span>
-          <span>{(effMin + (effMax - effMin) * 0.75).toFixed(1)}</span>
-          <span>{effMax.toFixed(1)} {displayUnit}</span>
+      {/* Metadata Table */}
+      <div className="space-y-1 text-xs mb-3">
+        <div className="flex items-center justify-between text-slate-600">
+          <span className="text-slate-500 font-medium">Dataset</span>
+          <span className="font-semibold text-slate-800 text-right truncate max-w-[170px]">
+            {dataset}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-slate-600">
+          <span className="text-slate-500 font-medium">Depth</span>
+          <span className="font-semibold text-slate-800 font-mono">
+            {depth} m
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-slate-600">
+          <span className="text-slate-500 font-medium">Time</span>
+          <span className="font-semibold text-slate-800 font-mono">
+            {currentDateStr}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-slate-600">
+          <span className="text-slate-500 font-medium">Units</span>
+          <span className="font-semibold text-slate-800 font-mono">
+            {displayUnit}
+          </span>
         </div>
       </div>
+
+      {/* Horizontal Color Scale Bar */}
+      {!isBase && (
+        <div className="pt-1 border-t border-slate-100 flex flex-col gap-1">
+          {/* Gradient Bar */}
+          <div
+            className="w-full h-2.5 rounded-full shadow-inner border border-slate-200"
+            style={{ background: gradient }}
+          />
+
+          {/* Numerical Ticks */}
+          <div className="flex justify-between text-[10px] font-mono text-slate-500 px-0.5">
+            <span>{effMin.toFixed(0)}</span>
+            <span>{(effMin + (effMax - effMin) * 0.2).toFixed(0)}</span>
+            <span>{(effMin + (effMax - effMin) * 0.4).toFixed(0)}</span>
+            <span>{(effMin + (effMax - effMin) * 0.6).toFixed(0)}</span>
+            <span>{(effMin + (effMax - effMin) * 0.8).toFixed(0)}</span>
+            <span>{effMax.toFixed(0)}</span>
+          </div>
+
+          <p className="text-[10px] text-center text-slate-500 font-medium mt-0.5">
+            {activeLayer.id === "temperature"
+              ? "Sea Water Temperature (°C)"
+              : activeLayer.id === "salinity"
+              ? "Sea Water Practical Salinity (PSU)"
+              : activeLayer.id === "currents"
+              ? "Current Velocity Magnitude (m/s)"
+              : "Mass Concentration of Chlorophyll (mg/m³)"}
+          </p>
+        </div>
+      )}
     </div>
   )
 }

@@ -12,6 +12,7 @@ import { ModelFieldResponse } from "@/lib/modelApi"
 interface Page3GlobeProps {
   onHoverCoordinates?: (coords: { lat: number; lon: number } | null) => void
   zoomTrigger?: number
+  resetTrigger?: number
   onOrientationChange?: (heading: number) => void
   selectionMode?: boolean
   selectedRegion?: GeographicBounds | null
@@ -27,20 +28,29 @@ interface Page3GlobeProps {
   uFieldData?: ModelFieldResponse | null
   vFieldData?: ModelFieldResponse | null
   vectorDensity?: "low" | "medium" | "high"
+  showEEZ?: boolean
 }
+
+const TARGET_CAM_POS = new THREE.Vector3(5.75, 0.38, 1.54)
+const START_CAM_POS = new THREE.Vector3(65.0, 4.29, 17.41)
 
 function ControlsHandler({
   zoomTrigger,
+  resetTrigger,
   onOrientationChange,
   selectionMode,
 }: {
   zoomTrigger?: number
+  resetTrigger?: number
   onOrientationChange?: (heading: number) => void
   selectionMode?: boolean
 }) {
   const { camera } = useThree()
   const controlsRef = useRef<any>(null)
   const prevZoomTrigger = useRef(zoomTrigger)
+  const prevResetTrigger = useRef(resetTrigger)
+  const isEnteringRef = useRef(true)
+  const enterStartTimeRef = useRef(performance.now())
 
   useEffect(() => {
     if (zoomTrigger === undefined || zoomTrigger === prevZoomTrigger.current) return
@@ -54,11 +64,41 @@ function ControlsHandler({
     }
   }, [zoomTrigger, camera])
 
+  useEffect(() => {
+    if (resetTrigger === undefined || resetTrigger === prevResetTrigger.current) return
+    prevResetTrigger.current = resetTrigger
+
+    const cam = camera as THREE.PerspectiveCamera
+    cam.position.copy(TARGET_CAM_POS)
+    if (controlsRef.current) {
+      controlsRef.current.target.set(0, 0, 0)
+      controlsRef.current.update()
+    }
+  }, [resetTrigger, camera])
+
   useFrame(() => {
+    if (isEnteringRef.current) {
+      const elapsed = (performance.now() - enterStartTimeRef.current) / 2400 // 2.4s smooth zoom-in
+      if (elapsed >= 1) {
+        camera.position.copy(TARGET_CAM_POS)
+        isEnteringRef.current = false
+      } else {
+        // Smooth easeOutCubic: 1 - Math.pow(1 - t, 3)
+        const t = 1 - Math.pow(1 - elapsed, 3)
+        camera.position.lerpVectors(START_CAM_POS, TARGET_CAM_POS, t)
+      }
+      if (controlsRef.current) {
+        controlsRef.current.target.set(0, 0, 0)
+      }
+    }
+
+    if (controlsRef.current) {
+      controlsRef.current.update()
+    }
     if (!onOrientationChange) return
     const camPos = camera.position
-    const azimuth = Math.atan2(camPos.x, camPos.z)
-    let heading = (azimuth * (180 / Math.PI)) % 360
+    const azimuth = Math.atan2(camPos.x, camPos.z) * (180 / Math.PI)
+    let heading = (azimuth - 75) % 360
     if (heading < 0) heading += 360
     onOrientationChange(heading)
   })
@@ -66,14 +106,14 @@ function ControlsHandler({
   return (
     <OrbitControls
       ref={controlsRef}
-      enableRotate={!selectionMode}
-      enableZoom={!selectionMode}
+      enableRotate={!selectionMode && !isEnteringRef.current}
+      enableZoom={!selectionMode && !isEnteringRef.current}
       enablePan={false}
       minDistance={2.6}
       maxDistance={8.5}
-      rotateSpeed={0.8}
-      zoomSpeed={0.9}
-      dampingFactor={0.08}
+      rotateSpeed={1.0}
+      zoomSpeed={1.0}
+      dampingFactor={0.14}
       enableDamping={true}
     />
   )
@@ -82,6 +122,7 @@ function ControlsHandler({
 export default function Page3Globe({
   onHoverCoordinates,
   zoomTrigger,
+  resetTrigger,
   onOrientationChange,
   selectionMode = false,
   selectedRegion = null,
@@ -96,17 +137,23 @@ export default function Page3Globe({
   uFieldData = null,
   vFieldData = null,
   vectorDensity = "medium",
+  showEEZ = true,
 }: Page3GlobeProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
   return (
-    <div className="relative w-full h-full min-h-[420px]">
+    <div ref={containerRef} className="w-full h-full relative select-none">
       <Canvas
-        camera={{ position: [0, 0.4, 4.8], fov: 42 }}
         gl={{
           antialias: true,
           alpha: true,
           powerPreference: "high-performance",
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.15,
+        }}
+        camera={{
+          fov: 38,
+          near: 0.1,
+          far: 1000,
+          position: [START_CAM_POS.x, START_CAM_POS.y, START_CAM_POS.z],
         }}
         className="w-full h-full"
       >
@@ -134,12 +181,14 @@ export default function Page3Globe({
             uFieldData={uFieldData}
             vFieldData={vFieldData}
             vectorDensity={vectorDensity}
+            showEEZ={showEEZ}
           />
         </React.Suspense>
 
         {/* ─── Camera Controls & Zoom Handlers ─── */}
         <ControlsHandler
           zoomTrigger={zoomTrigger}
+          resetTrigger={resetTrigger}
           onOrientationChange={onOrientationChange}
           selectionMode={selectionMode}
         />

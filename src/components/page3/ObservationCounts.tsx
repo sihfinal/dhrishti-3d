@@ -15,12 +15,18 @@ export default function ObservationCounts({
   onToggleType,
 }: ObservationCountsProps) {
   return (
-    <div className="bg-[#08172b]/85 backdrop-blur-xl border border-sky-500/20 rounded-xl p-3.5 shadow-lg shadow-black/40 select-none">
-      <h3 className="text-[10px] font-bold tracking-[0.2em] text-slate-300 uppercase mb-2.5 flex items-center justify-between">
-        <span>OBSERVATION COUNTS</span>
-        <span className="text-[9px] font-mono text-sky-400/80 font-normal">Real Data</span>
-      </h3>
-      <div className="space-y-1.5">
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] p-3.5 select-none">
+      <div className="flex items-center justify-between mb-2.5">
+        <h3 className="text-[11px] font-bold tracking-[0.14em] text-slate-800 uppercase">
+          OBSERVATION COUNTS
+        </h3>
+        <span className="text-[10.5px] font-semibold text-[#0284c7] hover:underline cursor-pointer flex items-center gap-0.5">
+          <span>Real-time & Archive</span>
+          <span className="text-[9px]">⌄</span>
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
         {OBSERVATION_COUNTS.map((item) => {
           const isVisible = visibleTypes[item.id] !== false
           const realCount = counts[item.id] !== undefined ? counts[item.id] : item.count
@@ -30,43 +36,62 @@ export default function ObservationCounts({
               key={item.id}
               type="button"
               onClick={() => onToggleType?.(item.id)}
-              className={`w-full flex items-center justify-between py-1.5 px-2.5 rounded-lg border transition-all text-xs ${
+              className={`flex items-center gap-2.5 p-2 rounded-xl border text-left transition-all cursor-pointer ${
                 isVisible
-                  ? "bg-[#040e1b]/70 border-sky-500/30 hover:bg-[#0d223f]/80"
-                  : "bg-[#030812]/40 border-slate-800 opacity-50 hover:opacity-75"
+                  ? "bg-[#f8fafc] border-slate-200 hover:border-sky-400 hover:bg-sky-50/40 hover:shadow-xs"
+                  : "bg-slate-50/60 border-slate-200/60 opacity-50 hover:opacity-80"
               }`}
-              title={isVisible ? `Click to hide ${item.label}` : `Click to show ${item.label}`}
+              title={isVisible ? `Click to hide ${item.label} markers` : `Click to show ${item.label} markers`}
             >
-              <div className="flex items-center gap-2">
-                {item.shape === "circle" && (
-                  <span
-                    className="w-2.5 h-2.5 rounded-full inline-block shadow-[0_0_8px_currentColor]"
-                    style={{ backgroundColor: item.color, color: item.color }}
-                  />
+              {/* Icon Container */}
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-xs"
+                style={{
+                  backgroundColor:
+                    item.id === "argo"
+                      ? "#ecfdf5"
+                      : item.id === "glider"
+                      ? "#eff6ff"
+                      : item.id === "ctd"
+                      ? "#fff7ed"
+                      : "#faf5ff",
+                }}
+              >
+                {item.id === "argo" && (
+                  <span className="w-3.5 h-3.5 rounded-full bg-[#10b981] inline-block ring-2 ring-emerald-200" />
                 )}
-                {item.shape === "square" && (
-                  <span
-                    className="w-2.5 h-2.5 rounded-[2px] inline-block shadow-[0_0_8px_currentColor]"
-                    style={{ backgroundColor: item.color, color: item.color }}
-                  />
+                {item.id === "glider" && (
+                  <span className="w-3.5 h-3.5 rounded-[3px] bg-[#0284c7] inline-block ring-2 ring-sky-200" />
                 )}
-                {item.shape === "triangle" && (
-                  <span
-                    className="inline-block text-[11px] leading-none drop-shadow-[0_0_6px_currentColor]"
-                    style={{ color: item.color }}
-                  >
-                    ▲
-                  </span>
+                {item.id === "ctd" && (
+                  <span className="text-[11px] text-[#f97316] font-bold leading-none">▲</span>
                 )}
-                <span className="text-slate-200 text-xs font-medium">{item.label}</span>
+                {item.id === "bgc" && (
+                  <span className="w-3.5 h-3.5 rounded-full bg-[#a855f7] inline-block ring-2 ring-purple-200" />
+                )}
               </div>
-              <div className="flex items-center gap-1.5 font-mono">
-                <span className="font-bold text-white text-xs tracking-wider">
+
+              {/* Info Column */}
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-medium text-slate-500 truncate leading-tight">
+                  {item.label}
+                </p>
+                <p className="text-[13px] font-bold text-slate-900 leading-tight mt-0.5 tracking-tight">
                   {realCount.toLocaleString()}
-                </span>
-                <span className="text-[10px] text-slate-400">
-                  {isVisible ? "✓" : "✗"}
-                </span>
+                </p>
+              </div>
+
+              {/* Tick Mark Checkbox */}
+              <div
+                className={`w-4 h-4 rounded-[4px] flex items-center justify-center transition-all shrink-0 border ${
+                  isVisible
+                    ? "bg-[#0284c7] border-[#0284c7] text-white shadow-2xs"
+                    : "bg-white border-slate-300 text-transparent"
+                }`}
+              >
+                <svg className="w-3 h-3 stroke-current stroke-[2.5]" viewBox="0 0 24 24" fill="none">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
               </div>
             </button>
           )

@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import Image from "next/image"
 import Link from "next/link"
 import { useOcean } from "@/lib/store"
 import {
@@ -28,10 +30,19 @@ interface Page3WorkstationProps {
   onOpenManual?: () => void
 }
 
+interface InfoModalData {
+  title: string
+  subtitle: string
+  icon: string
+  sections: { heading: string; body: string }[]
+}
+
 export default function Page3Workstation({
   onReturnToStudyRegion,
   onOpenManual,
 }: Page3WorkstationProps = {}) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const theme = useOcean((s) => s.theme)
   const setTheme = useOcean((s) => s.setTheme)
 
@@ -43,6 +54,10 @@ export default function Page3Workstation({
     lonMin: 65.0,
     lonMax: 85.0,
   })
+
+  // Search & Navigation Modals
+  const [searchQuery, setSearchQuery] = useState("")
+  const [infoModal, setInfoModal] = useState<InfoModalData | null>(null)
 
   // Real In-Situ Observations State
   const [observations, setObservations] = useState<ObservationItem[]>([])
@@ -74,6 +89,28 @@ export default function Page3Workstation({
   const [selectedDate, setSelectedDate] = useState<string>("2026-02-15")
   const [selectedDateIndex, setSelectedDateIndex] = useState<number>(TIME_CONFIG.initialStepIndex)
   const [vectorDensity, setVectorDensity] = useState<"low" | "medium" | "high">("medium")
+  const [showEEZ, setShowEEZ] = useState<boolean>(true)
+
+  // Auto-select layer from search params (?var=temperature | salinity | currents | chlorophyll | thetao | so | uo | vo | chl)
+  useEffect(() => {
+    if (!searchParams) return
+    const varParam = searchParams.get("var")
+    if (varParam) {
+      const normalized = varParam.toLowerCase()
+      let targetId: "temperature" | "salinity" | "currents" | "chlorophyll" | null = null
+      if (normalized === "temperature" || normalized === "thetao" || normalized === "temp") targetId = "temperature"
+      else if (normalized === "salinity" || normalized === "so" || normalized === "sal") targetId = "salinity"
+      else if (normalized === "currents" || normalized === "velocity" || normalized === "uo" || normalized === "vo" || normalized === "current") targetId = "currents"
+      else if (normalized === "chlorophyll" || normalized === "chl" || normalized === "bgc") targetId = "chlorophyll"
+
+      if (targetId) {
+        const foundLayer = DATA_LAYERS.find((l) => l.id === targetId)
+        if (foundLayer) {
+          setActiveLayer(foundLayer)
+        }
+      }
+    }
+  }, [searchParams])
 
   // Fetched Model Data Slices
   const [scalarFieldData, setScalarFieldData] = useState<ModelFieldResponse | null>(null)
@@ -212,6 +249,86 @@ export default function Page3Workstation({
     setStage(2)
   }
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+    // Handle search query
+  }
+
+  const navModals: Record<string, InfoModalData> = {
+    observations: {
+      title: "In-situ Ocean Observations",
+      subtitle: "Real-time and archived observational platforms across the Indian Ocean basin.",
+      icon: "📡",
+      sections: [
+        {
+          heading: "Autonomous Argo Floats (22,000+ Profiles)",
+          body: "Autonomous profilers descending to 2000m depth every 10 days, delivering CTD and bio-geochemical profiles.",
+        },
+        {
+          heading: "Gliders, CTD & BGC Platforms",
+          body: "High-resolution spatial cross-sections along critical maritime corridors and EEZ boundaries.",
+        },
+      ],
+    },
+    dataServices: {
+      title: "Data Services & OGC Interoperability",
+      subtitle: "Standardized geospatial ocean data feeds adhering to international ocean standards.",
+      icon: "🗄️",
+      sections: [
+        {
+          heading: "NetCDF-4 & CF-1.8 Compliance",
+          body: "Fully compliant CF metadata conventions supporting multi-dimensional slicing across latitude, longitude, depth, and time coordinates.",
+        },
+        {
+          heading: "Copernicus & WOD Integration",
+          body: "Direct integration with CMEMS physics/biogeochemistry and NOAA NCEI World Ocean Database.",
+        },
+      ],
+    },
+    operationalApps: {
+      title: "Operational Applications",
+      subtitle: "Maritime decision support systems powered by real-time ocean intelligence.",
+      icon: "⚙️",
+      sections: [
+        {
+          heading: "Hazard Assessment & Cyclone Tracking",
+          body: "Early coastal inundation risks and storm surge tracking across the Indian coastline.",
+        },
+        {
+          heading: "Search & Rescue & Potential Fishing Zones",
+          body: "Drift trajectory modeling and chlorophyll/thermal front analysis for marine operations.",
+        },
+      ],
+    },
+    resources: {
+      title: "Documentation & Resources",
+      subtitle: "User guides, scientific methodology, and Hackathon problem statement specifications.",
+      icon: "📖",
+      sections: [
+        {
+          heading: "SIH 2026 Problem Statement 26067",
+          body: "3D Visualization of Ocean Model Data and in-situ Observations by INCOIS & Ministry of Earth Sciences.",
+        },
+        {
+          heading: "User Manual & Guided Tour",
+          body: "Interactive walkthroughs covering volume slicing, isosurfaces, current vector densities, and model-vs-observation comparisons.",
+        },
+      ],
+    },
+    about: {
+      title: "About SagarDrishti-3D",
+      subtitle: "Ministry of Earth Sciences · INCOIS · Smart India Hackathon 2026",
+      icon: "🇮🇳",
+      sections: [
+        {
+          heading: "Executive Vision",
+          body: "An interactive, web-based 3D visualization and analytical workstation built to democratize ocean intelligence for researchers, disaster managers, and the blue economy.",
+        },
+      ],
+    },
+  }
+
   // If Stage 2 is active, render Stage2Workstation
   if (stage === 2 && selectedRegion) {
     return (
@@ -224,83 +341,272 @@ export default function Page3Workstation({
   }
 
   return (
-    <div className="relative w-screen h-screen flex flex-col justify-between overflow-hidden select-none bg-[#030914] text-slate-100 font-sans">
-      {/* ─── APPROVED WORKSTATION HEADER ─── */}
-      <header className="relative z-30 h-14 px-4 md:px-6 flex items-center justify-between border-b border-sky-500/20 bg-[#051124]/90 backdrop-blur-md">
-        {/* Left: Branding & Subtitle */}
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="h-6 w-6 rounded-lg bg-gradient-to-br from-sky-400 to-teal-300 shadow shadow-sky-500/40" />
-            <div className="flex flex-col">
-              <span className="font-black text-sm md:text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">
-                SAGARDRISHTI-3D
-              </span>
-              <span className="text-[10px] text-sky-400/80 font-semibold tracking-wider -mt-1">
-                Ocean Observation & Model Explorer
-              </span>
+    <div className="relative w-screen h-screen flex flex-col justify-between overflow-hidden select-none bg-[#f0f6fc] text-slate-900 font-sans">
+      
+      {/* ────────────────────────────────────────────────────────────
+          1. TOP INSTITUTIONAL HEADER (ROW 1 + ROW 2)
+      ──────────────────────────────────────────────────────────── */}
+      <header className="w-full bg-white border-b border-slate-100 z-30 sticky top-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)] shrink-0">
+        
+        {/* Row 1: Institutional Badges, Tagline, Search, User */}
+        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-[64px] sm:h-[66px] gap-4">
+            
+            {/* Left: MoES Emblem & INCOIS Logo */}
+            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+              <Link href="/" className="flex items-center cursor-pointer">
+                <Image
+                  src="/landing/header-emblem-moes.png"
+                  alt="Ministry of Earth Sciences, Government of India"
+                  width={220}
+                  height={64}
+                  priority
+                  unoptimized
+                  className="h-10 sm:h-11 w-auto object-contain"
+                />
+              </Link>
+
+              {/* Vertical divider */}
+              <div className="h-8 w-[1px] bg-slate-200" />
+
+              <Link href="/" className="flex items-center cursor-pointer">
+                <Image
+                  src="/landing/header-incois.png"
+                  alt="INCOIS - Indian National Centre for Ocean Information Services"
+                  width={340}
+                  height={64}
+                  priority
+                  unoptimized
+                  className="h-10 sm:h-11 w-auto object-contain"
+                />
+              </Link>
             </div>
-          </Link>
+
+            {/* Center: National Tagline + Tricolor Swirl Ribbon */}
+            <div className="hidden xl:flex items-center justify-center flex-1 px-4">
+              <Image
+                src="/landing/header-tagline-swirl.png"
+                alt="Oceans for a Safer, Sustainable and Prosperous India"
+                width={400}
+                height={70}
+                priority
+                unoptimized
+                className="h-[52px] sm:h-[54px] w-auto object-contain -translate-x-24"
+              />
+            </div>
+
+            {/* Right: Search Pill Input & User Avatar */}
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Search Bar */}
+              <form onSubmit={handleSearchSubmit} className="relative hidden md:flex items-center">
+                <div className="relative flex items-center bg-white border border-slate-200/90 rounded-full px-3.5 py-1 w-60 lg:w-64 shadow-[0_1px_2px_rgba(0,0,0,0.04)] focus-within:ring-2 focus-within:ring-sky-500/40 focus-within:border-sky-500 transition-all">
+                  <svg
+                    className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search datasets, variables, regions..."
+                    className="w-full text-xs text-slate-700 bg-transparent placeholder-slate-400 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="ml-1 text-slate-400 hover:text-sky-600 transition cursor-pointer"
+                    title="Search"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </button>
+                </div>
+              </form>
+
+              {/* User Avatar Circle */}
+              <button
+                type="button"
+                onClick={() => setInfoModal(navModals.about)}
+                className="w-8 h-8 rounded-full bg-[#0a2540] flex items-center justify-center text-white shadow-sm hover:bg-[#0f3458] transition-colors cursor-pointer"
+                title="User Profile & Ministry Session"
+              >
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.8}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </button>
+            </div>
+
+          </div>
         </div>
 
-        {/* Right: Manual & Theme Buttons */}
-        <div className="flex items-center gap-2.5">
-          {onReturnToStudyRegion && (
-            <button
-              type="button"
-              onClick={onReturnToStudyRegion}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-sky-300 hover:text-white bg-[#0a1f3d]/60 hover:bg-[#0f2d59] border border-sky-500/30 transition-all flex items-center gap-1 shadow-sm"
-              title="Return to Page 2 Study Region"
-            >
-              <span>←</span>
-              <span className="hidden sm:inline">Study Region</span>
-            </button>
-          )}
+        {/* Row 2: Institutional Navbar with EXPLORER ACTIVE */}
+        <div className="w-full bg-white border-t border-slate-100">
+          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-[38px] sm:h-[40px]">
+              
+              {/* Navigation Links */}
+              <nav className="flex items-center gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-0.5">
+                {/* Home */}
+                <Link
+                  href="/"
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                  </svg>
+                  <span>Home</span>
+                </Link>
 
-          <button
-            type="button"
-            onClick={onOpenManual}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:text-white bg-[#0a1f3d]/60 hover:bg-[#0f2d59] border border-slate-700/60 hover:border-sky-400/50 transition-all flex items-center gap-1.5 shadow-sm"
-          >
-            <span>📖</span>
-            <span>Manual</span>
-          </button>
+                {/* Study Region */}
+                <Link
+                  href="/study-region"
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Study Region</span>
+                </Link>
 
-          <button
-            type="button"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-sky-300 hover:text-white bg-[#0a1f3d]/60 hover:bg-[#0f2d59] border border-slate-700/60 hover:border-sky-400/50 transition-all shadow-sm"
-            title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
+                {/* Explorer (ACTIVE) */}
+                <button
+                  type="button"
+                  className="relative flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-[#0284c7] shrink-0 py-1.5 transition cursor-default"
+                >
+                  <svg className="w-3.5 h-3.5 text-[#0284c7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" strokeWidth="1.8" />
+                    <path strokeWidth="1.8" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+                  </svg>
+                  <span>Explorer</span>
+                  {/* Blue Active Indicator Bar */}
+                  <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#0284c7] rounded-full" />
+                </button>
+
+                {/* Observations */}
+                <Link
+                  href="/observations"
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 17l6-6 4 4 8-8M17 7h4v4" />
+                  </svg>
+                  <span>Observations</span>
+                </Link>
+
+                {/* Data Services */}
+                <Link
+                  href="/data-services"
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <ellipse cx="12" cy="5" rx="9" ry="3" strokeWidth={1.8} />
+                    <path strokeWidth={1.8} d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                    <path strokeWidth={1.8} d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                  </svg>
+                  <span>Data Services</span>
+                </Link>
+
+                {/* Operational Applications */}
+                <Link
+                  href="/operational-applications"
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5" strokeWidth="1.8" />
+                    <rect x="14" y="3" width="7" height="7" rx="1.5" strokeWidth="1.8" />
+                    <rect x="14" y="14" width="7" height="7" rx="1.5" strokeWidth="1.8" />
+                    <rect x="3" y="14" width="7" height="7" rx="1.5" strokeWidth="1.8" />
+                  </svg>
+                  <span>Operational Applications</span>
+                </Link>
+
+                {/* Resources */}
+                <button
+                  type="button"
+                  onClick={() => setInfoModal(navModals.resources)}
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <span>Resources</span>
+                </button>
+
+                {/* About */}
+                <button
+                  type="button"
+                  onClick={() => setInfoModal(navModals.about)}
+                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" strokeWidth="1.8" />
+                    <path strokeLinecap="round" strokeWidth={1.8} d="M12 16v-4m0-4h.01" />
+                  </svg>
+                  <span>About</span>
+                </button>
+              </nav>
+
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* ─── APPROVED 3-COLUMN WORKSPACE: 25% LEFT | 50% CENTER | 25% RIGHT ─── */}
-      <main className="relative flex-1 w-full flex flex-col lg:flex-row gap-3 p-3 md:p-4 overflow-y-auto lg:overflow-hidden">
-        {/* ─── LEFT 25% PANEL: Observation Counts & Controls ─── */}
-        <aside className="w-full lg:w-1/4 h-full flex flex-col gap-3 overflow-y-auto pr-0 lg:pr-1">
+      {/* ────────────────────────────────────────────────────────────
+          2. APPROVED 3-COLUMN WORKSPACE: 24% LEFT | 52% CENTER | 24% RIGHT
+      ──────────────────────────────────────────────────────────── */}
+      <main className="relative flex-1 w-full flex flex-col lg:flex-row gap-3 p-3 overflow-y-auto lg:overflow-hidden bg-[#f0f6fc]">
+        {/* ─── LEFT 24% PANEL: Observation Counts & Controls ─── */}
+        <aside className="w-full lg:w-[24%] h-full flex flex-col gap-3 overflow-y-auto pr-0 lg:pr-1 no-scrollbar">
           <ObservationCounts
             counts={obsCounts}
             visibleTypes={obsVisibility}
             onToggleType={handleToggleObsType}
           />
+
           <DataLayerSelector
             activeLayerId={activeLayer ? activeLayer.id : null}
             onSelectLayer={setActiveLayer}
             layerVisibility={layerVisibility}
             onToggleVisibility={handleToggleLayerVisibility}
+            showEEZ={showEEZ}
+            onToggleEEZ={() => setShowEEZ((prev) => !prev)}
           />
-          <DepthSlider depth={depth} onChangeDepth={setDepth} />
-          <TimeSlider
-            currentDateStr={getCurrentDateStr()}
-            stepIndex={selectedDateIndex}
-            onStepChange={handleDateIndexChange}
-          />
+
+          {/* Analysis Controls Card (Enclosing Depth & Time Sliders) */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] p-3 select-none flex flex-col flex-1 justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-[10.5px] font-bold tracking-[0.14em] text-slate-800 uppercase">
+                  ANALYSIS CONTROLS
+                </h3>
+              </div>
+              <DepthSlider depth={depth} onChangeDepth={setDepth} />
+            </div>
+            <TimeSlider
+              currentDateStr={getCurrentDateStr()}
+              stepIndex={selectedDateIndex}
+              onStepChange={handleDateIndexChange}
+            />
+          </div>
         </aside>
 
-        {/* ─── CENTER 50% VIEWPORT: 3D Earth Globe ─── */}
-        <section className="w-full lg:w-1/2 h-full flex flex-col">
+        {/* ─── CENTER 52% VIEWPORT: 3D Earth Globe ─── */}
+        <section className="w-full lg:w-[52%] h-full flex flex-col min-h-[420px]">
           <Page3CenterViewport
             selectedRegion={selectedRegion}
             onConfirmRegionExplore={handleConfirmRegionExplore}
@@ -319,37 +625,109 @@ export default function Page3Workstation({
             modelLoading={modelLoading}
             modelError={modelError}
             vectorDensity={vectorDensity}
+            showEEZ={showEEZ}
           />
         </section>
 
-        {/* ─── RIGHT 25% PANEL: Context, Colorbar, Description & Legend ─── */}
-        <aside className="w-full lg:w-1/4 h-full flex flex-col gap-3 overflow-y-auto pl-0 lg:pl-1">
+        {/* ─── RIGHT 24% PANEL: Context, Colorbar, Description & Legend ─── */}
+        <aside className="w-full lg:w-[24%] h-full flex flex-col gap-3 overflow-y-auto pl-0 lg:pl-1 no-scrollbar">
+          <DescriptionCard
+            onResetRegion={() =>
+              setSelectedRegion({
+                latMin: -18.0,
+                latMax: -5.0,
+                lonMin: 65.0,
+                lonMax: 85.0,
+              })
+            }
+          />
+
           <ColorbarCard
             activeLayer={activeLayer}
             minVal={scalarFieldData?.min_value ?? (activeLayer?.id === "currents" ? 0 : null)}
             maxVal={scalarFieldData?.max_value ?? (activeLayer?.id === "currents" ? 1.5 : null)}
             unit={scalarFieldData?.unit || (activeLayer?.id === "currents" ? "m/s" : activeLayer?.unit)}
+            depth={depth}
+            currentDateStr={getCurrentDateStr()}
           />
-          <DescriptionCard activeLayer={activeLayer} />
+
           <HowToUseCard />
+
           <InstrumentLegend />
         </aside>
       </main>
 
-      {/* ─── APPROVED WORKSTATION FOOTER ─── */}
-      <footer className="relative z-30 h-9 px-4 md:px-6 flex items-center justify-between border-t border-sky-500/20 bg-[#051124]/90 backdrop-blur-md text-[10px] md:text-[11px] text-slate-400">
+      {/* ────────────────────────────────────────────────────────────
+          3. APPROVED INSTITUTIONAL FOOTER
+      ──────────────────────────────────────────────────────────── */}
+      <footer className="relative z-30 h-8 px-4 sm:px-6 flex items-center justify-between border-t border-slate-200/90 bg-white text-[11px] text-slate-500 shrink-0 select-none">
         <div className="flex items-center gap-2">
-          <span>Data Source:</span>
-          <span className="text-slate-200 font-medium">
-            Copernicus Marine Service • IFREMER • NOAA / NCEI WOD
-          </span>
+          <span className="font-semibold text-slate-600">Data Source:</span>
+          <span>Copernicus Marine Service • IFREMER • NOAA / NCEI WOD</span>
         </div>
 
-        <div className="flex items-center gap-1.5 text-emerald-400 font-semibold font-mono">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-[0_0_8px_#22c55e]" />
-          <span>Official Data Sources Configured</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-emerald-600 font-semibold font-mono text-[10.5px]">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
+            <span>Official Data Sources Configured</span>
+          </div>
+          <span className="hidden sm:inline text-slate-400 font-mono text-[10px]">
+            15 Feb 2026, 12:30 UTC
+          </span>
         </div>
       </footer>
+
+      {/* ─── Navigation Info Modal ─── */}
+      {infoModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+          onClick={() => setInfoModal(null)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl p-2 rounded-xl bg-sky-50 border border-sky-100">
+                  {infoModal.icon}
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">{infoModal.title}</h3>
+                  <p className="text-xs text-slate-500">{infoModal.subtitle}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInfoModal(null)}
+                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 mb-5">
+              {infoModal.sections.map((sec, i) => (
+                <div key={i} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                  <h4 className="text-xs font-bold text-slate-800 mb-1">{sec.heading}</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">{sec.body}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setInfoModal(null)}
+                className="px-4 py-2 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold transition cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+

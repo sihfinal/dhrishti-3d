@@ -44,3 +44,30 @@ class ModelFieldResponse(BaseModel):
     min_value: Optional[float]
     max_value: Optional[float]
     unit: str
+
+class ModelFieldSlice(BaseModel):
+    depth: float
+    requested_depth: float
+    actual_depth: float
+    values: list[list[Optional[float]]]
+    min_value: Optional[float]
+    max_value: Optional[float]
+
+class ModelFieldStackResponse(BaseModel):
+    variable: str
+    time: str
+    depths: list[float]
+    requested_depths: list[float]
+    lat_min: float
+    lat_max: float
+    lon_min: float
+    lon_max: float
+    width: int
+    height: int
+    latitudes: list[float]
+    longitudes: list[float]
+    unit: str
+    slices: list[ModelFieldSlice] = []
+    u_slices: Optional[list[ModelFieldSlice]] = None
+    v_slices: Optional[list[ModelFieldSlice]] = None
+

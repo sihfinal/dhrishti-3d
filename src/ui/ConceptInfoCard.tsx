@@ -60,13 +60,15 @@ export const CONCEPTS_DATA: Record<string, ConceptDetail> = {
     category: "Physical Oceanography",
     badge: "Variables: uo, vo · Unit: m/s",
     explanation:
-      "Ocean currents transport immense volumes of heat, salt, and momentum across the ocean basin. The horizontal velocity vector is decomposed into orthogonal components: uo for eastward (zonal) velocity and vo for northward (meridional) velocity. In SagarDrishti-3D, dynamic 3D vector arrows visualize speed and direction throughout the vertical water column.",
+      "Ocean currents transport immense volumes of heat, salt, and momentum across the ocean basin. The horizontal velocity vector is decomposed into orthogonal components: uo for eastward (zonal) velocity and vo for northward (meridional) velocity, with current speed magnitude computed as √(uo² + vo²). In SagarDrishti-3D, dynamic 3D vector arrows visualize speed and direction throughout the vertical water column.",
     keyPoints: [
       "Vector decomposition into orthogonal components uo (zonal) and vo (meridional).",
+      "Current speed magnitude computed strictly as Speed = √(uo² + vo²).",
       "Features semiannual reversal driven by the Southwest and Northeast Monsoons.",
       "Instanced 3D velocity arrows reveal Somali Current and equatorial undercurrents.",
     ],
     facts: [
+      { label: "CURRENT SPEED", value: "Speed = √(uo² + vo²) in m/s" },
       { label: "ZONAL VECTOR (U)", value: "uo (Eastward Velocity in m/s)" },
       { label: "MERIDIONAL VECTOR (V)", value: "vo (Northward Velocity in m/s)" },
       { label: "MODEL SOURCE", value: "HYCOM / Copernicus CMEMS" },

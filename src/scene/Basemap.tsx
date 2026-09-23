@@ -13,7 +13,7 @@ import { makeMapping, SPHERE_RADIUS, geoToSphere, sphereToGeo, sampleField } fro
 import { getFieldData } from "@/lib/fieldCache"
 import { useOcean } from "@/lib/store"
 
-const EARTH_TEXTURE = "/textures/earth_atmos_2048.jpg"
+const EARTH_TEXTURE = "/textures/earth_4k_v3.jpg"
 
 export default function Basemap({ roi }: { roi: Roi }) {
   const theme = useOcean((s) => s.theme)
