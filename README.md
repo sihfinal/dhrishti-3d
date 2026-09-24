@@ -47,39 +47,80 @@ Instead of viewing gridded model fields, vertical observation soundings, profile
   </tr>
 </table>
 
-### Platform Gallery
+### Platform Visual Tour (All 10 Application Views)
 
 <div align="center">
-  <img src="public/landing/landing-snap-final.png" alt="SagarDrishti-3D Portal Overview" width="100%" />
-  <p><em>SagarDrishti-3D Main Portal — Unified entry point for the 3D Explorer, Observation Registry, OGC Data Services, and Operational Application Views.</em></p>
+  <img src="screenshots/01-landing-page.png" alt="01 - SagarDrishti-3D Main Portal Landing Page" width="100%" />
+  <p><sub><strong>01. Main Portal Landing Page</strong> — Unified entry point for the 3D Ocean Explorer, In-Situ Observation Registry, Open Data Services, and Operational Application Views.</sub></p>
 </div>
 
 <table>
   <tr>
-    <td width="50%" align="center">
-      <img src="screenshots/1.jpg" alt="Interactive 3D Globe Entry" width="100%" />
+    <td width="50%" align="center" valign="top">
+      <img src="screenshots/02-study-region.png" alt="02 - Indian Ocean Study Region" width="100%" />
       <br />
-      <sub><strong>3D Interactive Globe Entry</strong> — Browser-based orbital view with direct study region navigation.</sub>
+      <sub><strong>02. Indian Ocean Study Region</strong> — Interactive overview of ocean variables, observing platforms, and regional dynamics ($35^\circ\text{S} - 30^\circ\text{N}$, $40^\circ\text{E} - 100^\circ\text{E}$).</sub>
     </td>
-    <td width="50%" align="center">
-      <img src="screenshots/2.jpg" alt="Scientific Concepts & Study Region" width="100%" />
+    <td width="50%" align="center" valign="top">
+      <img src="screenshots/03-explorer-3d-view.png" alt="03 - Stage 1 Global 3D Explorer View" width="100%" />
       <br />
-      <sub><strong>Indian Ocean Study Domain</strong> — Interactive parameter and observation platform overview.</sub>
+      <sub><strong>03. Stage 1: 3D Global Ocean Explorer</strong> — Interactive 3D Earth with CMEMS model layers, Indian EEZ boundary, and 25,000+ observation markers.</sub>
     </td>
   </tr>
   <tr>
-    <td width="50%" align="center">
-      <img src="screenshots/3.jpg" alt="Stage 1 Global View with CMEMS Layer and Observations" width="100%" />
+    <td width="50%" align="center" valign="top">
+      <img src="screenshots/04-after-selecting-region.png" alt="04 - Stage 2 Selected Region 3D Volumetric View" width="100%" />
       <br />
-      <sub><strong>Stage 1: Global Basin Overview</strong> — CMEMS scalar distribution, Indian EEZ boundary, and in-situ markers.</sub>
+      <sub><strong>04. Stage 2: Selected Region 3D Depth-Resolved View</strong> — WebGL2 volumetric ray marching, multi-depth horizontal slices, isosurfaces, current vectors, and $7\times$ vertical exaggeration.</sub>
     </td>
-    <td width="50%" align="center">
-      <img src="screenshots/5.jpg" alt="Stage 2 3D Volumetric Workstation" width="100%" />
+    <td width="50%" align="center" valign="top">
+      <img src="screenshots/06-observations.png" alt="06 - In-Situ Ocean Observations & Vertical Profiles" width="100%" />
       <br />
-      <sub><strong>Stage 2: 3D Regional Workstation</strong> — GPU volumetric ray marching, depth slices, isosurfaces, and collocated profiles.</sub>
+      <sub><strong>06. In-Situ Ocean Observations</strong> — Platform filtering (Argo, Glider, CTD, BGC), spatial distribution map, and depth-resolved temperature, salinity, and chlorophyll profile curves.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <img src="screenshots/07-data-services.png" alt="07 - Open Scientific Data Services" width="100%" />
+      <br />
+      <sub><strong>07. Open Scientific Data Services</strong> — Interactive catalog for OGC WMS, OGC WCS, OPeNDAP DAP2, and REST API integration with Python/JS/cURL snippets.</sub>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <img src="screenshots/08-operational-applications.png" alt="08 - Operational Application Views" width="100%" />
+      <br />
+      <sub><strong>08. Operational Applications</strong> — Domain-focused visualization workspaces for Hazard Assessment, Search &amp; Rescue, Fishery Advisory, and Climate Monitoring.</sub>
     </td>
   </tr>
 </table>
+
+<details>
+<summary><strong>📸 View Additional Platform Screens (Demo Walkthrough, Resources &amp; About)</strong></summary>
+
+<br />
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <img src="screenshots/05-watch-demo-video.png" alt="05 - Watch Demo Video Walkthrough" width="100%" />
+      <br />
+      <sub><strong>05. Watch Demo Video</strong> — Guided platform demonstration and feature walkthrough player.</sub>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <img src="screenshots/09-resources.png" alt="09 - Scientific Resources & Documentation" width="100%" />
+      <br />
+      <sub><strong>09. Resources &amp; Documentation</strong> — Technical guides, data specifications, and user manuals.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center" valign="top">
+      <img src="screenshots/10-about.png" alt="10 - About SagarDrishti-3D" width="75%" />
+      <br />
+      <sub><strong>10. About SagarDrishti-3D</strong> — Institutional context, SIH 2026 PS 26067 alignment, and architectural summary.</sub>
+    </td>
+  </tr>
+</table>
+
+</details>
 
 ---
 
