@@ -1,578 +1,857 @@
-# 🌊 SagarDrishti-3D (सागरदृष्टि-3D)
-### *Interactive 3D Ocean Model & Observation Visualization Platform*
+<div align="center">
 
-[![SIH PS 26067](https://img.shields.io/badge/SIH%202026-PS%2026067-0284c7?style=for-the-badge&logo=target&logoColor=white)](https://www.sih.gov.in/)
+<img src="public/sagardrishti-logo.png" alt="SagarDrishti-3D Logo" width="96" />
+
+# 🌊 SagarDrishti-3D
+
+### Interactive 3D Ocean Model & Observation Visualization Platform
+
+**Explore • Visualize • Compare • Understand**
+
+[![SIH 2026 — PS 26067](https://img.shields.io/badge/SIH%202026-PS%2026067-0284c7?style=for-the-badge&logo=target&logoColor=white)](https://www.sih.gov.in/)
 [![INCOIS / MoES](https://img.shields.io/badge/INCOIS-Ministry%20of%20Earth%20Sciences-0d9488?style=for-the-badge&logo=gov.uk&logoColor=white)](https://incois.gov.in/)
 [![Next.js 16](https://img.shields.io/badge/Next.js%2016-React%2019-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Three.js](https://img.shields.io/badge/Three.js-WebGL2%20Ray%20Marching-047857?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
-[![Pytest 102/102 Passing](https://img.shields.io/badge/Pytest-102%2F102%20Passing%20(100%25)-10b981?style=for-the-badge&logo=pytest&logoColor=white)](#21-testing)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Hugging Face Dataset](https://img.shields.io/badge/Hugging%20Face-Dataset%20Archive-ffd21e?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/datasets/kumar9513/data)
+[![TypeScript 5.7](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.11-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Three.js / WebGL2](https://img.shields.io/badge/Three.js-WebGL2-047857?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
+[![NetCDF-4 / xarray](https://img.shields.io/badge/NetCDF--4-xarray-0369a1?style=for-the-badge&logo=python&logoColor=white)](https://docs.xarray.dev/)
+[![Pytest 102 Passed](https://img.shields.io/badge/Pytest-102%20Passed-10b981?style=for-the-badge&logo=pytest&logoColor=white)](#-verification)
+[![Hugging Face Dataset](https://img.shields.io/badge/Hugging%20Face-Dataset-ffd21e?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/datasets/kumar9513/data)
+
+<br />
+
+**SagarDrishti-3D** is a browser-based scientific visualization platform developed for **Smart India Hackathon 2026 (PS 26067)** under the **Indian National Centre for Ocean Information Services (INCOIS), Ministry of Earth Sciences (MoES), Government of India**. It integrates 4D numerical ocean model outputs with real in-situ observations and presents them through an interactive 3D environment.
+
+Instead of viewing gridded model fields, vertical observation soundings, profile comparisons, and standardized geospatial services in isolated tools, the platform brings them together into a single exploration and analysis workspace.
+
+</div>
 
 ---
 
-## 2. Overview
+## 🌐 See the Ocean as Data
 
-Oceanographic research and operational marine workflows require correlating two distinct paradigms of marine data:
-1. **Continuous 4D Numerical Ocean Circulation Models:** Spatially continuous, multi-depth hydrodynamic and biogeochemical simulations on discrete spatial grids.
-2. **In-Situ Marine Observations:** Discrete Lagrangian and Eulerian vertical soundings collected at specific positions and timestamps by autonomous and ship-based instruments.
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <h3>🌊 Explore</h3>
+      <p>Navigate interactive 3D ocean fields across horizontal space, vertical water-column depths, and daily model timesteps using WebGL2 volume rendering, depth slices, Marching Cubes isosurfaces, and current vectors.</p>
+    </td>
+    <td width="33%" valign="top">
+      <h3>🔬 Compare</h3>
+      <p>Inspect real in-situ observation soundings (Argo floats, autonomous gliders, CTD casts, and BGC sensors) alongside collocated numerical ocean model grids with layer-by-layer residual metrics.</p>
+    </td>
+    <td width="33%" valign="top">
+      <h3>📡 Access</h3>
+      <p>Consume multidimensional ocean datasets directly through REST JSON/binary endpoints, OGC Web Map Service (WMS), OGC Web Coverage Service (WCS), and OPeNDAP DAP2 streams.</p>
+    </td>
+  </tr>
+</table>
 
-**SagarDrishti-3D** bridges this divide by providing an integrated, browser-based 3D visualization and analytical workstation focused on the **Indian Ocean Basin** (spanning the Arabian Sea, Bay of Bengal, and Equatorial Indian Ocean: $35^\circ\text{S} - 30^\circ\text{N}$, $40^\circ\text{E} - 100^\circ\text{E}$).
+### Platform Gallery
 
-The platform enables oceanographers, researchers, and operational analysts to interactively explore multi-depth ocean physical and biogeochemical structures, perform collocated model-versus-observation residual analysis, and access standardized geospatial data services over open OGC and OPeNDAP interfaces.
+<div align="center">
+  <img src="public/landing/landing-snap-final.png" alt="SagarDrishti-3D Portal Overview" width="100%" />
+  <p><em>SagarDrishti-3D Main Portal — Unified entry point for the 3D Explorer, Observation Registry, OGC Data Services, and Operational Application Views.</em></p>
+</div>
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="screenshots/1.jpg" alt="Interactive 3D Globe Entry" width="100%" />
+      <br />
+      <sub><strong>3D Interactive Globe Entry</strong> — Browser-based orbital view with direct study region navigation.</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="screenshots/2.jpg" alt="Scientific Concepts & Study Region" width="100%" />
+      <br />
+      <sub><strong>Indian Ocean Study Domain</strong> — Interactive parameter and observation platform overview.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="screenshots/3.jpg" alt="Stage 1 Global View with CMEMS Layer and Observations" width="100%" />
+      <br />
+      <sub><strong>Stage 1: Global Basin Overview</strong> — CMEMS scalar distribution, Indian EEZ boundary, and in-situ markers.</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="screenshots/5.jpg" alt="Stage 2 3D Volumetric Workstation" width="100%" />
+      <br />
+      <sub><strong>Stage 2: 3D Regional Workstation</strong> — GPU volumetric ray marching, depth slices, isosurfaces, and collocated profiles.</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 3. Problem Statement
+## 🌊 The Challenge
 
-> **Smart India Hackathon (SIH 2026) — Problem Statement 26067**  
-> **Title:** Develop a web-based interactive 3D visualization platform that integrates numerical ocean model outputs and in-situ observations.  
-> **Organization:** Indian National Centre for Ocean Information Services (INCOIS), Ministry of Earth Sciences (MoES), Government of India.
+Oceanographic information originates from multiple independent observing and modelling systems:
 
----
+- **Numerical Ocean Models:** Multi-depth gridded simulations (`thetao`, `so`, `uo`, `vo`, `chl`) stored in multidimensional NetCDF-4 archives.
+- **Argo Profiling Floats:** Autonomous drifting floats recording vertical temperature and salinity profiles.
+- **Autonomous Underwater Gliders:** High-resolution saw-tooth spatial transects.
+- **Shipboard CTD Casts:** Deep hydrographic baseline stations.
+- **Biogeochemical (BGC) Observations:** Optical fluorometer measurements of chlorophyll-a.
+- **Geospatial Boundaries:** Maritime Exclusive Economic Zone (EEZ) vector boundaries.
 
-## 4. Objectives
+These datasets differ in **file format**, **spatial resolution**, **grid topology**, **temporal sampling**, **depth coordinate representation**, and **access protocols**.
 
-- **Interactive 3D Ocean Visualization:** Deliver GPU-accelerated volumetric rendering, horizontal depth slicing, 3D isosurfaces, and current velocity fields within standard web browsers.
-- **Integrate Model & Observation Data:** Collocate gridded hydrodynamic model outputs with discrete observational soundings in a shared spatial reference frame.
-- **Explore Ocean Variables through Depth & Time:** Support continuous multi-depth navigation from surface waters ($0.5\,\text{m}$) down to deep intermediate layers ($1000\,\text{m}+$) across daily timesteps.
-- **Provide Scientific Profiles:** Render depth-resolved parameter curves (temperature, salinity, chlorophyll) for individual observation soundings.
-- **Support Open Standards:** Expose OGC Web Map Service (WMS 1.3.0/1.1.1), OGC Web Coverage Service (WCS 2.0.1/1.0.0), and OPeNDAP DAP 2.0 protocols for direct integration with GIS and scientific clients.
-- **Provide Reusable & Extensible Architecture:** Design registry-driven adapters and unified data schemas for ingestion of delimited ASCII/CSV/TSV files and future sensor streams.
-- **Support Operational Visualization Views:** Provide tailored application perspectives for marine hazard assessment, search and rescue support, fishery habitat advisories, and climate archive analysis.
+The core challenge is not merely storing ocean data — it is making heterogeneous 4D model grids and discrete vertical observations **understandable and usable together**.
 
----
-
-## 5. Key Features
-
-| Capability | Technical Implementation | Repository Verification |
-| :--- | :--- | :---: |
-| **3D Volumetric Ray Marching** | WebGL2 direct volume casting through 3D scalar texture with front-to-back compositing | `src/lib/volumeRenderer.ts` |
-| **3D Marching Cubes Isosurfaces** | Dynamic extraction of constant-value 3D surfaces (e.g., $20^\circ\text{C}$ thermocline envelope) | `src/lib/marchingCubes.ts` |
-| **Horizontal Depth Slicing** | Multi-depth planes ($0.5\,\text{m} \to 1062.4\,\text{m}$) with colormapped contours and isoline borders | `src/components/page3/stage2/` |
-| **3D Current Velocity Vectors** | Instanced directional arrows scaled by horizontal speed ($\text{speed} = \sqrt{u_o^2 + v_o^2}$) | `src/components/page3/stage2/` |
-| **Observation Sounding Profiles** | In-situ platform markers with interactive depth profile modal charts down to $2000\,\text{m}$ | `src/components/page3/ObservationProfileChart.tsx` |
-| **Model vs. Observation Comparison** | Nearest-neighbor spatial/depth collocation and layer residual calculation ($\text{Obs} - \text{Model}$) | `backend/services/comparison_service.py` |
-| **Geospatial Indian EEZ Boundary** | Maritime boundary lines from Marine Regions (VLIZ) v12 dataset | `public/data/india_eez.geojson` |
-| **Standardized Data Services** | High-performance FastAPI endpoints, OGC WMS, OGC WCS, and OPeNDAP DAP 2.0 servers | `backend/routers/` |
-| **Delimited Data Ingestion** | CSV/TSV/ASCII parser with header normalization, coordinate validation, and deduplication | `backend/adapters/delimited_text.py` |
-| **Scientific Visual Controls** | Scientific colormaps (Turbo, Viridis, Plasma, Coolwarm, YlGn), opacity, and $1\times \to 10\times$ vertical exaggeration | `src/components/page3/stage2/ModelControlPanel.tsx` |
+> **SagarDrishti-3D creates a common browser-based scientific environment where users can explore, inspect, and compare these datasets in one unified coordinate space.**
 
 ---
 
-## 6. System Architecture
+## 🧭 How We Approached PS 26067
+
+```mermaid
+flowchart LR
+    A["Scientific Data Sources"]
+    B["Adapters & Ingestion"]
+    C["Validation & Normalization"]
+    D["Scientific Backend"]
+    E["REST / WMS / WCS / OPeNDAP"]
+    F["3D Web Visualization"]
+    G["Observation Profiles"]
+    H["Model vs Observation"]
+    I["Operational Views"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    F --> H
+    F --> I
+```
+
+1. **Acquire:** Read multidimensional Copernicus Marine (CMEMS) NetCDF-4 archives, NOAA World Ocean Database (WOD) ragged-array observation files, and delimited text uploads.
+2. **Adapt:** Convert heterogeneous dataset layouts into common internal structures through modular model and observation adapters.
+3. **Validate:** Enforce geographic coordinate bounds ($-90^\circ \dots 90^\circ$ latitude, $-180^\circ \dots 180^\circ$ longitude), non-negative depths, ISO timestamps, and variable mappings.
+4. **Serve:** Expose subsets and visual rasters through FastAPI REST routes, OGC WMS, OGC WCS, and OPeNDAP DAP2 services.
+5. **Visualize:** Render the ocean in the browser using Three.js and custom WebGL2 shaders across global and regional 3D views.
+6. **Compare:** Collocate discrete observation soundings with nearest model grid cells, timesteps, and depths to compute vertical residuals.
+7. **Apply:** Present domain-focused views for marine hazard assessment, search and rescue support, fishery advisory, and climate archive analysis.
+
+---
+
+## 💡 From Fragmented Data to One Scientific Workspace
+
+| Traditional Workflow | SagarDrishti-3D |
+| :--- | :--- |
+| Gridded model NetCDF files viewed in desktop GIS or command-line scripts | Model fields rendered directly in an interactive browser-based 3D volume |
+| In-situ observation files inspected separately from model fields | Observation markers overlaid directly inside the same 3D ocean domain |
+| Standalone static plots for vertical depth profiles | Interactive profile modal triggered directly from 3D spatial markers |
+| Manual script writing for model-versus-observation verification | Automated collocated residual comparison ($\text{Obs} - \text{Model}$, Bias, MAE, RMSD) |
+| Dataset-specific file downloads and custom parsers | Unified REST API + OGC WMS + OGC WCS + OPeNDAP DAP2 endpoints |
+| 2D surface-only map inspection | 3D depth-resolved exploration with slices, ray marching, and isosurfaces |
+| Fixed pre-rendered static images | Dynamic variable, depth, time, colormap, opacity, and vertical exaggeration controls |
+
+---
+
+## 🚀 What You Can Do
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🌐 Interactive 3D Ocean</h3>
+      <ul>
+        <li><strong>Global & Regional Views:</strong> Transition from an orbital 3D Earth globe to a bounded 3D regional ocean block.</li>
+        <li><strong>3D Volume Rendering:</strong> WebGL2 GPU ray marching through a 3D data texture with emission-absorption compositing.</li>
+        <li><strong>Horizontal Depth Slices:</strong> Multi-depth horizontal planes with contour borders.</li>
+        <li><strong>3D Isosurfaces:</strong> Standalone Marching Cubes extraction for constant-value 3D envelopes.</li>
+        <li><strong>Current Velocity Vectors:</strong> 3D directional arrows oriented and scaled by flow velocity.</li>
+        <li><strong>Vertical Exaggeration:</strong> Interactive $1\times \to 10\times$ depth scaling slider.</li>
+        <li><strong>Time Navigation:</strong> Scrub across 90 daily model steps (01 Jan 2026 – 31 Mar 2026).</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🌡️ Ocean Variables</h3>
+      <ul>
+        <li><strong>Potential Temperature (<code>thetao</code>):</strong> Thermal stratification and surface heat distribution ($^\circ\text{C}$).</li>
+        <li><strong>Practical Salinity (<code>so</code>):</strong> Haline structure and freshwater plumes ($\text{PSU}$).</li>
+        <li><strong>Eastward Velocity (<code>uo</code>):</strong> Zonal water-column velocity component ($\text{m/s}$).</li>
+        <li><strong>Northward Velocity (<code>vo</code>):</strong> Meridional water-column velocity component ($\text{m/s}$).</li>
+        <li><strong>Horizontal Current Speed:</strong> Computed vector magnitude:<br/>$$\text{speed} = \sqrt{u_o^2 + v_o^2}$$</li>
+        <li><strong>Chlorophyll-a (<code>chl</code>):</strong> Biogeochemical phytoplankton pigment concentration ($\text{mg/m}^3$).</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🔬 In-Situ Observations</h3>
+      <ul>
+        <li><strong>Argo / PFL:</strong> Autonomous profiling float casts down to $2000\,\text{m}$.</li>
+        <li><strong>Glider / GLD:</strong> High-density underwater glider transects.</li>
+        <li><strong>CTD:</strong> Shipboard Conductivity-Temperature-Depth hydrographic casts.</li>
+        <li><strong>BGC-Capable Platforms:</strong> Platforms carrying bio-optical chlorophyll sensors alongside physical sensors.</li>
+        <li><strong>Profile Inspection:</strong> Click any marker to view platform ID, coordinates, timestamp, and depth-dependent measurement curves.</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <h3>📊 Model vs Observation & Controls</h3>
+      <ul>
+        <li><strong>Collocated Comparison:</strong> Matches an observation sounding to the nearest model grid cell, date, and depth levels.</li>
+        <li><strong>Statistical Metrics:</strong> Computes layer-by-layer $\text{Observation} - \text{Model}$ residuals, Mean Bias, MAE, and RMSD.</li>
+        <li><strong>Scientific Controls:</strong> Switch variables, select discrete depths, scrub timestamps, adjust color palettes (Turbo, Viridis, Plasma, Coolwarm, YlGn), tune opacity, and toggle vector density.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+---
+
+## 🗺️ Indian Ocean Study Region
+
+The active numerical ocean model archive and spatial subsetting engine focus on the **Indian Ocean Basin**:
+
+- **Latitude Bounds:** $35^\circ\text{S} \longrightarrow 30^\circ\text{N}$ (`-35.0` to `30.0`)
+- **Longitude Bounds:** $40^\circ\text{E} \longrightarrow 100^\circ\text{E}$ (`40.0` to `100.0`)
+
+### Key Sub-Basins Covered
+- **Arabian Sea:** Western Indian Ocean upwelling zones, high-salinity water masses, and monsoon current systems.
+- **Bay of Bengal:** Freshwater-influenced surface stratification, barrier layers, and coastal circulation.
+- **Equatorial Indian Ocean:** Zonal equatorial jets, thermocline ridges, and cross-basin exchange pathways.
+
+---
+
+## 🛰️ Data Sources
+
+| Source | Dataset | Content / Variables | Format |
+| :--- | :--- | :--- | :--- |
+| **Copernicus Marine (CMEMS)** | Global Ocean Physics (`GLORYS12V1`) | Potential Temperature (`thetao`), Practical Salinity (`so`), Eastward Velocity (`uo`), Northward Velocity (`vo`) | NetCDF-4 (`CF-1.4`) |
+| **Copernicus Marine (CMEMS)** | Global Ocean Biogeochemistry (`FREEBIORYS2V4`) | Chlorophyll-a concentration (`chl`) | NetCDF-4 (`CF-1.6`) |
+| **NOAA / NCEI World Ocean Database** | WOD Profiling Floats (`PFL` / Argo) | 22,231 vertical casts containing Temperature, Salinity, Pressure, and BGC measurements where equipped | NetCDF-4 Ragged Array |
+| **NOAA / NCEI World Ocean Database** | WOD Autonomous Gliders (`GLD`) | 2,591 vertical glider profiles | NetCDF-4 Ragged Array |
+| **NOAA / NCEI World Ocean Database** | WOD Shipboard CTD (`CTD`) | 619 hydrographic station casts | NetCDF-4 Ragged Array |
+| **Marine Regions / VLIZ** | World EEZ Dataset v12 | Indian Exclusive Economic Zone (EEZ) maritime boundary polygons (MRGID 8480, 8333) | GeoJSON (`EPSG:4326`) |
+
+> **Note on BGC Observations:** Not every Argo/PFL float carries biogeochemical sensors. The platform classifies an observation as BGC-capable only when valid bio-optical measurements (such as Chlorophyll-a) are present in the cast record.
+
+---
+
+## 📅 Current Data Coverage
+
+| Parameter | Physical Model Archive (`copernicus_daily`) | Biogeochemical Archive (`copernicus_chlorophyll_daily`) |
+| :--- | :--- | :--- |
+| **Temporal Span** | **January 1, 2026 → March 31, 2026** | **January 1, 2026 → March 31, 2026** |
+| **Timesteps** | **90 daily NetCDF files** | **90 daily NetCDF files** |
+| **Latitude Range** | $-35.0^\circ\text{S}$ to $+30.0^\circ\text{N}$ ($781$ grid points) | $-35.0^\circ\text{S}$ to $+30.0^\circ\text{N}$ ($261$ grid points) |
+| **Longitude Range** | $+40.0^\circ\text{E}$ to $+100.0^\circ\text{E}$ ($721$ grid points) | $+40.0^\circ\text{E}$ to $+100.0^\circ\text{E}$ ($241$ grid points) |
+| **Horizontal Resolution** | $0.083^\circ \times 0.083^\circ$ ($\approx 9\,\text{km}$) | $0.25^\circ \times 0.25^\circ$ ($\approx 27\,\text{km}$) |
+| **Vertical Depth Levels** | **40 levels** ($0.49\,\text{m} \longrightarrow 1941.89\,\text{m}$) | **54 levels** ($0.51\,\text{m} \longrightarrow 1945.30\,\text{m}$) |
+
+---
+
+## 🌐 Inside the 3D Explorer
+
+```mermaid
+flowchart LR
+    subgraph Stage1["Stage 1 — Global View"]
+        S1A["3D Digital Earth"]
+        S1B["Observation Fleet Overlay"]
+        S1C["Indian EEZ Boundary"]
+        S1D["Interactive Bounding-Box ROI Selector"]
+        S1A --> S1B --> S1C --> S1D
+    end
+
+    subgraph Stage2["Stage 2 — Regional 3D Workstation"]
+        S2A["WebGL2 GPU Volume Ray Marching"]
+        S2B["Multi-Depth Horizontal Slices"]
+        S2C["3D Marching Cubes Isosurfaces"]
+        S2D["3D Current Velocity Vectors"]
+        S2E["Depth, Time & Vertical Exaggeration Controls"]
+    end
+
+    Stage1 -- "Confirm Selected Region" --> Stage2
+```
+
+### Stage 1 — Global View
+- **3D Digital Earth:** Interactive sphere with atmospheric shaders, country outlines, and high-resolution surface textures.
+- **Observation Locations:** Renders in-situ platforms across the Indian Ocean with camera-distance level-of-detail (LOD) clustering.
+- **Indian EEZ Layer:** Overlays the Indian maritime boundary polygons (`india_eez.geojson`) for regional spatial context.
+- **ROI Selection:** Users click and drag a bounding box directly on the globe to isolate a custom latitude/longitude study sub-region and transition into Stage 2.
+
+### Stage 2 — Regional Scientific Workstation
+- **GPU Volume Rendering:** Casts rays through a `THREE.Data3DTexture` volume block representing the selected ocean region across depth.
+- **Depth Slices:** Renders discrete horizontal planes from the surface down to deep water layers.
+- **Isosurfaces:** Computes 3D triangle meshes along constant scalar thresholds using a standalone 256-entry Marching Cubes implementation (`src/lib/marchingCubes.ts`).
+- **Current Vectors:** Renders 3D directional arrows oriented by $\theta = \text{atan2}(v_o, u_o)$ and scaled by $\text{speed} = \sqrt{u_o^2 + v_o^2}$.
+- **Workstation Controls:** Adjust active variable, depth level, daily date, vertical exaggeration ($1\times \to 10\times$), isovalue threshold, and scientific colormaps.
+
+---
+
+## 🔬 From Marker to Scientific Profile
+
+```mermaid
+flowchart LR
+    M1["1. Locate Marker on 3D Globe / Volume"] --> M2["2. Click Platform Sphere"]
+    M2 --> M3["3. Inspect Platform Metadata & Timestamp"]
+    M3 --> M4["4. View Vertical Depth-Parameter Curve"]
+    M4 --> M5["5. Launch Model vs Observation Comparison"]
+```
+
+1. **Locate Marker:** Identify an observation platform by color-coded taxonomy (🟢 Argo, 🔵 Glider, 🟠 CTD, 🟣 BGC) on the 3D globe or inside the regional 3D volume.
+2. **Select Platform:** Click the marker sphere in selection mode (`🎯`) or select it from the observation filter panel.
+3. **Inspect Metadata:** View the platform identifier (e.g., `argo_19770705`), geographic coordinates (`latitude`, `longitude`), instrument category, and sounding timestamp.
+4. **Analyze Depth Profile:** Examine the interactive vertical sounding graph plotting measured parameter values against water-column depth ($\text{m}$).
+5. **Compare with Model:** Switch to the comparative analysis tab to evaluate how the in-situ profile aligns with the numerical ocean model at that location.
+
+---
+
+## 📊 Scientific Comparison
 
 ```mermaid
 flowchart TD
-    subgraph DataSources["1. Scientific Data Sources"]
-        CMEMS["Copernicus Marine Models<br/>(Daily thetao, so, uo, vo, chl)"]
-        WOD["World Ocean Database<br/>(Argo, Glider, CTD, BGC NetCDF)"]
-        ASCII["Delimited Text / CSV / TSV<br/>(Uploaded In-Situ Observations)"]
-    end
+    O["Selected In-Situ Observation<br/>(Lat, Lon, Timestamp, Depth Array)"]
+    M["Find Matching CMEMS Grid Cell<br/>(Nearest Lat / Lon within Study Domain)"]
+    T["Match Model Timestep<br/>(Nearest Daily Archive Slice)"]
+    D["Sample Model at Observation Depths<br/>(Nearest Vertical Depth Levels)"]
+    R["Compute Layer-by-Layer Residual<br/>Residual = Observation − Model"]
+    S["Aggregate Statistical Agreement Metrics<br/>Mean Bias • MAE • RMSD"]
 
-    subgraph IngestionLayer["2. Ingestion & Adapter Layer"]
-        Registry["Central Adapter & Variable Registry<br/>(backend/registry/)"]
-        ModelAdapter["CMEMSModelAdapter<br/>(xarray / NetCDF4 Lazy Slicing)"]
-        WODAdapter["WODObservationAdapter<br/>(Offset-Indexed Ragged Arrays)"]
-        TextAdapter["DelimitedTextObservationAdapter<br/>(Header Aliasing & Validation)"]
-    end
-
-    subgraph ServiceLayer["3. Scientific Backend Services"]
-        ModelService["ModelService<br/>(Subsetting, Depth Stacking, LRU Cache)"]
-        ObsService["ObservationService<br/>(Spatial Filtering, Profile Extraction)"]
-        CompService["ModelObservationComparisonService<br/>(Collocation & Residual Analytics)"]
-        WMSService["WMSService<br/>(OGC WMS 1.3.0 / 1.1.1 Rasterizer)"]
-        WCSService["WCSService<br/>(OGC WCS 2.0.1 / 1.0.0 NetCDF/GeoTIFF)"]
-        DAPService["OpenDAPService<br/>(OPeNDAP DAP 2.0 / THREDDS Server)"]
-    end
-
-    subgraph APILayer["4. API & Standard Protocols"]
-        REST["REST API Endpoints<br/>(/api/v1/model, /observations, /compare)"]
-        WMS["OGC WMS Endpoints<br/>(GetCapabilities, GetMap, GetLegendGraphic)"]
-        WCS["OGC WCS Endpoints<br/>(GetCapabilities, DescribeCoverage, GetCoverage)"]
-        DAP["OPeNDAP DAP2 Endpoints<br/>(.dds, .das, .dods, .html, catalog.xml)"]
-    end
-
-    subgraph ClientLayer["5. Browser Workstation (Next.js / Three.js)"]
-        Globe["Stage 1: 3D Interactive Marine Globe<br/>(Fleet-Wide Tracking & ROI Bounding Box)"]
-        Workstation["Stage 2: Regional 3D Ocean Workstation<br/>(Ray Marching, Slices, Isosurfaces, Vectors)"]
-        ProfileView["Profile Inspector & Model Comparison<br/>(Layer Residuals, Bias, RMSD, MAE)"]
-        AppViews["Operational Application Views<br/>(Hazard, SAR, Fishery, Climate)"]
-    end
-
-    CMEMS --> ModelAdapter
-    WOD --> WODAdapter
-    ASCII --> TextAdapter
-
-    ModelAdapter --> Registry
-    WODAdapter --> Registry
-    TextAdapter --> Registry
-
-    Registry --> ModelService
-    Registry --> ObsService
-
-    ModelService --> CompService
-    ObsService --> CompService
-    ModelService --> WMSService
-    ModelService --> WCSService
-    ModelService --> DAPService
-
-    ModelService --> REST
-    ObsService --> REST
-    CompService --> REST
-    WMSService --> WMS
-    WCSService --> WCS
-    DAPService --> DAP
-
-    REST --> Globe
-    REST --> Workstation
-    REST --> ProfileView
-    REST --> AppViews
-    WMS -.-> ClientLayer
+    O --> M --> T --> D --> R --> S
 ```
 
----
+### Formulations Implemented (`backend/services/comparison_service.py`)
 
-## 7. Data Sources
+For each matched vertical depth level $i \in \{1, \dots, N\}$:
 
-| Source | Domain / Dataset | Variables / Content | Data Format | Temporal / Spatial Coverage |
-| :--- | :--- | :--- | :--- | :--- |
-| **Copernicus Marine (CMEMS)** | Global Physical Analysis/Forecast (`GLORYS12V1`) | Potential Temperature (`thetao`), Practical Salinity (`so`), Zonal Velocity (`uo`), Meridional Velocity (`vo`) | NetCDF-4 / CF-1.4 | Daily: 2026-01-01 to 2026-03-31 (90 timesteps)<br/>$35^\circ\text{S} - 30^\circ\text{N}$, $40^\circ\text{E} - 100^\circ\text{E}$ (40 depth levels: $0.5\,\text{m} \to 1942\,\text{m}$) |
-| **Copernicus Marine (CMEMS)** | Global Biogeochemical Analysis (`FREEBIORYS2V4`) | Mass Concentration of Chlorophyll-a in Sea Water (`chl`) | NetCDF-4 / CF-1.6 | Daily: 2026-01-01 to 2026-03-31 (90 timesteps)<br/>$35^\circ\text{S} - 30^\circ\text{N}$, $40^\circ\text{E} - 100^\circ\text{E}$ (54 depth levels: $0.5\,\text{m} \to 1945\,\text{m}$) |
-| **NOAA / NCEI WOD** | Profiling Floats (Argo / PFL) | In-situ Temperature, Salinity, Pressure, Dissolved Oxygen, Nitrate, Chlorophyll-a, pH | NetCDF-4 Ragged Arrays | 22,231 casts across the Indian Ocean basin |
-| **NOAA / NCEI WOD** | Autonomous Gliders (GLD) | High-density saw-tooth vertical transects (Temperature, Salinity, Oxygen, Chlorophyll-a) | NetCDF-4 Ragged Arrays | 2,591 casts |
-| **NOAA / NCEI WOD** | Conductivity-Temperature-Depth (CTD) | Deep-sea hydrographic baseline stations (Temperature, Salinity, Oxygen, Chlorophyll-a) | NetCDF-4 Ragged Arrays | 619 casts |
-| **Marine Regions (VLIZ)** | World EEZ Dataset v12 | Maritime boundary lines (MRGID 8480, 8333) | GeoJSON (EPSG:4326) | Mainland India, Lakshadweep, Andaman & Nicobar ($2,323,948\,\text{km}^2$) |
-| **Committed Offline Store** | SagarDrishti-3D Lightweight Cache | Quantized binary grids (`*.bin`), platform metadata, and coastlines | Binary Uint8 + JSON | Dedicated lightweight store in `public/data/` (<9 MB) for instant offline evaluation |
+- **Layer Residual:**
+  $$\text{Residual}_i = \text{Observation}_i - \text{Model}_i$$
 
----
+- **Mean Bias:**
+  $$\text{Bias} = \frac{1}{N} \sum_{i=1}^{N} (\text{Observation}_i - \text{Model}_i)$$
 
-## 8. Ocean Variables
+- **Mean Absolute Error (MAE):**
+  $$\text{MAE} = \frac{1}{N} \sum_{i=1}^{N} |\text{Observation}_i - \text{Model}_i|$$
 
-| Variable Name | NetCDF Identifier | Description | Units | Mathematical Formulation / Notes |
-| :--- | :---: | :--- | :---: | :--- |
-| **Potential Temperature** | `thetao` | Temperature of the water parcel moved adiabatically to standard surface reference pressure | $^\circ\text{C}$ | Derived from CMEMS physics model and WOD sensor thermistors |
-| **Practical Salinity** | `so` | Practical salinity of sea water calculated on the PSS-78 scale | $\text{PSU}$ | Derived from CMEMS physics model and WOD conductivity cells |
-| **Eastward Velocity** | `uo` | Zonal component of horizontal sea water velocity (positive eastward) | $\text{m/s}$ | CMEMS hydrodynamic flow field variable |
-| **Northward Velocity** | `vo` | Meridional component of horizontal sea water velocity (positive northward) | $\text{m/s}$ | CMEMS hydrodynamic flow field variable |
-| **Horizontal Current Speed** | — | Horizontal magnitude of the current velocity vector | $\text{m/s}$ | $$\text{speed} = \sqrt{u_o^2 + v_o^2}$$ |
-| **Mass Concentration of Chlorophyll-a** | `chl` | Biogeochemical proxy for marine phytoplankton biomass | $\text{mg/m}^3$ | Derived from CMEMS biogeochemical model and calibrated bio-optical fluorometers |
+- **Root Mean Square Deviation (RMSD):**
+  $$\text{RMSD} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} (\text{Observation}_i - \text{Model}_i)^2}$$
 
 ---
 
-## 9. Observation Types
+## 📡 Open Scientific Data Services
 
-The platform tracks and inspects discrete in-situ marine platforms across the Indian Ocean:
+<table>
+  <tr>
+    <td width="25%" valign="top">
+      <h4>⚡ REST API</h4>
+      <p>Application-facing JSON and binary endpoints serving spatial subgrids, multi-depth stacks, observation profiles, and residual analytics.</p>
+    </td>
+    <td width="25%" valign="top">
+      <h4>🗺️ OGC WMS</h4>
+      <p>Web Map Service (<code>1.3.0</code> &amp; <code>1.1.1</code>) rendering geo-referenced PNG/JPEG map rasters and legends directly from CMEMS NetCDF archives.</p>
+    </td>
+    <td width="25%" valign="top">
+      <h4>🧊 OGC WCS</h4>
+      <p>Web Coverage Service (<code>2.0.1</code> &amp; <code>1.0.0</code>) delivering multidimensional spatial/depth/time subset coverages as NetCDF-4 or GeoTIFF.</p>
+    </td>
+    <td width="25%" valign="top">
+      <h4>🌐 OPeNDAP</h4>
+      <p>DAP 2.0 wire-protocol server (<code>DDS</code>, <code>DAS</code>, <code>DODS</code>, HTML form, and THREDDS catalog) for remote multidimensional array slicing.</p>
+    </td>
+  </tr>
+</table>
 
-- 🟢 **Argo Profiling Floats (`argo` / `PFL`):** Autonomous robotic floats profiling between the surface and $2000\,\text{m}$ depth on 10-day cycles.
-- 🔵 **Autonomous Underwater Gliders (`glider` / `GLD`):** Buoyancy-driven vehicles traversing horizontal saw-tooth survey patterns.
-- 🟠 **Shipboard CTD Casts (`ctd`):** Hydrographic baseline soundings gathered during research expeditions.
-- 🟣 **Biogeochemical-Capable Platforms (`bgc`):** Observation platforms equipped with calibrated bio-optical sensors measuring Chlorophyll-a alongside standard hydrography. *(Note: Only platforms with active optical fluorometers are classified as BGC; standard Argo floats measure physical parameters).*
-
-### Interactive Sounding Capabilities
-- **Spatial Positioning:** Rendered as interactive 3D spheres on the global Earth sphere.
-- **Camera-Distance LOD & Clustering:** Markers dynamically cluster at distant orbital viewpoints and expand into individual inspection points as the user zooms in.
-- **Sounding Selection & Header Metadata:** Clicking any platform displays its unique identifier (e.g., `argo_19770705`), latitude, longitude, and measurement timestamp.
-- **Depth Profile Chart:** Modal inspection window plotting temperature ($^\circ\text{C}$), salinity ($\text{PSU}$), and chlorophyll ($\text{mg/m}^3$) continuous curves down the water column.
-
----
-
-## 10. 3D Visualization
-
-SagarDrishti-3D features a dual-stage visualization workflow:
-
-### Stage 1: Global Digital Earth
-- **WebGL Interactive Earth Sphere:** Atmospheric glow shaders, high-resolution satellite basemap, and national border boundaries.
-- **Fleet-Wide Tracking:** Renders observation soundings across the basin with platform taxonomy markers.
-- **Indian EEZ Layer:** Maritime boundary line overlay defining the Indian Exclusive Economic Zone based on Marine Regions (VLIZ) v12 data.
-- **Interactive ROI Selection:** Click-and-drag 2D bounding box on the globe surface to isolate custom latitude/longitude regions of interest and transition into the 3D regional workstation.
-
-### Stage 2: 3D Regional Workstation
-- **GPU Direct Volume Ray Marching:** Direct ray casting through a 3D scientific data texture (`THREE.Data3DTexture`) using GLSL shaders with emission-absorption compositing and early ray termination.
-- **3D Marching Cubes Isosurfaces:** Interactive extraction of constant-value 3D surfaces (e.g., the $20^\circ\text{C}$ thermocline boundary) using an internal 256-entry edge/triangle lookup table and dynamic isovalue sliders.
-- **Multi-Depth Slicing Stack:** Coordinated horizontal depth planes ($0.5\,\text{m}, 11.4\,\text{m}, 25.2\,\text{m}, 55.8\,\text{m}, 109.7\,\text{m}, 222.5\,\text{m}, 541.1\,\text{m}, 1062.4\,\text{m}$) with colormapped contours and depth borders.
-- **3D Velocity Vectors:** Directional 3D arrows oriented by $\theta = \text{atan2}(v_o, u_o)$ and scaled in length by $\text{speed} = \sqrt{u_o^2 + v_o^2}$.
-- **Vertical Depth Exaggeration:** Dynamic $1\times \to 10\times$ depth slider expanding vertical layer separation for enhanced inspection of shallow bathymetry and thermocline gradients.
-- **Temporal Playback Controls:** Time slider navigating across daily model timesteps (90 days from January to March 2026).
-
----
-
-## 11. Model–Observation Analysis
-
-The platform includes a dedicated comparative analysis engine (`backend/services/comparison_service.py` and `src/components/page3/ModelObsComparisonView.tsx`) to validate numerical model outputs against real physical measurements:
-
-```
-┌─────────────────────────┐             ┌─────────────────────────┐
-│ In-Situ Observation     │             │ Gridded Model Dataset   │
-│ Sounding (Lat, Lon, t)  │             │ (CMEMS NetCDF Archive)  │
-└────────────┬────────────┘             └────────────┬────────────┘
-             │                                       │
-             ▼                                       ▼
-    [Spatial Filtering]                     [Spatial Subsetting]
-    Extract vertical array                  Nearest-neighbor grid cell
-    (Depth, Obs Value)                      (Lat, Lon, Depth, Time)
-             │                                       │
-             └───────────────────┬───────────────────┘
-                                 │
-                                 ▼
-                     [Layer-by-Layer Residual]
-                     Residual = Obs - Model
-                                 │
-                                 ▼
-                    [Statistical Error Metrics]
-                    • Mean Bias: mean(Obs - Model)
-                    • MAE: mean(|Obs - Model|)
-                    • RMSD: sqrt(mean((Obs - Model)²))
-```
-
-1. **Spatial & Temporal Collocation:** The user selects an in-situ sounding. The comparison engine extracts the nearest horizontal grid coordinate from the CMEMS dataset and matches the observation timestamp to the daily model step.
-2. **Vertical Sampling:** Model grid cells are sampled at the discrete depth levels recorded by the observational sensor.
-3. **Layer Residuals:** Computes $\text{Residual}_i = \text{Observation}_i - \text{Model}_i$ for every sounding depth layer.
-4. **Statistical Summaries:** Generates quantitative agreement metrics:
-   - **Mean Bias:** Indicates systemic overestimation or underestimation.
-   - **Mean Absolute Error (MAE):** Average magnitude of absolute discrepancies.
-   - **Root Mean Square Deviation (RMSD):** Sensitivity to localized stratification deviations.
-
----
-
-## 12. Data Services
-
-SagarDrishti-3D exposes open scientific interfaces conforming to international geospatial and oceanographic data standards:
-
-| Service Interface | Specification / Standard | Intended Consumer | Primary Capabilities |
+| Service | Supported Protocols / Versions | Purpose | Typical Consumer |
 | :--- | :--- | :--- | :--- |
-| **REST API** | HTTP / JSON / Binary Octet-Stream | SagarDrishti Web Frontend & Custom Scripts | Model subgrids, depth stacks, observation profiles, and comparative metrics |
-| **OGC WMS** | OGC Web Map Service 1.3.0 & 1.1.1 | QGIS, ArcGIS, Leaflet, OpenLayers | Geo-referenced raster map tiles with scientific colormaps and GetLegendGraphic |
-| **OGC WCS** | OGC Web Coverage Service 2.0.1 & 1.0.0 | GDAL, Scientific GIS Clients, Python | Multidimensional spatial/depth/temporal coverage extraction in NetCDF-4 and GeoTIFF |
-| **OPeNDAP DAP2** | NASA ESE / OPeNDAP DAP 2.0 Protocol | Python (`xarray`, `netCDF4`), MATLAB, R, CDO | Remote dataset opening, multidimensional slicing, and binary XDR streaming |
-
-### Endpoints
-- **Model Metadata:** `GET /api/v1/model/metadata`
-- **Model Time Steps:** `GET /api/v1/model/times`
-- **Model Vertical Depths:** `GET /api/v1/model/depths`
-- **Model 2D Subgrid Field:** `GET /api/v1/model/field`
-- **Model Multi-Depth Stack:** `GET /api/v1/model/field-stack`
-- **Observation Platforms:** `GET /api/v1/observations/platforms`
-- **Observation Platform Detail:** `GET /api/v1/observations/{id}`
-- **Observation Sounding Profile:** `GET /api/v1/observations/{id}/profile`
-- **Model vs. Observation Comparison:** `GET /api/v1/compare/model-observation`
-- **Indian EEZ GeoJSON:** `GET /api/v1/geospatial/india-eez`
-- **OGC WMS Service:** `GET /api/v1/ogc/wms`
-- **OGC WCS Service:** `GET /api/v1/ogc/wcs`
-- **OPeNDAP DAP2 Catalog & Streams:** `GET /api/v1/opendap/{dataset}.[dds|das|dods|html]`
+| **REST** | HTTP/1.1 JSON & Binary | Application data access & profile comparison | SagarDrishti-3D Web UI, Python/JS scripts |
+| **WMS** | OGC WMS `1.3.0`, `1.1.1` | Rendered scientific map layers & color legends | QGIS, ArcGIS, Leaflet, OpenLayers |
+| **WCS** | OGC WCS `2.0.1`, `1.0.0` | Subsetted gridded coverage downloads (`NetCDF-4`, `GeoTIFF`) | GIS analysts, GDAL, scientific workflows |
+| **OPeNDAP** | DAP `2.0` & THREDDS `1.0` | Remote multidimensional dataset inspection & slicing | Python (`pydap`/`xarray`), MATLAB, R, CDO |
 
 ---
 
-## 13. Data Ingestion
+## 📥 Extensible Data Ingestion
 
-The ingestion subsystem (`backend/adapters/delimited_text.py` and `backend/services/ingestion_service.py`) enables ingesting external observation files:
+The platform supports ingesting delimited observation files (`.csv`, `.tsv`, `.txt`, `.dat`, `.ascii`) alongside NetCDF archives:
 
-```
-Delimited File (.csv, .tsv, .txt, .dat)
-  │
-  ├── 1. Delimiter Sniffing (comma, tab, semicolon, pipe)
-  ├── 2. Header & Column Alias Normalization (lat/latitude/y, lon/longitude/x, depth/z/pressure)
-  ├── 3. Scientific Range Validation (lat: -90..90, lon: -180..180, depth >= 0, ISO timestamps)
-  ├── 4. Variable Mapping via VariableRegistry (temperature, salinity, chlorophyll)
-  ├── 5. SHA-256 Checksum Calculation (Duplicate Prevention)
-  └── 6. Transformation to UnifiedObservation & UnifiedProfilePoint schemas
+```mermaid
+flowchart LR
+    A["CSV / TSV / ASCII"] --> B["Delimiter Detection"]
+    B --> C["Column Normalization"]
+    C --> D["Variable Mapping"]
+    D --> E["Validation"]
+    E --> F["Duplicate Detection"]
+    F --> G["Unified Observation"]
+    G --> H["Visualization & API"]
 ```
 
-- **Supported Formats:** Comma-separated (CSV), tab-separated (TSV), semicolon-delimited, pipe-delimited, and whitespace-delimited ASCII tables.
-- **Directory Monitoring:** The ingestion service can scan `data/incoming/` to detect newly placed files, validate their syntax, and record job statuses (`DISCOVERED`, `VALIDATING`, `INGESTED`, `PARTIALLY_INGESTED`, `FAILED`, `REJECTED`, or `SKIPPED_DUPLICATE`).
+1. **Delimiter Detection:** Automatically identifies comma (`,`), tab (`\t`), semicolon (`;`), pipe (`|`), or whitespace delimiters.
+2. **Column Normalization:** Maps diverse header conventions (`lat`/`latitude_deg_north`, `lon`/`lng`, `depth`/`pres_dbar`, `time`/`obs_time`) to canonical fields.
+3. **Variable Mapping:** Resolves column names against the central `VariableRegistry` (`temperature`, `salinity`, `chlorophyll`, `u_velocity`, `v_velocity`).
+4. **Scientific Validation:** Verifies coordinate bounds ($-90 \dots 90$, $-180 \dots 180$), non-negative depths, and valid timestamps; generates a structured `ValidationReport` (`VALID`, `PARTIALLY_VALID`, or `REJECTED`).
+5. **Duplicate Prevention:** Computes SHA-256 file checksums in `backend/services/ingestion_service.py` to prevent duplicate ingestion of identical files placed in `data/incoming/`.
 
 ---
 
-## 14. Extensible Architecture
+## 🧩 Built to Extend
 
-The backend utilizes an adapter-and-registry pattern to decouple concrete file structures from API endpoints:
-
-```
-[ External Data Source ]
-         │
-         ▼
-[ Concrete Adapter ] (inherits BaseModelAdapter or BaseObservationAdapter)
-         │
-         ▼
-[ Normalized Unified Schemas ] (UnifiedObservation, UnifiedProfilePoint)
-         │
-         ▼
-[ Central Registries ]
-├── AdapterRegistry: Maps source IDs to adapter implementations
-├── VariableRegistry: Standardizes physical variables, units, and aliases
-├── ObservationTypeRegistry: Manages platform metadata and marker taxonomy
-└── SourceRegistry: Manages dataset origins and citation metadata
-         │
-         ▼
-[ Service & API Layer ] (WMS, WCS, OPeNDAP, REST Endpoints)
+```mermaid
+flowchart LR
+    S["External Data Source"] --> A["Concrete Adapter"]
+    A --> U["Normalized Unified Schema"]
+    U --> R["Central Registries"]
+    R --> E["REST / OGC Services"]
+    E --> V["3D Visualization"]
 ```
 
-### Extension Points for Future Sensor Modalities
-The registry architecture includes predefined extension hooks for additional oceanographic instrumentation:
-- **Moorings / Fixed Buoys (`mooring`):** Fixed geographic time series soundings.
-- **Acoustic Doppler Current Profilers (`adcp`):** High-resolution vertical current velocity profiles.
-- **High-Frequency Radar (`hf_radar`):** Coastal surface current velocity vector fields.
+- **Adapter Registry (`backend/registry/adapters.py`):** Decouples API services from underlying file formats by mapping source IDs to `BaseModelAdapter` and `BaseObservationAdapter` classes.
+- **Variable Registry (`backend/registry/variables.py`):** Centralizes standard variable identifiers, physical units, colormaps, valid value bounds, and column aliases.
+- **Observation Type Registry (`backend/registry/observation_types.py`):** Manages platform taxonomies, marker styles, and profile capabilities.
+- **Source Registry (`backend/registry/sources.py`):** Tracks dataset provenance, institutions, and metadata citations.
 
-> *Note: These sensor definitions exist in the registry as extension specifications (`is_active=False`) and do not generate synthetic data.*
-
----
-
-## 15. Operational Applications
-
-The platform includes four demonstration application views (`app/operational-applications/page.tsx`) illustrating how ocean model parameters and observation soundings inform decision-making:
-
-### 1. Marine Hazard Assessment
-- **Demonstrated Visualization:** Sea surface temperature distribution, subsurface heat content gradients, salinity fronts, and surface current velocity fields alongside in-situ observation soundings.
-- **Operational Utility:** Provides physical context regarding thermal gradients and currents that influence marine operations and storm tracking environments. *(Note: Does not perform atmospheric cyclone prediction).*
-
-### 2. Search & Rescue (SAR) Support
-- **Demonstrated Visualization:** Surface and sub-surface current velocity vectors ($u_o, v_o$, speed $\text{speed} = \sqrt{u_o^2 + v_o^2}$), flow direction, and positions of nearby drifting observation platforms (Argo floats).
-- **Operational Utility:** Visualizes ocean surface circulation patterns to evaluate trajectory trends in marine recovery operations. *(Note: Does not perform automated Lagrangian drift forecasting).*
-
-### 3. Fishery Advisory & Habitat Mapping
-- **Demonstrated Visualization:** Chlorophyll-a concentration fields from the CMEMS biogeochemical model, sea surface temperature gradients, and localized thermal divergence zones collocated with BGC sensor soundings.
-- **Operational Utility:** Identifies biological productive zones and thermal fronts associated with pelagic feeding grounds. *(Note: Does not perform fish-stock population forecasting).*
-
-### 4. Climate & Ocean Archive Monitoring
-- **Demonstrated Visualization:** Temporal navigation across the 90-day physical and biogeochemical ocean model archive, vertical thermocline displacement, and deep-ocean observation time series down to $2000\,\text{m}$.
-- **Operational Utility:** Explores seasonal hydrographic variability across the Indian Ocean basin. *(Note: Does not perform decadal climate forecasting).*
+### Planned / Future Extensions
+The registry layer defines clean extension hooks (`status="extension_ready"`, `is_active=False`) for future observing systems without generating synthetic data:
+- **Moored Buoy Arrays (`mooring`)** — *Planned / Future*
+- **Acoustic Doppler Current Profilers (`adcp`)** — *Planned / Future*
+- **High-Frequency Coastal Radar (`hf_radar`)** — *Planned / Future*
+- **Expanded Biogeochemical Variables (Dissolved Oxygen, Nitrate, pH)** — *Planned / Future*
+- **Machine-Learning Derived Diagnostic Layers** — *Planned / Future*
 
 ---
 
-## 16. Performance & Engineering
+## 🧭 Operational Application Views
 
-The platform incorporates specific software and data engineering optimizations:
+The `/operational-applications` route provides four domain-specific perspectives demonstrating how integrated ocean model fields and in-situ soundings support marine analysis:
 
-- **Thread-Safe Bounded LRU NetCDF File-Handle Caching:** `backend/adapters/cmems_model.py` maintains an `OrderedDict` LRU cache (16 active dataset handles) protected by a threading lock to avoid file-reopen overhead during concurrent tile requests.
-- **GZip Response Compression:** FastAPI server enables `GZipMiddleware` for responses exceeding $1024\,\text{bytes}$, reducing bandwidth consumption for JSON and GeoJSON payloads.
-- **$O(1)$ WOD Profile Lookup via Cumulative Offsets:** `backend/adapters/wod_observations.py` precomputes cumulative offset arrays for ragged-array NetCDF dimensions (`z_obs`, `Temperature_obs`), enabling constant-time cast seeking.
-- **Field-Stack API:** `GET /api/v1/model/field-stack` retrieves multiple horizontal depth slices in a single round-trip, minimizing HTTP handshakes during 3D scene construction.
-- **Lazy Slicing with Adaptive Stride:** `xarray` coordinates are indexed lazily using `.sel()` and downsampled via spatial stride ($1\times \to 8\times$) based on client viewport demands.
-- **Single-Precision Processing:** Numerical arrays are normalized to `float32` before transmission, halving memory footprint compared to default 64-bit precision.
-- **Three.js GPU Memory Management:** Reuses persistent geometries, shader materials, and instanced meshes, invoking explicit `.dispose()` handlers upon teardown to prevent WebGL context leaks.
-- **Camera-Distance Observation LOD:** Groups dense observation markers into clustered representations at distant orbital camera positions, expanding to individual inspection spheres as the user zooms in.
-- **GPU Ray Marching with Early Termination:** Volume shader samples the 3D data texture along viewing rays and terminates traversal once opacity reaches saturation ($A \ge 0.98$).
+### 🌪 Hazard Assessment
+- **Active Data Used:** CMEMS Potential Temperature (`thetao`), Practical Salinity (`so`), Horizontal Currents (`uo`, `vo`), and in-situ Argo/CTD soundings.
+- **Visualization Value:** Examines sea surface thermal distribution, upper-ocean heat stratification, salinity fronts, and surface flow speeds across the Indian Ocean basin. *(Note: Provides physical ocean environment visualization; does not perform atmospheric cyclone track forecasting).*
+
+### 🛟 Search & Rescue
+- **Active Data Used:** Horizontal velocity components (`uo`, `vo`), vector current speed ($\text{speed} = \sqrt{u_o^2 + v_o^2}$), flow direction ($\text{atan2}(v_o, u_o)$), and nearby drifting profiling float positions.
+- **Visualization Value:** Visualizes surface and sub-surface current vectors and velocity magnitudes to assist analysts in inspecting regional flow directions. *(Note: Visualizes Eulerian current velocity fields; does not perform automated Lagrangian particle drift forecasting).*
+
+### 🐟 Fishery Advisory
+- **Active Data Used:** CMEMS Chlorophyll-a concentration (`chl`), Potential Temperature (`thetao`), Ocean Currents, and BGC-capable observation soundings.
+- **Visualization Value:** Highlights chlorophyll-rich productive waters, thermal fronts, and upwelling signatures across the Arabian Sea and Bay of Bengal. *(Note: Visualizes biophysical habitat indicators; does not perform fish-stock population prediction).*
+
+### 🌍 Climate & Ocean Monitoring
+- **Active Data Used:** Multi-depth Temperature (`thetao`) and Salinity (`so`) fields across the 90-day daily archive alongside deep-ocean WOD casts down to $2000\,\text{m}$.
+- **Visualization Value:** Enables inspection of thermocline depth variation, halocline structure, and water-column stratification across time and depth. *(Note: Explores the available 90-day model and WOD observation archive; does not perform decadal climate prediction).*
 
 ---
 
-## 17. Project Structure
+## ⚡ Engineering Behind the Platform
+
+- **Thread-Safe Bounded LRU NetCDF Handle Caching:** `CMEMSModelAdapter` maintains a thread-safe `OrderedDict` LRU cache (`_MAX_CACHE_HANDLES = 16`) protected by a `threading.Lock()`, preventing repeated disk open/close overhead across concurrent slice requests.
+- **GZip HTTP Transport Compression:** FastAPI configures `GZipMiddleware` (`minimum_size=1400`, `compresslevel=6`) to compress JSON subgrids, observation lists, and GeoJSON boundaries.
+- **$O(1)$ WOD Profile Lookup:** `WODObservationAdapter` precomputes cumulative offset arrays (`np.cumsum`) over ragged-array profile lengths (`z_row_size`, `Temperature_row_size`), allowing constant-time slice extraction for any cast index.
+- **Per-Variable Ragged-Array Row-Size Indexing:** Independently indexes variable-specific row-size arrays in WOD NetCDF files so casts with partial sensor coverage decode without index misalignment.
+- **Multi-Depth Field-Stack API:** `GET /api/v1/model/field-stack` extracts multiple depth planes in a single backend pass, minimizing round-trip HTTP latency during 3D volume construction.
+- **Lazy `xarray` Subsetting & Adaptive Stride:** Subsets spatial bounding boxes (`lat_min..lat_max`, `lon_min..lon_max`) and applies configurable downsampling strides (`stride=1..8`) prior to loading data into memory.
+- **`Float32` Numerical Processing:** Converts 64-bit model arrays to `float32` precision for compact serialization and direct WebGL texture upload.
+- **Persistent Three.js GPU Resource Reuse:** Reuses `THREE.Data3DTexture`, `BufferGeometry`, `ShaderMaterial`, and `InstancedMesh` instances across parameter updates, calling explicit `.dispose()` routines on cleanup to avoid WebGL memory leaks.
+- **Camera-Aware Observation LOD / Clustering:** Dynamically clusters dense observation markers at global zoom levels and resolves individual markers as the camera approaches the study region.
+- **GPU Volume Ray Marching with Early Ray Termination:** Custom GLSL fragment shader steps through the 3D volume texture and terminates rays early when accumulated alpha reaches saturation.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TD
+    subgraph Sources["Data Sources"]
+        S_CMEMS["CMEMS NetCDF-4<br/>(Physical & BGC Daily Archives)"]
+        S_WOD["NOAA WOD NetCDF-4<br/>(Argo PFL, Glider GLD, CTD)"]
+        S_CSV["Delimited Text Files<br/>(CSV / TSV / ASCII)"]
+        S_EEZ["Geospatial GeoJSON<br/>(Indian EEZ Boundary)"]
+    end
+
+    subgraph Adapters["Adapters & Registries (backend/adapters & backend/registry)"]
+        A_CMEMS["CMEMSModelAdapter"]
+        A_WOD["WODObservationAdapter"]
+        A_CSV["DelimitedTextObservationAdapter"]
+        REG["Adapter / Variable / ObservationType / Source Registries"]
+    end
+
+    subgraph Services["Scientific Backend Services (backend/services)"]
+        SV_MOD["ModelService"]
+        SV_OBS["ObservationService"]
+        SV_ING["AutomatedIngestionService"]
+        SV_CMP["ModelObservationComparisonService"]
+        SV_WMS["WMSService (1.3.0 / 1.1.1)"]
+        SV_WCS["WCSService (2.0.1 / 1.0.0)"]
+        SV_DAP["OpenDAPService (DAP 2.0 / THREDDS)"]
+    end
+
+    subgraph Protocols["FastAPI Transport Layer (backend/routers)"]
+        P_REST["REST API (/api/v1/*)"]
+        P_WMS["OGC WMS (/api/v1/ogc/wms)"]
+        P_WCS["OGC WCS (/api/v1/ogc/wcs)"]
+        P_DAP["OPeNDAP (/api/v1/opendap/*)"]
+    end
+
+    subgraph Frontend["Next.js 16 & React 19 Frontend (app/ & src/)"]
+        FE_THREE["Three.js / React Three Fiber / WebGL2 Shaders"]
+        FE_EXP["3D Explorer (Stage 1 Globe & Stage 2 Volume Workstation)"]
+        FE_PROF["Observation Registry & Vertical Profile Inspector"]
+        FE_COMP["Model vs Observation Residual View"]
+        FE_OPS["Operational Application Views (Hazard, SAR, Fishery, Climate)"]
+    end
+
+    S_CMEMS --> A_CMEMS
+    S_WOD --> A_WOD
+    S_CSV --> A_CSV
+    A_CMEMS & A_WOD & A_CSV --> REG
+    REG --> SV_MOD & SV_OBS & SV_ING
+    SV_MOD & SV_OBS --> SV_CMP
+    SV_MOD --> SV_WMS & SV_WCS & SV_DAP
+    SV_MOD & SV_OBS & SV_ING & SV_CMP --> P_REST
+    S_EEZ --> P_REST
+    SV_WMS --> P_WMS
+    SV_WCS --> P_WCS
+    SV_DAP --> P_DAP
+    P_REST & P_WMS --> FE_THREE
+    FE_THREE --> FE_EXP & FE_PROF & FE_COMP & FE_OPS
+```
+
+---
+
+## 📁 Project Structure
 
 ```text
-├── app/                                    # Next.js App Router Pages
-│   ├── about/page.tsx                      # Platform & institutional background
-│   ├── data-services/page.tsx              # Interactive OGC & REST API catalog
-│   ├── explore/page.tsx                    # Main 3D workstation entry point
-│   ├── observations/page.tsx               # Observation platform registry & filter
-│   ├── operational-applications/page.tsx   # Four operational application views
-│   ├── resources/page.tsx                  # Scientific documentation & resources
-│   ├── study-region/page.tsx               # Indian Ocean geographic domain guide
-│   └── watch-demo/page.tsx                 # Platform video demonstration walkthrough
-├── backend/                                # Python FastAPI Scientific Server
-│   ├── adapters/                           # Concrete data adapters
-│   │   ├── base.py                         # Abstract BaseModelAdapter & BaseObservationAdapter
-│   │   ├── cmems_model.py                  # Copernicus Marine NetCDF-4 model adapter
-│   │   ├── delimited_text.py               # CSV/TSV/ASCII parser & validator
-│   │   └── wod_observations.py             # NOAA WOD ragged-array observation adapter
-│   ├── registry/                           # Central registry subsystem
-│   │   ├── adapters.py                     # Adapter class registry
-│   │   ├── observation_types.py            # Platform metadata & sensor taxonomy
-│   │   ├── sources.py                      # Dataset provenance registry
-│   │   └── variables.py                    # Standard oceanographic variable definitions
-│   ├── routers/                            # FastAPI API route modules
-│   │   ├── comparison.py                   # Model vs. observation residual endpoints
-│   │   ├── geospatial.py                   # Indian EEZ GeoJSON & boundary info
-│   │   ├── ingestion.py                    # Upload & file ingestion endpoints
-│   │   ├── model.py                        # Model metadata, fields, and field-stack
-│   │   ├── observations.py                 # Observation query & profile endpoints
-│   │   ├── opendap.py                      # OPeNDAP DAP 2.0 & THREDDS endpoints
-│   │   ├── wcs.py                          # OGC WCS 2.0.1 / 1.0.0 coverage endpoints
-│   │   └── wms.py                          # OGC WMS 1.3.0 / 1.1.1 map rasterizer
-│   ├── schemas/                            # Pydantic data validation schemas
-│   ├── services/                           # Domain business logic services
-│   └── tests/                              # Automated Pytest suite (102 test cases)
-├── data/                                   # Local NetCDF model & observation store
+dhrishti-3d/
+├── app/                                    # Next.js App Router pages
+│   ├── about/page.tsx                      # Institutional context & architecture summary
+│   ├── data-services/page.tsx              # Interactive OGC WMS/WCS, OPeNDAP & REST explorer
+│   ├── explore/page.tsx                    # Main 3D Ocean Explorer workstation
+│   ├── observations/page.tsx               # In-situ observation browser & profile viewer
+│   ├── operational-applications/page.tsx   # Hazard, SAR, Fishery & Climate application views
+│   ├── resources/page.tsx                  # Documentation & reference guides
+│   ├── study-region/page.tsx               # Indian Ocean domain & parameter overview
+│   ├── watch-demo/page.tsx                 # Platform walkthrough video player
+│   └── page.tsx                            # Main portal landing page
+├── backend/                                # Python FastAPI scientific server
+│   ├── adapters/                           # CMEMS, WOD, and delimited-text data adapters
+│   ├── registry/                           # Adapter, Variable, ObservationType & Source registries
+│   ├── routers/                            # REST, Comparison, Geospatial, Ingestion, WMS, WCS, OPeNDAP
+│   ├── schemas/                            # Pydantic models & UnifiedObservation schemas
+│   ├── scripts/                            # EEZ boundary fetch & generation utilities
+│   ├── serializers/                        # Binary grid serialization utilities
+│   ├── services/                           # Core domain, comparison, ingestion & OGC services
+│   ├── tests/                              # 102 automated Pytest unit & interoperability tests
+│   ├── config.py                           # Environment & directory configuration
+│   ├── main.py                             # FastAPI application entrypoint & middleware
+│   └── Dockerfile.backend                  # Backend container specification
+├── data/                                   # Scientific runtime dataset directory (populated from HF)
 ├── public/                                 # Static web assets
-│   ├── data/                               # Committed lightweight binary store (<9 MB)
-│   │   ├── coastlines.json                 # Global coastline vector geometry
-│   │   ├── currents.bin                    # Quantized HYCOM horizontal velocity field
-│   │   ├── india_eez.geojson               # Indian EEZ boundary representation
-│   │   ├── manifest.json                   # Variable dimensions & quantization scales
-│   │   ├── profiles.json                   # In-situ platform metadata & soundings
-│   │   └── *.bin                           # Quantized temperature & salinity grids
-│   └── textures/                           # Satellite Earth & atmospheric maps
-├── src/                                    # Frontend Source Code
-│   ├── components/                         # React UI & Three.js canvas components
-│   │   ├── observations/                   # Observation map viewers & detail modals
-│   │   └── page3/                          # Stage 1 Globe & Stage 2 Workstation UI
-│   │       ├── globe/                      # EarthSphere & IndianEEZLayer
-│   │       └── stage2/                     # Ray Marcher, Slices, Isosurfaces, Vectors
-│   ├── lib/                                # API clients, binary decoders, marching cubes
-│   └── scene/                              # Three.js 3D scene root & background
-├── docker-compose.yml                      # Containerized production stack configuration
-├── Dockerfile.frontend                     # Multi-stage Nginx build for Next.js static export
-├── requirements.txt                        # Root Python dependencies
-└── package.json                            # Node.js dependencies & build scripts
+│   ├── data/                               # Lightweight pre-quantized binary store (<9 MB)
+│   ├── landing/                            # Portal imagery & demo-video.mp4 placement directory
+│   └── textures/                           # Earth surface, normal, specular & sky textures
+├── screenshots/                            # Verified platform UI screenshots
+├── src/                                    # Frontend components, 3D shaders & API clients
+│   ├── components/                         # Stage 1 Globe, Stage 2 3D Viewport & Profile Modals
+│   ├── lib/                                # Volume raymarcher, Marching Cubes & API clients
+│   ├── scene/                              # Three.js scene graph & basemap components
+│   └── ui/                                 # Guided tour, manual & concept cards
+├── Caddyfile                               # Caddy reverse-proxy configuration
+├── docker-compose.yml                      # Full-stack Docker Compose orchestration
+├── Dockerfile.frontend                     # Multi-stage Frontend Nginx build
+├── next.config.ts                          # Next.js static export configuration
+├── package.json                            # Frontend dependencies & scripts
+└── requirements.txt                        # Complete Python backend dependencies
 ```
 
 ---
 
-## 18. Installation
+## 📦 Download the Runtime Dataset
 
-### Prerequisites
-- **Node.js:** v18.x or v20.x
-- **Package Manager:** `pnpm` (recommended) or `npm`
-- **Python:** v3.10 or v3.11
-- **C/C++ Build Tools:** Required on some platforms for compiling `netCDF4` / `h5py`
+The complete raw scientific dataset (~17.8 GB uncompressed; ~9.3 GB archived) and the walkthrough video (~125 MB) exceed GitHub's file size limits and are hosted in a dedicated **Hugging Face Dataset Repository**:
+
+👉 **[https://huggingface.co/datasets/kumar9513/data](https://huggingface.co/datasets/kumar9513/data)**
+
+The Hugging Face repository contains three required items:
+1. `data.zip` — Complete CMEMS daily physical & biogeochemical NetCDF archives (`model/`) and NOAA WOD NetCDF observation archives (`argo/`, `bgc/`, `ctd/`, `glider/`).
+2. `geospatial and incoming.zip` — Contains the `geospatial/` directory (`india_eez.geojson`) and the `incoming/` directory for automated file ingestion.
+3. `demo-video.mp4` — High-definition platform walkthrough video for the `/watch-demo` route.
 
 ---
 
-### Step 1: Clone the Repository
+### Step 1 — Get the dataset from Hugging Face
+
+#### Option A: Using Git LFS
+```bash
+git lfs install
+git clone https://huggingface.co/datasets/kumar9513/data hf-dataset
+```
+
+#### Option B: Using Python (`huggingface_hub`)
+If you do not have Git LFS installed, download directly using Python:
+```bash
+pip install huggingface_hub
+python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='kumar9513/data', repo_type='dataset', local_dir='hf-dataset')"
+```
+
+---
+
+### Step 2 — Extract the scientific data (`data.zip`)
+
+Extract `hf-dataset/data.zip` so that its folders (`model/`, `argo/`, `bgc/`, `ctd/`, `glider/`) are placed directly inside the project's `data/` directory:
+
+**Windows (PowerShell):**
+```powershell
+Expand-Archive -Path "hf-dataset\data.zip" -DestinationPath "data" -Force
+```
+
+**Linux / macOS:**
+```bash
+unzip -o hf-dataset/data.zip -d data/
+```
+
+---
+
+### Step 3 — Extract geospatial and incoming data (`geospatial and incoming.zip`)
+
+Extract `hf-dataset/geospatial and incoming.zip` directly into the project's `data/` directory:
+
+**Windows (PowerShell):**
+```powershell
+Expand-Archive -Path "hf-dataset\geospatial and incoming.zip" -DestinationPath "data" -Force
+```
+
+**Linux / macOS:**
+```bash
+unzip -o "hf-dataset/geospatial and incoming.zip" -d data/
+```
+
+> ⚠️ **IMPORTANT:** Do **NOT** leave `geospatial and incoming.zip` as an unextracted `.zip` file inside `data/`. The backend expects the extracted folders `data/geospatial/india_eez.geojson` and `data/incoming/`.
+
+---
+
+### Step 4 — Add the Demo Video (`demo-video.mp4`)
+
+Copy `hf-dataset/demo-video.mp4` into **`public/landing/demo-video.mp4`**:
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item -Path "hf-dataset\demo-video.mp4" -Destination "public\landing\demo-video.mp4" -Force
+```
+
+**Linux / macOS:**
+```bash
+cp hf-dataset/demo-video.mp4 public/landing/demo-video.mp4
+```
+
+> ⚠️ **IMPORTANT:** Do **NOT** put `demo-video.mp4` inside `data/`. It must be placed at `public/landing/demo-video.mp4` so the Next.js web server can stream it on the `/watch-demo` page.
+
+---
+
+### Final Expected Directory Tree After Extraction
+
+Verify that your project root matches this exact layout before starting the servers:
+
+```text
+dhrishti-3d/
+├── data/
+│   ├── argo/
+│   │   └── ocldb1788270080.21439_PFL.nc
+│   ├── bgc/
+│   │   ├── ocldb1788270080.21439_PFL.nc
+│   │   └── source.md
+│   ├── ctd/
+│   │   └── ocldb1788270080.21439_CTD.nc
+│   ├── glider/
+│   │   └── ocldb1788270080.21439_GLD.nc
+│   ├── geospatial/
+│   │   └── india_eez.geojson
+│   ├── incoming/
+│   └── model/
+│       ├── copernicus_daily/
+│       │   └── cmems_mod_glo_phy-cur_anfc_0.083deg_P1D-m_2026-01-01T00-00-00.nc ... (90 files)
+│       └── copernicus_chlorophyll_daily/
+│           └── cmems_obs-oc_glo_bgc-plankton_my_l4-multi-4km_P1D_2026-01-01.nc ... (90 files)
+│
+├── public/
+│   └── landing/
+│       └── demo-video.mp4
+│
+├── backend/
+├── app/
+├── src/
+├── requirements.txt
+└── package.json
+```
+
+---
+
+### ✅ Before Running Checklist
+
+- [ ] GitHub repository cloned (`https://github.com/sihfinal/dhrishti-3d`)
+- [ ] Hugging Face dataset downloaded (`https://huggingface.co/datasets/kumar9513/data`)
+- [ ] `data.zip` extracted and scientific folders placed in `data/`
+- [ ] `geospatial and incoming.zip` extracted and `geospatial/` + `incoming/` placed in `data/`
+- [ ] `demo-video.mp4` copied to `public/landing/demo-video.mp4`
+- [ ] Python virtual environment (`.venv`) created and activated
+- [ ] Backend dependencies installed (`pip install -r requirements.txt`)
+- [ ] Frontend dependencies installed (`pnpm install`)
+
+---
+
+## 🚀 Run SagarDrishti-3D
+
+### 1. Clone the Project
 ```bash
 git clone https://github.com/sihfinal/dhrishti-3d.git
 cd dhrishti-3d
 ```
 
-### Step 2: Install Dependencies
-
-#### Frontend:
+### 2. Install Frontend Dependencies
 ```bash
 pnpm install
 ```
 
-#### Backend:
+### 3. Setup Python & Install Backend Dependencies
+Requires Python 3.10 or 3.11:
 ```bash
-# Create and activate a Python virtual environment
 python -m venv .venv
 
-# Windows:
-.\.venv\Scripts\activate
-# Linux / macOS:
+# Activate on Windows (PowerShell):
+.\.venv\Scripts\Activate.ps1
+
+# Activate on Windows (CMD):
+.\.venv\Scripts\activate.bat
+
+# Activate on Linux / macOS:
 source .venv/bin/activate
 
-# Install all backend scientific dependencies
+# Install all scientific & API dependencies:
 pip install -r requirements.txt
 ```
 
----
-
-### Step 3: Run the Application
-
-#### Start the Python FastAPI Backend (Port 8000):
+### 4. Start the Backend Server (Terminal 1)
 ```bash
 uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-- Swagger UI / OpenAPI Documentation: `http://localhost:8000/docs`
-- Service Health Endpoint: `http://localhost:8000/api/v1/health`
+- **Backend API Root:** `http://localhost:8000`
+- **Interactive Swagger / OpenAPI UI:** `http://localhost:8000/docs`
+- **Health Check:** `http://localhost:8000/api/v1/health`
 
-#### Start the Next.js Frontend (Port 3000):
-In a separate terminal window:
+### 5. Start the Frontend Development Server (Terminal 2)
 ```bash
 pnpm dev
 ```
-Open **`http://localhost:3000`** in your browser.
+
+### 6. Open the Application
+Navigate to **[`http://localhost:3000`](http://localhost:3000)** in your web browser.
 
 ---
 
-### Docker Deployment (Alternative)
-The repository includes container specifications for multi-container deployment:
-```bash
-docker compose up -d --build
-```
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:8000`
+## 🧑‍💻 First 5 Minutes
+
+Follow this sequence to experience the complete scientific workflow:
+
+1. **01 — Open the Platform:** Launch `http://localhost:3000` to view the main portal and dataset summary cards.
+2. **02 — Understand the Region:** Click **Study Region** (`/study-region`) to review the Indian Ocean domain ($35^\circ\text{S} - 30^\circ\text{N}$, $40^\circ\text{E} - 100^\circ\text{E}$) and observing systems.
+3. **03 — Enter Explorer:** Click **Launch 3D Explorer** (`/explore`) to enter the Stage 1 Global Marine Globe.
+4. **04 — Choose a Variable:** Toggle between **Temperature**, **Salinity**, **Currents**, and **Chlorophyll** in the left data-layer panel.
+5. **05 — Explore Depth:** Drag the **Depth Slider** ($0\,\text{m} \to 2000\,\text{m}$) to observe how subsurface temperature and salinity structures evolve with depth.
+6. **06 — Explore Time:** Scrub the **Time Slider** across the 90 daily steps from `01 Jan 2026` to `31 Mar 2026`.
+7. **07 — Select a Region of Interest (Stage 2):** Enable **Select Region**, drag a box over the Arabian Sea or Bay of Bengal, and confirm to enter the **Stage 2 3D Volumetric Workstation** with GPU ray marching, depth slices, isosurfaces, and 3D current vectors.
+8. **08 — Inspect an Observation Profile:** Click any in-situ marker sphere (Argo, Glider, CTD, or BGC) to open its vertical depth-measurement profile.
+9. **09 — Compare Model vs Observation:** Inside the profile modal, run the collocated comparison to view layer-by-layer $\text{Observation} - \text{Model}$ residuals, Bias, MAE, and RMSD.
+10. **10 — Explore Open Standards:** Open **Data Services** (`/data-services`) to test live OGC WMS map rendering, WCS NetCDF/GeoTIFF coverage downloads, and OPeNDAP DAP2 endpoints.
 
 ---
 
-## 19. API Quick Start
+## 🔌 API Quick Reference
 
-The FastAPI backend serves both JSON metadata and binary grid slices:
+All endpoints are verified against `backend/routers/` and `backend/main.py`:
 
-### 1. Retrieve Model Metadata
-```bash
-curl -X GET "http://localhost:8000/api/v1/model/metadata"
-```
-
-### 2. Extract a 2D Subgrid Field
-Extracts a horizontal temperature grid slice at $0.5\,\text{m}$ depth on 2026-02-15 within the Arabian Sea:
-```bash
-curl -X GET "http://localhost:8000/api/v1/model/field?variable=temperature&depth=0.5&time=2026-02-15&lat_min=10.0&lat_max=22.0&lon_min=60.0&lon_max=75.0&stride=1"
-```
-
-### 3. Query In-Situ Observation Platforms
-Query active Argo profiling floats in a spatial bounding box:
-```bash
-curl -X GET "http://localhost:8000/api/v1/observations/platforms?type=argo&lat_min=0.0&lat_max=20.0&lon_min=60.0&lon_max=80.0&limit=10"
-```
-
-### 4. Perform Model vs. Observation Comparison
-Compares sounding `argo_19770705` against the collocated CMEMS numerical model:
-```bash
-curl -X GET "http://localhost:8000/api/v1/compare/model-observation?obs_id=argo_19770705&variable=temperature"
-```
+| Endpoint | Method | Purpose |
+| :--- | :---: | :--- |
+| `/api/v1/health` | `GET` | Service readiness, adapter status, and dataset availability |
+| `/api/v1/datasets` | `GET` | Registered model and observation dataset catalog |
+| `/api/v1/model/metadata` | `GET` | Spatial bounds, depth array, time range, and variable definitions |
+| `/api/v1/model/times` | `GET` | Available daily model timestamps (`2026-01-01` to `2026-03-31`) |
+| `/api/v1/model/depths` | `GET` | Available discrete vertical depth levels ($\text{m}$) |
+| `/api/v1/model/field` | `GET` | 2D horizontal subgrid slice for a variable, depth, time, and bounding box |
+| `/api/v1/model/field-stack` | `GET` | Multi-depth 3D slab stack in a single request |
+| `/api/v1/observations` | `GET` | Spatial, temporal, and platform-type filtered observation soundings |
+| `/api/v1/observations/{id}` | `GET` | Metadata and location details for a specific observation cast |
+| `/api/v1/observations/{id}/profile` | `GET` | Full vertical depth-dependent arrays (`depth`, `temperature`, `salinity`, `chlorophyll`) |
+| `/api/v1/compare/model-observation` | `GET` | Collocated vertical comparison and statistical error metrics (`Bias`, `MAE`, `RMSD`) |
+| `/api/v1/geospatial/india-eez` | `GET` | Authoritative Marine Regions VLIZ v12 Indian EEZ GeoJSON boundary |
+| `/api/v1/geospatial/info` | `GET` | Metadata, area ($2,323,948\,\text{km}^2$), and citation for geospatial layers |
+| `/api/v1/ingestion/status` | `GET` | Scan `data/incoming/` and report file validation & ingestion job lifecycle |
+| `/api/v1/ingestion/upload` | `POST` | Upload and ingest a CSV/TSV/ASCII observation file |
+| `/api/v1/ogc/wms` | `GET` | OGC Web Map Service (`1.3.0` & `1.1.1`) endpoint |
+| `/api/v1/ogc/wcs` | `GET` | OGC Web Coverage Service (`2.0.1` & `1.0.0`) endpoint |
+| `/api/v1/opendap/*` | `GET` | OPeNDAP DAP 2.0 (`DDS`, `DAS`, `DODS`, `HTML`) and THREDDS `catalog.xml` |
 
 ---
 
-## 20. OGC & Scientific Data Usage
+## 🌐 Scientific Interoperability Services
 
-### OGC Web Map Service (WMS)
-- **GetCapabilities (WMS 1.3.0):**
-  ```text
-  GET http://localhost:8000/api/v1/ogc/wms?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.3.0
-  ```
-- **GetMap (Render 2D Temperature Raster with Turbo Colormap):**
-  ```text
-  GET http://localhost:8000/api/v1/ogc/wms?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=temperature&STYLES=turbo&CRS=EPSG:4326&BBOX=-20,55,15,85&WIDTH=800&HEIGHT=600&FORMAT=image/png&TIME=2026-02-15&ELEVATION=0.5
-  ```
-- **GetLegendGraphic:**
-  ```text
-  GET http://localhost:8000/api/v1/ogc/wms?SERVICE=WMS&REQUEST=GetLegendGraphic&LAYER=temperature&STYLE=turbo&FORMAT=image/png
-  ```
+<details>
+<summary><strong>🗺️ OGC WMS (Web Map Service 1.3.0 & 1.1.1)</strong></summary>
 
-### OGC Web Coverage Service (WCS)
-- **GetCapabilities (WCS 2.0.1):**
+<br />
+
+Implemented in `backend/services/wms_service.py` and `backend/routers/wms.py`. Generates 2D geo-referenced rasters directly from the CMEMS NetCDF archives.
+
+- **Supported Operations:** `GetCapabilities`, `GetMap`, `GetLegendGraphic`
+- **Supported Layers:** `temperature`, `salinity`, `currents`, `chlorophyll`, `u_velocity`, `v_velocity`
+- **Supported Colormaps (`STYLES`):** `turbo`, `viridis`, `plasma`, `coolwarm`, `YlGn`
+- **Supported CRS:** `EPSG:4326`, `CRS:84`, `EPSG:3857`
+- **Example `GetMap` Request:**
   ```text
-  GET http://localhost:8000/api/v1/ogc/wcs?SERVICE=WCS&REQUEST=GetCapabilities&VERSION=2.0.1
-  ```
-- **DescribeCoverage:**
-  ```text
-  GET http://localhost:8000/api/v1/ogc/wcs?SERVICE=WCS&REQUEST=DescribeCoverage&VERSION=2.0.1&COVERAGEID=temperature
-  ```
-- **GetCoverage (Subset NetCDF-4 Output):**
-  ```text
-  GET http://localhost:8000/api/v1/ogc/wcs?SERVICE=WCS&REQUEST=GetCoverage&VERSION=2.0.1&COVERAGEID=temperature&SUBSET=Lat(-20,15)&SUBSET=Long(55,85)&SUBSET=time("2026-02-15")&SUBSET=elevation(0.5)&FORMAT=application/x-netcdf
+  http://localhost:8000/api/v1/ogc/wms?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=temperature&STYLES=turbo&CRS=EPSG:4326&BBOX=-20,55,15,85&WIDTH=800&HEIGHT=600&FORMAT=image/png&TIME=2026-02-15&ELEVATION=0.5
   ```
 
-### OPeNDAP DAP 2.0 Protocol
-- **Dataset Descriptor Structure (DDS):**
+</details>
+
+<details>
+<summary><strong>🧊 OGC WCS (Web Coverage Service 2.0.1 & 1.0.0)</strong></summary>
+
+<br />
+
+Implemented in `backend/services/wcs_service.py` and `backend/routers/wcs.py`. Extracts multidimensional scientific subsets in binary NetCDF-4 or GeoTIFF formats.
+
+- **Supported Operations:** `GetCapabilities`, `DescribeCoverage`, `GetCoverage`
+- **Supported Coverages:** `temperature`, `salinity`, `currents`, `chlorophyll`, `u_velocity`, `v_velocity`
+- **Supported Output Formats:** `application/x-netcdf` (NetCDF-4), `image/tiff` (GeoTIFF)
+- **Example `GetCoverage` Request:**
   ```text
-  GET http://localhost:8000/api/v1/opendap/cmems_physical.dds
+  http://localhost:8000/api/v1/ogc/wcs?SERVICE=WCS&REQUEST=GetCoverage&VERSION=2.0.1&COVERAGEID=temperature&SUBSET=Lat(-20,15)&SUBSET=Long(55,85)&SUBSET=time("2026-02-15")&SUBSET=elevation(0.5)&FORMAT=application/x-netcdf
   ```
-- **Dataset Attribute Structure (DAS):**
-  ```text
-  GET http://localhost:8000/api/v1/opendap/cmems_physical.das
-  ```
-- **DODS Binary Data Stream:**
-  ```text
-  GET http://localhost:8000/api/v1/opendap/cmems_physical.dods?thetao[0:1:0][0:1:2][10:1:20][10:1:20]
-  ```
+
+</details>
+
+<details>
+<summary><strong>🌐 OPeNDAP DAP 2.0 & THREDDS Catalog</strong></summary>
+
+<br />
+
+Implemented in `backend/services/opendap_service.py` and `backend/routers/opendap.py`. Exposes multidimensional array slicing over the DAP2 wire protocol.
+
+- **Available Datasets:** `cmems_physical`, `cmems_bgc`
+- **Supported Endpoints:**
+  - `GET /api/v1/opendap/catalog.xml` — THREDDS XML Dataset Catalog
+  - `GET /api/v1/opendap/cmems_physical.dds` — Dataset Descriptor Structure
+  - `GET /api/v1/opendap/cmems_physical.das` — Dataset Attribute Structure
+  - `GET /api/v1/opendap/cmems_physical.dods?thetao[0:1:0][0:1:2][10:1:20][10:1:20]` — Binary XDR Data Stream
+  - `GET /api/v1/opendap/cmems_physical.html` — Interactive Web Subsetting Form
+
+</details>
 
 ---
 
-## 21. Testing
+## 🧪 Verification
 
-The platform maintains automated test coverage across all scientific backend modules:
+Both the Python scientific backend and the Next.js TypeScript frontend have been executed and verified against the current repository state.
 
+### 1. Backend Test Suite (`pytest`)
 ```bash
-# Run the complete Python test suite
 pytest backend/tests
 ```
 
-### Verified Test Suite Execution Output
 ```text
 ============================= test session starts =============================
-platform win32 -- Python 3.11.5, pytest-9.1.1
-rootdir: C:\...\dhrishti-3d
+platform win32 -- Python 3.11.5, pytest-9.1.1, pluggy-1.6.0
 collected 102 items
 
 backend\tests\test_api.py ........................................       [ 39%]
@@ -587,92 +866,75 @@ backend\tests\test_wms.py ..........                                     [100%]
 ====================== 102 passed, 2 warnings in 56.73s =======================
 ```
 
-### Frontend Build Verification
+### 2. Frontend Production Build (`next build`)
 ```bash
 pnpm build
 ```
-- **Static Export Generation:** Compiled successfully with Next.js Turbopack across all 13 application routes with strict TypeScript 5.7 type-checking (0 compiler errors).
+- **Verified Result:** Compiled cleanly in `13.1s` using Next.js 16.3.1 (Turbopack) with zero TypeScript errors across all 13 static routes (`/`, `/about`, `/data-services`, `/explore`, `/observations`, `/operational-applications`, `/resources`, `/study-region`, `/watch-demo`).
 
 ---
 
-## 22. Security
+## 🔒 Security & Data Integrity
 
-- **Path Traversal Protection:** Input file paths within data adapters and ingestion endpoints are strictly resolved against designated data directories (`data/` and `data/incoming/`), rejecting directory traversal attempts (`../`).
-- **Input Validation:** API query parameters are validated using Pydantic schemas, enforcing bounds on geographical coordinates ($-90^\circ \le \text{latitude} \le 90^\circ$, $-180^\circ \le \text{longitude} \le 180^\circ$) and non-negative depths.
-- **Resource Constraints:** The WMS rasterizer enforces maximum image dimension limits ($2048 \times 2048\,\text{pixels}$) to prevent denial-of-service memory exhaustion.
-- **Controlled File Uploads:** Upload endpoints enforce extension whitelisting (`.csv`, `.tsv`, `.txt`, `.dat`, `.ascii`, `.nc`) and compute SHA-256 fingerprints to prevent duplicate processing.
-
----
-
-## 23. Deployment
-
-The platform supports two deployment architectures:
-
-1. **Integrated Containerized Deployment (Docker Compose):**
-   - Defined in [docker-compose.yml](file:///c:/Users/KumarShiva/Downloads/SIH_2026/26067/SIH_2026_26067/docker-compose.yml).
-   - Frontend container builds Next.js static output and serves it via an Alpine Nginx server on port `3000`.
-   - Backend container runs the Python 3.11 FastAPI server via Uvicorn on port `8000`, with `./data` mounted as a volume.
-2. **Decoupled Deployment:**
-   - **Frontend:** Static export (`out/`) deployable to any static host (Netlify, Vercel, Cloudflare Pages, or AWS S3).
-   - **Backend:** FastAPI container or systemd service deployable to a Linux VPS or cloud instance, with `NEXT_PUBLIC_API_URL` pointing to the API gateway.
+- **Path Traversal Protection:** File access inside `ingestion_service.py` and dataset routers resolves paths strictly within `data/` and `data/incoming/`, rejecting parent-directory traversal (`..`).
+- **Coordinate & Depth Validation:** Request parameters and ingested files validate geographic coordinates ($-90^\circ \le \text{lat} \le 90^\circ$, $-180^\circ \le \text{lon} \le 180^\circ$) and non-negative depth values ($\text{depth} \ge 0$).
+- **Upload Extension Whitelisting:** Ingestion endpoints restrict files to `.csv`, `.tsv`, `.txt`, `.dat`, `.ascii`, and `.nc`.
+- **SHA-256 Duplicate Detection:** Every ingested file is fingerprinted using SHA-256 (`_compute_file_hash`) so repeated uploads or directory scans are marked `SKIPPED_DUPLICATE`.
+- **WMS Raster Dimension Limits:** `WMSService` validates `WIDTH` and `HEIGHT` parameters (bounded up to $2048 \times 2048$) to prevent excessive memory allocation.
 
 ---
 
-## 24. Future Scope
+## 🐳 Deployment
 
-To ensure scientific and engineering clarity, existing capabilities are strictly distinguished from planned extensions:
+The project includes production container and reverse-proxy configurations:
 
-### Currently Implemented
-- WebGL2 GPU direct volume ray marching through 3D data textures.
-- Standalone 3D Marching Cubes isosurface extraction with dynamic isovalue sliders.
-- Multi-depth horizontal slicing stack ($0.5\,\text{m} \to 1062.4\,\text{m}$).
-- Directional current velocity vectors scaled by $\text{speed} = \sqrt{u_o^2 + v_o^2}$.
-- Real CMEMS physical (`thetao`, `so`, `uo`, `vo`) and biogeochemical (`chl`) model slicing across 90 daily timesteps.
-- In-situ profile inspection for Argo, Glider, and CTD platforms.
-- Model vs. Observation residual computation and statistical error metrics (MAE, RMSD, Bias).
-- OGC WMS (1.3.0/1.1.1), OGC WCS (2.0.1/1.0.0), and OPeNDAP DAP 2.0 servers.
-- CSV/TSV/ASCII delimited file ingestion with header alias normalization and duplicate detection.
+### Option 1: Docker Compose (`docker-compose.yml`)
+Builds both the Nginx static frontend (`Dockerfile.frontend`) and the FastAPI Uvicorn backend (`backend/Dockerfile.backend`), mounting `./data` into `/app/data`:
+```bash
+docker compose up -d --build
+```
+- Frontend container: `http://localhost:3000`
+- Backend container: `http://localhost:8000`
 
-### Future Extensions
-- **Moored Buoy Arrays:** Integration of high-frequency fixed time-series observations (e.g., RAMA buoy array).
-- **Acoustic Doppler Current Profiler (ADCP):** Ingestion and rendering of vertical current velocity profiles gathered by shipboard ADCP surveys.
-- **High-Frequency (HF) Radar:** Ingestion of coastal surface current velocity fields.
-- **Additional Biogeochemical Variables:** Support for dissolved oxygen ($\text{O}_2$), nitrate ($\text{NO}_3$), and pH from expanded BGC sensor arrays.
-- **Machine Learning Products:** Integration of data-driven derived products (e.g., automated marine heatwave detection).
+### Option 2: Caddy Reverse Proxy (`Caddyfile`)
+Serves the static frontend export (`out/`) and reverse-proxies `/api/v1/*` requests to `localhost:8000` on a single port (`:8080`):
+```bash
+pnpm build
+uvicorn backend.main:app --host 0.0.0.0 --port 8000
+caddy run --config Caddyfile
+```
 
 ---
 
-## 25. Team
+## 🔭 Future Extensions
 
-*Smart India Hackathon 2026 — Team Information:*
+To maintain strict transparency between the current working system and future possibilities, the following items are designated as **Planned / Future** work:
 
-| Role | Name | Department / Affiliation |
-| :--- | :--- | :--- |
-| **Team Lead / Full-Stack & 3D Graphics** | Kumar Shiva | Engineering |
-| **Backend & Scientific Data Services** | Team Member | Engineering |
-| **Oceanographic Data & Testing** | Team Member | Engineering |
-
-*(Update team details as appropriate for hackathon submission).*
-
----
-
-## 26. Acknowledgements & Data Sources
-
-We gratefully acknowledge the following organizations and data providers:
-- **Indian National Centre for Ocean Information Services (INCOIS)**, Ministry of Earth Sciences (MoES), Government of India: For problem statement formulation, scientific domain guidance, and evaluation criteria under SIH 26067.
-- **Copernicus Marine Environment Monitoring Service (CMEMS):** For providing the Global Ocean Physics (`GLORYS12V1`) and Biogeochemical (`FREEBIORYS2V4`) analysis datasets.
-- **NOAA National Centers for Environmental Information (NCEI):** For the World Ocean Database (WOD) in-situ observation archives (Argo profiling floats, gliders, and CTD casts).
-- **International Argo Programme:** For global in-situ profiling float measurements.
-- **Flanders Marine Institute (VLIZ):** For the Marine Regions World Maritime Boundaries Dataset v12 (MRGID 8480, 8333).
+| Extension | Current Status in Repository | Future Scope |
+| :--- | :---: | :--- |
+| **Moored Buoy Arrays (`mooring`)** | **Planned / Future** (Registry hook `is_active=False`) | Integration of fixed Eulerian time-series buoy networks (e.g., OMNI / RAMA buoys) |
+| **Acoustic Doppler Current Profilers (`adcp`)** | **Planned / Future** (Registry hook `is_active=False`) | High-frequency vertical velocity profile ingestion from vessel-mounted ADCPs |
+| **High-Frequency Coastal Radar (`hf_radar`)** | **Planned / Future** (Registry hook `is_active=False`) | Coastal surface current radar vector grids |
+| **Additional Biogeochemical Parameters** | **Planned / Future** | Full 3D model comparison for dissolved oxygen ($\text{O}_2$), nitrate ($\text{NO}_3$), and pH |
+| **ML-Derived Ocean Products** | **Planned / Future** | Data-driven eddy detection and subsurface anomaly diagnostics |
 
 ---
 
-## 27. License
+## 🤝 Acknowledgements
+
+- **Indian National Centre for Ocean Information Services (INCOIS)**, Ministry of Earth Sciences (MoES), Government of India — Problem Statement formulation and scientific domain context under Smart India Hackathon 2026 (PS 26067).
+- **Copernicus Marine Service (CMEMS)** — Global Ocean Physics (`GLORYS12V1`) and Biogeochemical (`FREEBIORYS2V4`) daily numerical model datasets.
+- **NOAA National Centers for Environmental Information (NCEI)** — World Ocean Database (WOD) in-situ profiling float (`PFL`), autonomous glider (`GLD`), and shipboard `CTD` archives.
+- **Flanders Marine Institute (VLIZ)** — Marine Regions World EEZ Dataset v12 (`india_eez.geojson`).
+
+---
+
+## 📄 License
 
 License: Not yet specified.
 
 ---
 
-## 28. Footer
-
-Built for Smart India Hackathon 2026 — SIH 26067
+<div align="center">
+  <strong>Built for Smart India Hackathon 2026 — SIH 26067</strong>
+</div>
