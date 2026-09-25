@@ -317,7 +317,7 @@ export default function Page3Workstation({
       ],
     },
     about: {
-      title: "About SagarDrishti-3D",
+      title: "About SAGAR NETRA 3D — The Ocean Eye",
       subtitle: "Ministry of Earth Sciences · INCOIS · Smart India Hackathon 2026",
       icon: "🇮🇳",
       sections: [

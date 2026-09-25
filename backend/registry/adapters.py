@@ -1,7 +1,7 @@
 """
 backend/registry/adapters.py
 ----------------------------
-Centralized Adapter Registry for SagarDrishti-3D.
+Centralized Adapter Registry for Sagar Netra 3D.
 
 Decouples the service and API layers from concrete adapter implementations.
 Allows new model or observation adapters (e.g. ASCII parsers, new sensor types, future models)

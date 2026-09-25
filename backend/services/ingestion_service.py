@@ -1,7 +1,7 @@
 """
 backend/services/ingestion_service.py
 -------------------------------------
-Lightweight automated file detection and ingestion service for SagarDrishti-3D.
+Lightweight automated file detection and ingestion service for Sagar Netra 3D.
 
 Supports:
   - Monitoring the incoming data directory (data/incoming/) for newly added NetCDF and text files.
@@ -62,7 +62,7 @@ def _compute_file_hash(file_path: Path) -> str:
 class AutomatedIngestionService:
     """
     Automated ingestion manager scanning incoming directories, dispatching adapters,
-    and making newly ingested datasets live in SagarDrishti-3D.
+    and making newly ingested datasets live in Sagar Netra 3D.
     """
 
     def __init__(

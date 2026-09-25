@@ -284,13 +284,13 @@ export default function Stage2Workstation({
           body: "Guidelines for observational data validation, quality control flags, and numerical model interpolation.",
         },
         {
-          heading: "SagarDrishti Architecture Guide",
+          heading: "Sagar Netra Architecture Guide",
           body: "Complete documentation for WebGL 3D volumetric rendering, shaders, and binary field cache protocols.",
         },
       ],
     },
     about: {
-      title: "About SagarDrishti-3D",
+      title: "About SAGAR NETRA 3D — The Ocean Eye",
       subtitle: "Ministry of Earth Sciences (MoES) & INCOIS Ocean Intelligence Platform",
       icon: "🇮🇳",
       sections: [

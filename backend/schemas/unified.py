@@ -1,7 +1,7 @@
 """
 backend/schemas/unified.py
 --------------------------
-Unified data models and schemas for the extensible SagarDrishti-3D data architecture.
+Unified data models and schemas for the extensible Sagar Netra 3D data architecture.
 Enables normalization across multiple model and observation sources without altering raw numerical precision.
 """
 from __future__ import annotations

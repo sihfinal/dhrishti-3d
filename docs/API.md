@@ -1,4 +1,4 @@
-# SagarDrishti-3D — REST API Specification
+# Sagar Netra 3D — REST API Specification
 
 **Base URL:** `http://localhost:8000/api/v1`  
 **OpenAPI / Swagger UI:** `http://localhost:8000/docs`  

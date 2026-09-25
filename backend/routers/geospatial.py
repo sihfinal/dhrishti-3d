@@ -1,7 +1,7 @@
 """
 backend/routers/geospatial.py
 -----------------------------
-FastAPI router serving authoritative geospatial boundary layers for SagarDrishti-3D.
+FastAPI router serving authoritative geospatial boundary layers for Sagar Netra 3D.
 Provides Indian Exclusive Economic Zone (EEZ) GeoJSON data, boundary metadata, and spatial references.
 """
 from __future__ import annotations
@@ -13,7 +13,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, status
 
-log = logging.getLogger("sagardrishti.geospatial")
+log = logging.getLogger("sagarnetra.geospatial")
 router = APIRouter(prefix="/geospatial", tags=["Geospatial Layers"])
 
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "geospatial"
@@ -60,7 +60,7 @@ async def get_india_eez() -> Dict[str, Any]:
 @router.get("/info", summary="Geospatial boundary metadata and citations")
 async def get_geospatial_info() -> Dict[str, Any]:
     """
-    Returns metadata regarding all geospatial boundary layers integrated into SagarDrishti-3D.
+    Returns metadata regarding all geospatial boundary layers integrated into Sagar Netra 3D.
     """
     eez = _load_eez_data()
     meta = eez.get("metadata", {})

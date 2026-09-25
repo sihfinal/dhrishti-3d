@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SagarDrishti-3D",
-  description: "Interactive 3D visualization of ocean model outputs and in-situ observations across space, depth and time.",
+  title: "SAGAR NETRA 3D — The Ocean Eye",
+  description: "Sagar Numerical & Environmental Three-dimensional Rendering Architecture — Interactive 3D visualization of ocean model outputs and in-situ observations across space, depth and time.",
   icons: {
     icon: [
       { url: "/favicon.ico" },

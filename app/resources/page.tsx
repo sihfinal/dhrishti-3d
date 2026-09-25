@@ -31,7 +31,7 @@ export default function ResourcesPage() {
 
   const navModals: Record<string, InfoModalData> = {
     about: {
-      title: "About SagarDrishti-3D",
+      title: "About SAGAR NETRA 3D — The Ocean Eye",
       subtitle: "Ministry of Earth Sciences · INCOIS · Smart India Hackathon 2026",
       icon: "🇮🇳",
       sections: [
@@ -148,7 +148,7 @@ export default function ResourcesPage() {
           <div className="max-w-2xl">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0a2540] tracking-tight drop-shadow-xs">Resources</h1>
             <p className="text-base sm:text-lg font-semibold text-[#0284c7] mt-1">Learn&nbsp;&bull;&nbsp;Explore&nbsp;&bull;&nbsp;Use&nbsp;&bull;&nbsp;Contribute</p>
-            <p className="text-xs sm:text-[13px] text-slate-700 mt-2 leading-relaxed max-w-xl font-normal">Access documentation, tutorials, datasets, tools and additional resources to make the most of SAGARDRISHTI-3D.</p>
+            <p className="text-xs sm:text-[13px] text-slate-700 mt-2 leading-relaxed max-w-xl font-normal">Access documentation, tutorials, datasets, tools and additional resources to make the most of SAGAR NETRA 3D.</p>
           </div>
           <div className="hidden lg:flex flex-col items-end text-right self-center shrink-0 gap-1">
             <div className="relative w-72 h-16 rounded-xl overflow-hidden shadow-xs border border-sky-200/60">
@@ -235,7 +235,7 @@ export default function ResourcesPage() {
               </div>
               <span className="text-[11px] text-slate-400 font-medium">5 items</span>
             </div>
-            <p className="px-4 pt-2 pb-1 text-[11px] text-slate-500">Everything you need to understand and use SAGARDRISHTI-3D.</p>
+            <p className="px-4 pt-2 pb-1 text-[11px] text-slate-500">Everything you need to understand and use SAGAR NETRA 3D.</p>
             <div className="flex-1 divide-y divide-slate-100">
               <div className="px-4 py-2.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition">
                 <div className="flex items-center gap-2.5">
@@ -287,7 +287,7 @@ export default function ResourcesPage() {
             <p className="px-4 pt-2 pb-1 text-[11px] text-slate-500">Learn with step-by-step guides and examples.</p>
             <div className="flex-1 divide-y divide-slate-100">
               {([
-                { label: "Getting Started with SAGARDRISHTI-3D", sub: "Platform overview and basic navigation", col: "from-sky-600/60", href: "/watch-demo", text: "▶" },
+                { label: "Getting Started with SAGAR NETRA 3D", sub: "Platform overview and basic navigation", col: "from-sky-600/60", href: "/watch-demo", text: "▶" },
                 { label: "Exploring 3D Ocean Data", sub: "Visualize model outputs and in-situ observations", col: "from-emerald-600/60", href: "/explore", text: "3D" },
                 { label: "Analyzing a Study Region", sub: "Select region, variables and time", col: "from-cyan-600/60", href: "/study-region", text: "📍" },
                 { label: "Comparing Model with Observations", sub: "Analyze differences and validate data", col: "from-sky-500/60", href: "/observations", text: "📡" },
@@ -451,7 +451,7 @@ export default function ResourcesPage() {
               <div className="w-7 h-7 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg></div>
               <h2 className="text-sm font-bold text-[#0a2540]">Community &amp; Feedback</h2>
             </div>
-            <p className="px-4 pt-2 pb-1 text-[11px] text-slate-500">Share your feedback and contribute to make SAGARDRISHTI-3D better.</p>
+            <p className="px-4 pt-2 pb-1 text-[11px] text-slate-500">Share your feedback and contribute to make SAGAR NETRA 3D better.</p>
             <div className="flex-1 divide-y divide-slate-100">
               <div className="px-4 py-2.5 flex items-center justify-between gap-2 hover:bg-slate-50/70 transition cursor-pointer">
                 <div className="flex items-center gap-2.5"><div className="w-6 h-6 rounded-md bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0 text-sky-600"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg></div><span className="text-xs font-semibold text-slate-800">Report an Issue</span></div>

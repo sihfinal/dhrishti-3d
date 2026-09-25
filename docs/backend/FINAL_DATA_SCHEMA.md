@@ -1,6 +1,6 @@
 # Final Data Schema & Architecture Specs
 
-This document defines the configuration variables, data schemas, and backend storage specifications for the SagarDrishti-3D FastAPI backend.
+This document defines the configuration variables, data schemas, and backend storage specifications for the Sagar Netra 3D FastAPI backend.
 
 ---
 

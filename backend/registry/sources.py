@@ -1,7 +1,7 @@
 """
 backend/registry/sources.py
 ---------------------------
-Centralized data source registry for SagarDrishti-3D.
+Centralized data source registry for Sagar Netra 3D.
 
 Registers authoritative ocean data institutions and upstream repositories:
   - CMEMS (Copernicus Marine Service)

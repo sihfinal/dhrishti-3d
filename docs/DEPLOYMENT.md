@@ -1,4 +1,4 @@
-# SagarDrishti-3D — Deployment & Operations Guide
+# Sagar Netra 3D — Deployment & Operations Guide
 
 This guide details deployment procedures for local development, standalone Docker containers, and production Kubernetes/NGINX infrastructure.
 

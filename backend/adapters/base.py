@@ -1,7 +1,7 @@
 """
 backend/adapters/base.py
 ------------------------
-Authoritative common abstract interface contract for all SagarDrishti-3D data adapters.
+Authoritative common abstract interface contract for all Sagar Netra 3D data adapters.
 
 Supports:
   - BaseModelAdapter: Interface for 3D/4D gridded numerical model sources (e.g. CMEMS, INCOIS RSMC).
@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 
 
 class BaseAdapter(ABC):
-    """Shared root interface for all data adapters in the SagarDrishti-3D platform."""
+    """Shared root interface for all data adapters in the Sagar Netra 3D platform."""
 
     @property
     @abstractmethod

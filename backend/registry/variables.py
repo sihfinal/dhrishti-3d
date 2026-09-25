@@ -1,7 +1,7 @@
 """
 backend/registry/variables.py
 -----------------------------
-Centralized registry for ocean variables in the SagarDrishti-3D platform.
+Centralized registry for ocean variables in the Sagar Netra 3D platform.
 
 Supports:
   - Canonical variable definitions with standard CF names, verified units, and value ranges.

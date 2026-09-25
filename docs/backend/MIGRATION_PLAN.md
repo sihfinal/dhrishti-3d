@@ -1,6 +1,6 @@
 # Migration Plan: Static to FastAPI
 
-This document details the transition roadmap to migrate the SagarDrishti-3D application from its current **file-based static mock architecture** to a **live FastAPI backend** without breaking the existing 3D frontend interface.
+This document details the transition roadmap to migrate the Sagar Netra 3D application from its current **file-based static mock architecture** to a **live FastAPI backend** without breaking the existing 3D frontend interface.
 
 ---
 

@@ -50,7 +50,7 @@ def test_thredds_catalog_html():
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     text = response.text
-    assert "SAGARDRISHTI-3D THREDDS" in text
+    assert "SAGAR NETRA 3D THREDDS" in text
     assert "cmems_physical" in text
 
 

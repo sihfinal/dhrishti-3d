@@ -1,10 +1,11 @@
 <div align="center">
 
-<img src="public/sagardrishti-logo.png" alt="SagarDrishti-3D Logo" width="96" />
+<img src="public/sagardrishti-logo.png" alt="SAGAR NETRA 3D Logo" width="96" />
 
-# 🌊 SagarDrishti-3D
+# 🌊 SAGAR NETRA 3D — The Ocean Eye
 
-### Interactive 3D Ocean Model & Observation Visualization Platform
+### **Sagar Numerical & Environmental Three-dimensional Rendering Architecture**
+#### Interactive 3D Ocean Model & Observation Visualization Platform
 
 **Explore • Visualize • Compare • Understand**
 
@@ -20,7 +21,7 @@
 
 <br />
 
-**SagarDrishti-3D** is a browser-based scientific visualization platform developed for **Smart India Hackathon 2026 (PS 26067)** under the **Indian National Centre for Ocean Information Services (INCOIS), Ministry of Earth Sciences (MoES), Government of India**. It integrates 4D numerical ocean model outputs with real in-situ observations and presents them through an interactive 3D environment.
+**SAGAR NETRA 3D — The Ocean Eye** (*Sagar Numerical & Environmental Three-dimensional Rendering Architecture*) is a browser-based scientific visualization platform developed for **Smart India Hackathon 2026 (PS 26067)** under the **Indian National Centre for Ocean Information Services (INCOIS), Ministry of Earth Sciences (MoES), Government of India**. It integrates 4D numerical ocean model outputs with real in-situ observations and presents them through an interactive 3D environment.
 
 Instead of viewing gridded model fields, vertical observation soundings, profile comparisons, and standardized geospatial services in isolated tools, the platform brings them together into a single exploration and analysis workspace.
 
@@ -50,7 +51,7 @@ Instead of viewing gridded model fields, vertical observation soundings, profile
 ### Platform Visual Tour (All 10 Application Views)
 
 <div align="center">
-  <img src="screenshots/01-landing-page.png" alt="01 - SagarDrishti-3D Main Portal Landing Page" width="100%" />
+  <img src="screenshots/01-landing-page.png" alt="01 - Sagar Netra 3D Main Portal Landing Page" width="100%" />
   <p><sub><strong>01. Main Portal Landing Page</strong> — Unified entry point for the 3D Ocean Explorer, In-Situ Observation Registry, Open Data Services, and Operational Application Views.</sub></p>
 </div>
 
@@ -113,9 +114,9 @@ Instead of viewing gridded model fields, vertical observation soundings, profile
   </tr>
   <tr>
     <td colspan="2" align="center" valign="top">
-      <img src="screenshots/10-about.png" alt="10 - About SagarDrishti-3D" width="75%" />
+      <img src="screenshots/10-about.png" alt="10 - About Sagar Netra 3D" width="75%" />
       <br />
-      <sub><strong>10. About SagarDrishti-3D</strong> — Institutional context, SIH 2026 PS 26067 alignment, and architectural summary.</sub>
+      <sub><strong>10. About Sagar Netra 3D</strong> — Institutional context, SIH 2026 PS 26067 alignment, and architectural summary.</sub>
     </td>
   </tr>
 </table>
@@ -139,7 +140,7 @@ These datasets differ in **file format**, **spatial resolution**, **grid topolog
 
 The core challenge is not merely storing ocean data — it is making heterogeneous 4D model grids and discrete vertical observations **understandable and usable together**.
 
-> **SagarDrishti-3D creates a common browser-based scientific environment where users can explore, inspect, and compare these datasets in one unified coordinate space.**
+> **Sagar Netra 3D creates a common browser-based scientific environment where users can explore, inspect, and compare these datasets in one unified coordinate space.**
 
 ---
 
@@ -179,7 +180,7 @@ flowchart LR
 
 ## 💡 From Fragmented Data to One Scientific Workspace
 
-| Traditional Workflow | SagarDrishti-3D |
+| Traditional Workflow | Sagar Netra 3D |
 | :--- | :--- |
 | Gridded model NetCDF files viewed in desktop GIS or command-line scripts | Model fields rendered directly in an interactive browser-based 3D volume |
 | In-situ observation files inspected separately from model fields | Observation markers overlaid directly inside the same 3D ocean domain |
@@ -398,7 +399,7 @@ For each matched vertical depth level $i \in \{1, \dots, N\}$:
 
 | Service | Supported Protocols / Versions | Purpose | Typical Consumer |
 | :--- | :--- | :--- | :--- |
-| **REST** | HTTP/1.1 JSON & Binary | Application data access & profile comparison | SagarDrishti-3D Web UI, Python/JS scripts |
+| **REST** | HTTP/1.1 JSON & Binary | Application data access & profile comparison | Sagar Netra 3D Web UI, Python/JS scripts |
 | **WMS** | OGC WMS `1.3.0`, `1.1.1` | Rendered scientific map layers & color legends | QGIS, ArcGIS, Leaflet, OpenLayers |
 | **WCS** | OGC WCS `2.0.1`, `1.0.0` | Subsetted gridded coverage downloads (`NetCDF-4`, `GeoTIFF`) | GIS analysts, GDAL, scientific workflows |
 | **OPeNDAP** | DAP `2.0` & THREDDS `1.0` | Remote multidimensional dataset inspection & slicing | Python (`pydap`/`xarray`), MATLAB, R, CDO |
@@ -732,7 +733,7 @@ dhrishti-3d/
 
 ---
 
-## 🚀 Run SagarDrishti-3D
+## 🚀 Run Sagar Netra 3D
 
 ### 1. Clone the Project
 ```bash

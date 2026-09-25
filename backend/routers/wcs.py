@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException, Query, Request, Response
 
 from backend.services.wcs_service import WCSService, COVERAGE_CATALOG
 
-log = logging.getLogger("sagardrishti.wcs.router")
+log = logging.getLogger("sagarnetra.wcs.router")
 router = APIRouter(tags=["OGC Web Coverage Service"])
 
 
@@ -69,7 +69,7 @@ async def wcs_endpoint(
     if svc.upper() != "WCS":
         xml_err = wcs_svc.make_service_exception_xml(
             "InvalidParameterValue",
-            f"Invalid SERVICE '{svc}'. SagarDrishti-3D supports SERVICE=WCS."
+            f"Invalid SERVICE '{svc}'. Sagar Netra 3D supports SERVICE=WCS."
         )
         return Response(content=xml_err, media_type="text/xml", status_code=400)
 

@@ -1,6 +1,6 @@
 # Current Data Sources Audit
 
-This document catalogues the current data sources integrated into the SagarDrishti-3D repository. It identifies the exact URLs, providers, frequencies, formats, and parameters fetched during ingestion.
+This document catalogues the current data sources integrated into the Sagar Netra 3D repository. It identifies the exact URLs, providers, frequencies, formats, and parameters fetched during ingestion.
 
 ---
 

@@ -2,7 +2,7 @@
  * src/lib/rsmc.ts
  * ---------------
  * Client-side integration bridge between the Phase 1 FastAPI backend and
- * the existing SagarDrishti-3D 3D rendering pipeline.
+ * the existing Sagar Netra 3D 3D rendering pipeline.
  *
  * This file is the ONLY new file needed for integration.  No renderer,
  * shader, fieldCache, DepthSlices, or scene file is changed.

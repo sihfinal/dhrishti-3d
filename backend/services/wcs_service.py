@@ -1,7 +1,7 @@
 """
 backend/services/wcs_service.py
 -------------------------------
-Native OGC Web Coverage Service (WCS 2.0.1 & 1.0.0) Implementation for SagarDrishti-3D.
+Native OGC Web Coverage Service (WCS 2.0.1 & 1.0.0) Implementation for Sagar Netra 3D.
 
 Features:
   - Valid OGC WCS 2.0.1 & 1.0.0 GetCapabilities XML metadata.
@@ -26,7 +26,7 @@ from PIL import Image
 
 from backend.services.model_service import ModelService
 
-log = logging.getLogger("sagardrishti.wcs")
+log = logging.getLogger("sagarnetra.wcs")
 
 COVERAGE_CATALOG: Dict[str, Dict[str, Any]] = {
     "temperature": {
@@ -158,7 +158,7 @@ class WCSService:
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.opengis.net/wcs/2.0 http://schemas.opengis.net/wcs/2.0/wcsGetCapabilities.xsd">
   <ows:ServiceIdentification>
-    <ows:Title>SagarDrishti-3D Ocean Model Web Coverage Service</ows:Title>
+    <ows:Title>Sagar Netra 3D Ocean Model Web Coverage Service</ows:Title>
     <ows:Abstract>OGC Web Coverage Service (WCS 2.0.1) providing direct access to raw numerical gridded ocean model coverages (NetCDF-4 and GeoTIFF) from Copernicus Marine Service (CMEMS) archives across the Indian Ocean basin.</ows:Abstract>
     <ows:Keywords>
       <ows:Keyword>Oceanography</ows:Keyword>
@@ -180,7 +180,7 @@ class WCSService:
     <ows:ProviderName>Ministry of Earth Sciences / INCOIS</ows:ProviderName>
     <ows:ProviderSite xlink:href="{base_url}"/>
     <ows:ServiceContact>
-      <ows:IndividualName>SagarDrishti-3D Technical Lead</ows:IndividualName>
+      <ows:IndividualName>Sagar Netra 3D Technical Lead</ows:IndividualName>
       <ows:PositionName>Ocean Data Architect</ows:PositionName>
       <ows:ContactInfo>
         <ows:Address>
@@ -189,7 +189,7 @@ class WCSService:
           <ows:AdministrativeArea>Telangana</ows:AdministrativeArea>
           <ows:PostalCode>500090</ows:PostalCode>
           <ows:Country>India</ows:Country>
-          <ows:ElectronicMailAddress>sagardrishti@incois.gov.in</ows:ElectronicMailAddress>
+          <ows:ElectronicMailAddress>sagarnetra@incois.gov.in</ows:ElectronicMailAddress>
         </ows:Address>
       </ows:ContactInfo>
     </ows:ServiceContact>
@@ -254,7 +254,7 @@ class WCSService:
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <Service>
     <name>OGC:WCS</name>
-    <label>SagarDrishti-3D Ocean Model Web Coverage Service</label>
+    <label>Sagar Netra 3D Ocean Model Web Coverage Service</label>
     <description>OGC Web Coverage Service (WCS 1.0.0) providing access to numerical gridded ocean model coverages from CMEMS archives.</description>
     <fees>NONE</fees>
     <accessConstraints>Public Access for Research</accessConstraints>
@@ -520,7 +520,7 @@ class WCSService:
                 42113: str(fill_val),  # GDAL_NODATA
             }
             img.save(buf, format="TIFF", tiffinfo=tiff_tags)
-            filename = f"sagardrishti_{cov_key}_{target_date}_{resolved_depth:.1f}m.tif"
+            filename = f"sagarnetra_{cov_key}_{target_date}_{resolved_depth:.1f}m.tif"
             return buf.getvalue(), "image/tiff", filename
 
         # Format 2: Scientific NetCDF-4 (application/x-netcdf)
@@ -539,7 +539,7 @@ class WCSService:
                 },
             )
             ds = da.to_dataset()
-            ds.attrs["title"] = f"SagarDrishti-3D WCS Ocean Coverage — {info['title']}"
+            ds.attrs["title"] = f"Sagar Netra 3D WCS Ocean Coverage — {info['title']}"
             ds.attrs["source"] = "Copernicus Marine Service (CMEMS)"
             ds.attrs["time"] = target_date
             ds.attrs["depth_meters"] = float(resolved_depth)
@@ -548,7 +548,7 @@ class WCSService:
             ds.attrs["Conventions"] = "CF-1.8"
 
             nc_bytes = ds.to_netcdf(format="NETCDF4")
-            filename = f"sagardrishti_{cov_key}_{target_date}_{resolved_depth:.1f}m.nc"
+            filename = f"sagarnetra_{cov_key}_{target_date}_{resolved_depth:.1f}m.nc"
             return nc_bytes, "application/x-netcdf", filename
 
     def make_service_exception_xml(self, code: str, message: str) -> str:

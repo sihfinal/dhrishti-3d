@@ -1,6 +1,6 @@
 # Phase 1 Implementation Scope
 
-This document defines the strict, restricted boundary for **Phase 1** of the SagarDrishti-3D backend implementation. It lists the exact scope limits, file creations, and code modifications.
+This document defines the strict, restricted boundary for **Phase 1** of the Sagar Netra 3D backend implementation. It lists the exact scope limits, file creations, and code modifications.
 
 ---
 

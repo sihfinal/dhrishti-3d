@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -31,7 +31,7 @@ export default function AboutPage() {
 
   const navModals: Record<string, InfoModalData> = {
     about: {
-      title: "About SagarDrishti-3D",
+      title: "About SAGAR NETRA 3D — The Ocean Eye",
       subtitle: "Ministry of Earth Sciences · INCOIS · Smart India Hackathon 2026",
       icon: "🇮🇳",
       sections: [
@@ -139,13 +139,16 @@ export default function AboutPage() {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="flex flex-col max-w-3xl">
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight drop-shadow-sm">
-                About SAGARDRISHTI-3D
+                About SAGAR NETRA 3D — The Ocean Eye
               </h1>
+              <p className="text-xs sm:text-sm font-bold text-sky-300 mt-1">
+                Sagar Numerical &amp; Environmental Three-dimensional Rendering Architecture
+              </p>
               <p className="text-base sm:text-lg font-semibold text-sky-200 mt-1">
                 Visualizing the Ocean. Empowering Decisions.
               </p>
               <p className="text-xs sm:text-[13px] text-slate-200/90 mt-2.5 leading-relaxed font-normal">
-                SAGARDRISHTI-3D is a web-based interactive platform developed to visualize and analyze numerical ocean model outputs and in-situ observations for the Indian Ocean region. It integrates diverse data sources into a unified 3D visualization environment to support research, operational applications, and evidence-based decision making.
+                SAGAR NETRA 3D is a web-based interactive platform developed to visualize and analyze numerical ocean model outputs and in-situ observations for the Indian Ocean region. It integrates diverse data sources into a unified 3D visualization environment to support research, operational applications, and evidence-based decision making.
               </p>
             </div>
 
@@ -260,7 +263,7 @@ export default function AboutPage() {
 
         </div>
 
-        {/* ── ROW 2: About INCOIS & About SAGARDRISHTI-3D Project ── */}
+        {/* ── ROW 2: About INCOIS & About SAGAR NETRA 3D — The Ocean Eye Project ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
           {/* Left: About INCOIS */}
@@ -311,19 +314,19 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* Right: About SAGARDRISHTI-3D Project */}
+          {/* Right: About SAGAR NETRA 3D Project */}
           <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex flex-col justify-between gap-4 hover:border-sky-300 transition">
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center shrink-0 text-indigo-600">
                   <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                 </div>
-                <h2 className="text-base font-bold text-[#0a2540]">About SAGARDRISHTI-3D Project</h2>
+                <h2 className="text-base font-bold text-[#0a2540]">About SAGAR NETRA 3D — The Ocean Eye</h2>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 items-center">
                 <p className="text-xs text-slate-600 leading-relaxed flex-1">
-                  SAGARDRISHTI-3D is developed as part of Smart India Hackathon (SIH) 2026 Problem Statement 26067, in collaboration with INCOIS (MoES). The platform integrates numerical ocean model outputs and in-situ observations into an interactive 3D web-based visualization platform.
+                  <strong>SAGAR NETRA 3D</strong> (<em>Sagar Numerical &amp; Environmental Three-dimensional Rendering Architecture</em>) is developed as part of Smart India Hackathon (SIH) 2026 Problem Statement 26067, in collaboration with INCOIS (MoES). The platform integrates numerical ocean model outputs and in-situ observations into an interactive 3D web-based visualization platform.
                 </p>
                 <div className="w-full sm:w-44 h-28 rounded-xl overflow-hidden relative shrink-0 border border-slate-200 shadow-xs">
                   <Image src="/landing/indian-ocean-inset.jpg" alt="Indian Ocean Region - Our Shared Heritage" fill unoptimized className="object-cover" />

@@ -9,7 +9,7 @@ export default function ExplorePage() {
 
   return (
     <main className="relative h-screen w-screen overflow-hidden select-none bg-[#f0f6fc]">
-      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-xs text-slate-500 font-mono">Loading SAGARDRISHTI-3D Explorer...</div>}>
+      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-xs text-slate-500 font-mono">Loading SAGAR NETRA 3D Explorer...</div>}>
         <Page3Workstation
           onOpenManual={() => setManualOpen(true)}
         />

@@ -16,9 +16,9 @@ const TOUR_STEPS: Step[] = [
   {
     stepNumber: 1,
     title: "Understand the Ocean",
-    subtitle: "SagarDrishti-3D · INCOIS SIH26067",
+    subtitle: "SAGAR NETRA 3D — The Ocean Eye · INCOIS SIH26067",
     badge: "FOUNDATION",
-    body: "SagarDrishti-3D fuses 3D gridded numerical ocean model outputs with real in-situ autonomous observations across India's Exclusive Economic Zone (EEZ) and the entire Indian Ocean basin in an interactive browser-native workspace.",
+    body: "SAGAR NETRA 3D (Sagar Numerical & Environmental Three-dimensional Rendering Architecture) fuses 3D gridded numerical ocean model outputs with real in-situ autonomous observations across India's Exclusive Economic Zone (EEZ) and the entire Indian Ocean basin in an interactive browser-native workspace.",
     actionHint: "Explore physical and chemical variables in 3D.",
   },
   {

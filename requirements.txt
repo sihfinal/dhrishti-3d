@@ -1,4 +1,4 @@
-# SagarDrishti-3D - Full Python Environment Requirements
+# Sagar Netra 3D - Full Python Environment Requirements
 # Includes all packages for the FastAPI Backend, OGC Services (WMS/WCS/OPeNDAP),
 # CMEMS NetCDF lazy slicing, and automated data ingestion pipelines.
 

@@ -1,4 +1,4 @@
-# SagarDrishti-3D — Data Format & Ingestion Standards
+# Sagar Netra 3D — Data Format & Ingestion Standards
 
 **Supported Ingestion Formats:** NetCDF-3 / NetCDF-4 (CF-1.8 compliant), HDF5, ASCII/CSV profiles, WMO GTS streams.  
 **Target Region:** Indian Ocean & EEZ ($\text{Lat: } -35^\circ \text{ to } +30^\circ$, $\text{Lon: } 40^\circ \text{ to } 100^\circ$).  

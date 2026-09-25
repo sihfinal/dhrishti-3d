@@ -1,14 +1,14 @@
 @echo off
-title SagarDrishti-3D Production Launcher
+title Sagar Netra 3D Production Launcher
 echo ===================================================
-echo   Starting SagarDrishti-3D Production Platform...
+echo   Starting Sagar Netra 3D Production Platform...
 echo ===================================================
 
 echo [1/3] Starting FastAPI Python Backend (:8000)...
-start "SagarDrishti - Backend" cmd /k "call .venv\Scripts\activate.bat && uvicorn backend.main:app --host 0.0.0.0 --port 8000"
+start "Sagar Netra - Backend" cmd /k "call .venv\Scripts\activate.bat && uvicorn backend.main:app --host 0.0.0.0 --port 8000"
 
 echo [2/3] Starting Caddy Production Web Server (:8080)...
-start "SagarDrishti - WebServer" cmd /k "caddy.exe run"
+start "Sagar Netra - WebServer" cmd /k "caddy.exe run"
 
 echo Waiting 5 seconds for services to initialize...
 timeout /t 5 /nobreak >nul

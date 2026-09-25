@@ -196,7 +196,7 @@ class OpenDAPService:
         # Global dataset attributes
         for k, v in xds.attrs.items():
             pds.attributes[k] = str(v)
-        pds.attributes["institution"] = "INCOIS / SAGARDRISHTI-3D Ocean Intelligence"
+        pds.attributes["institution"] = "INCOIS / SAGAR NETRA 3D Ocean Intelligence"
         pds.attributes["title"] = "CMEMS Physical Ocean Analysis (DAP 2.0)"
         pds.attributes["Conventions"] = "CF-1.8"
         pds.attributes["source"] = "Copernicus Marine Environment Monitoring Service (CMEMS)"
@@ -226,7 +226,7 @@ class OpenDAPService:
 
         for k, v in xds.attrs.items():
             pds.attributes[k] = str(v)
-        pds.attributes["institution"] = "INCOIS / SAGARDRISHTI-3D Ocean Intelligence"
+        pds.attributes["institution"] = "INCOIS / SAGAR NETRA 3D Ocean Intelligence"
         pds.attributes["title"] = "CMEMS Biogeochemical Ocean Chlorophyll Analysis (DAP 2.0)"
         pds.attributes["Conventions"] = "CF-1.8"
         pds.attributes["source"] = "Copernicus Marine Environment Monitoring Service (CMEMS)"
@@ -318,7 +318,7 @@ class OpenDAPService:
 
         pair = self._get_xds_and_pds(clean_id)
         if pair is None:
-            err_msg = f"Dataset '{clean_id}' not found or not configured in SAGARDRISHTI-3D OPeNDAP server."
+            err_msg = f"Dataset '{clean_id}' not found or not configured in SAGAR NETRA 3D OPeNDAP server."
             return (
                 f"Error {{\n    code = 404;\n    message = \"{err_msg}\";\n}};\n".encode("utf-8"),
                 404,
@@ -369,7 +369,7 @@ class OpenDAPService:
         indexing all available ocean model datasets with standard OpenDAP serviceType.
         """
         catalog = f"""<?xml version="1.0" encoding="UTF-8"?>
-<catalog name="SAGARDRISHTI-3D THREDDS / OPeNDAP Data Catalog"
+<catalog name="SAGAR NETRA 3D THREDDS / OPeNDAP Data Catalog"
         xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
         xmlns:xlink="http://www.w3.org/1999/xlink">
 
@@ -377,7 +377,7 @@ class OpenDAPService:
         <service name="dap" serviceType="OpenDAP" base="{service_base_url}/" />
     </service>
 
-    <dataset name="SAGARDRISHTI-3D Ocean Model Collections" ID="sagardrishti-models">
+    <dataset name="SAGAR NETRA 3D Ocean Model Collections" ID="sagarnetra-models">
         
         <dataset name="CMEMS Global Ocean Physics Daily Analysis" ID="cmems_physical" urlPath="cmems_physical">
             <serviceName>dap</serviceName>
@@ -417,7 +417,7 @@ class OpenDAPService:
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SAGARDRISHTI-3D THREDDS &amp; OPeNDAP Data Catalog</title>
+    <title>SAGAR NETRA 3D THREDDS &amp; OPeNDAP Data Catalog</title>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 40px; background: #f8fafc; color: #1e293b; }}
         .container {{ max-width: 900px; margin: 0 auto; background: white; padding: 32px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }}
@@ -434,7 +434,7 @@ class OpenDAPService:
 </head>
 <body>
     <div class="container">
-        <h1>🌊 SAGARDRISHTI-3D THREDDS / OPeNDAP Server</h1>
+        <h1>🌊 SAGAR NETRA 3D THREDDS / OPeNDAP Server</h1>
         <p class="sub">National Ocean Information Processing Center · Ministry of Earth Sciences (MoES) / INCOIS</p>
         
         <h2>Available Ocean Model Datasets</h2>

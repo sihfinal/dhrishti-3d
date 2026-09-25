@@ -17,7 +17,7 @@ import numpy as np
 from backend.services.model_service import ModelService
 from backend.services.observation_service import ObservationService
 
-log = logging.getLogger("sagardrishti.comparison")
+log = logging.getLogger("sagarnetra.comparison")
 
 # Mapping of standard variable keys to model NC variable names, units, and ranges
 VARIABLE_META = {

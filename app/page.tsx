@@ -159,8 +159,8 @@ export default function LandingPage() {
       ctaAction: () => launchExplorer("volume"),
     },
     about: {
-      title: "About SagarDrishti-3D",
-      subtitle: "Ministry of Earth Sciences · INCOIS · Smart India Hackathon 2026",
+      title: "About SAGAR NETRA 3D — The Ocean Eye",
+      subtitle: "Sagar Numerical & Environmental Three-dimensional Rendering Architecture · INCOIS · SIH 2026",
       icon: "🇮🇳",
       sections: [
         {
@@ -437,15 +437,20 @@ export default function LandingPage() {
               SIH 26067 &nbsp;|&nbsp; INCOIS &nbsp;|&nbsp; MINISTRY OF EARTH SCIENCES
             </div>
 
-            {/* Main Title: SagarDrishti-3D */}
-            <h1 className="text-5xl sm:text-6xl lg:text-[70px] font-black tracking-tight leading-[1.04]">
+            {/* Main Title: SAGAR NETRA 3D — The Ocean Eye */}
+            <h1 className="text-4xl sm:text-5xl lg:text-[62px] font-black tracking-tight leading-[1.06]">
               <span className="bg-gradient-to-r from-[#03254c] via-[#0284c7] to-[#00a896] bg-clip-text text-transparent">
-                SagarDrishti-3D
+                SagarNetra - 3D
+              </span>
+              <span className="block text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#0284c7] mt-1 tracking-normal">
               </span>
             </h1>
 
-            {/* Subtitle with Blue Underline Accent */}
+            {/* Full Acronym & Subtitle with Blue Underline Accent */}
             <div className="mt-2.5">
+              <p className="text-xs sm:text-sm font-bold text-[#0066cc] tracking-wide mb-1">
+                Sagar Numerical &amp; Environmental Three-dimensional Rendering Architecture
+              </p>
               <h2 className="text-lg sm:text-xl font-bold text-[#0f2942] tracking-normal">
                 Explore &nbsp;•&nbsp; Analyze &nbsp;•&nbsp; Understand &nbsp;•&nbsp; For a Safer Tomorrow
               </h2>
@@ -746,7 +751,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h3 className="text-sm sm:text-base font-bold text-white leading-tight">
-                      Watch SagarDrishti-3D in Action
+                      Watch SAGAR NETRA 3D in Action
                     </h3>
                     <p className="text-[11px] text-slate-400">
                       Interactive Walkthrough · SIH 26067 · INCOIS

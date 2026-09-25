@@ -1,6 +1,6 @@
 # Final Backend Design
 
-This document outlines the corrected dynamic runtime architecture for the SagarDrishti-3D FastAPI backend. It details the transition from the legacy static system to a live FastAPI runtime server with a filesystem-backed cache/archive.
+This document outlines the corrected dynamic runtime architecture for the Sagar Netra 3D FastAPI backend. It details the transition from the legacy static system to a live FastAPI runtime server with a filesystem-backed cache/archive.
 
 ---
 

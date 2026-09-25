@@ -1,4 +1,5 @@
-# 🚀 SagarDrishti-3D — Presentation Script
+# 🚀 SAGAR NETRA 3D — The Ocean Eye (Presentation Script)
+**Sagar Numerical & Environmental Three-dimensional Rendering Architecture**
 
 **Team:** SIH Hackers  
 **SIH Problem Statement ID:** 26067  
@@ -10,8 +11,8 @@
 
 ## 🎙️ INTRO (Page 1: Landing Page)
 
-"Hello judges! We present SagarDrishti-3D for INCOIS (MoES) under SIH PS 26067.
-Today, oceanographers struggle with static 2D maps and disconnected desktop tools to analyze 3D ocean data. SagarDrishti-3D solves this by unifying numerical model fields—like temperature, salinity, currents, and chlorophyll—with real Argo floats, Gliders, and CTD observations in one browser-based 3D platform.
+"Hello judges! We present **SAGAR NETRA 3D — The Ocean Eye** (*Sagar Numerical & Environmental Three-dimensional Rendering Architecture*) for INCOIS (MoES) under SIH PS 26067.
+Today, oceanographers struggle with static 2D maps and disconnected desktop tools to analyze 3D ocean data. Sagar Netra 3D solves this by unifying numerical model fields—like temperature, salinity, currents, and chlorophyll—with real Argo floats, Gliders, and CTD observations in one browser-based 3D platform.
 With zero installation, tapping 'Launch 3D Explorer' immediately takes forecasters into an interactive 3D digital twin of our ocean."
 
 ---
@@ -53,4 +54,4 @@ Under Visualization Options, users can seamlessly toggle Depth Slices, 3D Volume
 Productivity Tools:
 Notice the Maximize button on the bottom-left of the 3D model, allowing forecasters to expand the 3D view to full-screen for distraction-free analysis.
 At the top header, the Data Status button provides authoritative data provenance, and the Manual button opens a quick 9-card reference guide for operational forecasters.
-By bringing together 3D volumetric rendering, depth slices, current vectors, and real in-situ floats into one browser tab, SagarDrishti-3D delivers the complete 3D ocean visualization platform envisioned by INCOIS."
+By bringing together 3D volumetric rendering, depth slices, current vectors, and real in-situ floats into one browser tab, Sagar Netra 3D delivers the complete 3D ocean visualization platform envisioned by INCOIS."

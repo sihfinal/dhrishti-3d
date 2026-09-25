@@ -1,4 +1,4 @@
-# 🌊 SAGARDRISHTI-3D
+# 🌊 SAGAR NETRA 3D
 ### *Interactive Web-Based 3D Ocean Model & In-Situ Observation Exploration Platform*
 
 [![SIH PS 26067](https://img.shields.io/badge/SIH%202026-PS%2026067-0284c7?style=for-the-badge&logo=target&logoColor=white)](https://www.sih.gov.in/)
@@ -14,9 +14,9 @@
 
 ## 📌 Executive Summary
 
-**SagarDrishti-3D** is an advanced scientific oceanographic exploration workstation engineered for **Smart India Hackathon (SIH 2026) Problem Statement 26067**, sponsored by the **Indian National Centre for Ocean Information Services (INCOIS)**, Ministry of Earth Sciences (MoES), Government of India.
+**Sagar Netra 3D** is an advanced scientific oceanographic exploration workstation engineered for **Smart India Hackathon (SIH 2026) Problem Statement 26067**, sponsored by the **Indian National Centre for Ocean Information Services (INCOIS)**, Ministry of Earth Sciences (MoES), Government of India.
 
-The platform bridges discrete in-situ marine observations with continuous 4D numerical ocean model outputs across the Indian Ocean Basin (Arabian Sea, Bay of Bengal, and Equatorial Indian Ocean). Utilizing WebGL2 GPU volume ray marching, standalone 3D Marching Cubes isosurface extraction, discrete multi-depth horizontal slicing, and true 3D current vector fields, **SagarDrishti-3D** delivers real-time scientific visualization with sub-second rendering latencies.
+The platform bridges discrete in-situ marine observations with continuous 4D numerical ocean model outputs across the Indian Ocean Basin (Arabian Sea, Bay of Bengal, and Equatorial Indian Ocean). Utilizing WebGL2 GPU volume ray marching, standalone 3D Marching Cubes isosurface extraction, discrete multi-depth horizontal slicing, and true 3D current vector fields, **Sagar Netra 3D** delivers real-time scientific visualization with sub-second rendering latencies.
 
 > 📸 *Project Walkthrough / Interactive Demo GIF*
 > *(Add project demo GIF or video walkthrough here: `docs/assets/demo_walkthrough.gif`)*
@@ -37,13 +37,13 @@ The Indian Ocean is one of the most dynamically complex marine domains in the wo
 
 ---
 
-## 💡 The SagarDrishti-3D Solution
+## 💡 The Sagar Netra 3D Solution
 
-SagarDrishti-3D provides a unified two-stage interactive workstation:
+Sagar Netra 3D provides a unified two-stage interactive workstation:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                 SAGARDRISHTI-3D WORKSTATION                             │
+│                                 SAGAR NETRA 3D WORKSTATION                             │
 ├──────────────────────────────────────────┬─────────────────────────────────────────────┤
 │   STAGE 1: GLOBAL DIGITAL EARTH           │   STAGE 2: 3D REGIONAL WORKSTATION          │
 │   • Global 3D Interactive Globe          │   • True 3D Volumetric Ray Marching         │
@@ -84,7 +84,7 @@ SagarDrishti-3D provides a unified two-stage interactive workstation:
 
 ## 📊 PS 26067 Requirement Compliance Matrix
 
-| PS 26067 Requirement | Implemented Mechanism in SagarDrishti-3D | Verification Status |
+| PS 26067 Requirement | Implemented Mechanism in Sagar Netra 3D | Verification Status |
 | :--- | :--- | :---: |
 | **3D Volumetric Ocean Rendering** | WebGL2 GPU ray marching through `THREE.Data3DTexture` with transfer function colormaps and early ray termination | ✅ Implemented |
 | **Model Scalar Variables** | Potential Temperature (`thetao`), Practical Salinity (`so`), and Chlorophyll-a (`chl`) | ✅ Implemented |
@@ -105,7 +105,7 @@ SagarDrishti-3D provides a unified two-stage interactive workstation:
 
 ## 🔬 Scientific Data Pipeline & Provenance
 
-SagarDrishti-3D relies exclusively on scientifically validated, official marine data sources. The platform strictly distinguishes between **real official data snapshots** and **live streaming data**, maintaining provenance integrity.
+Sagar Netra 3D relies exclusively on scientifically validated, official marine data sources. The platform strictly distinguishes between **real official data snapshots** and **live streaming data**, maintaining provenance integrity.
 
 ```mermaid
 flowchart TD
@@ -341,8 +341,8 @@ sequenceDiagram
 
 ### Step 1: Clone Repository
 ```bash
-git clone https://github.com/sihfinal/sagardrishti-3d.git
-cd sagardrishti-3d
+git clone https://github.com/sihfinal/sagar-netra-3d.git
+cd sagar-netra-3d
 ```
 
 ---
@@ -421,7 +421,7 @@ npx tsc --noEmit
 ```text
 ============================= test session starts =============================
 platform win32 -- Python 3.11.5, pytest-9.0.1, pluggy-1.6.0
-rootdir: C:\...\sagardrishti-3d
+rootdir: C:\...\sagar-netra-3d
 collected 17 items
 
 backend\tests\test_api.py .................                              [100%]
@@ -496,7 +496,7 @@ The backend provides high-performance, cached endpoints for lazy spatial slicing
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                          SAGARDRISHTI-3D STACK                         │
+│                          SAGAR NETRA 3D STACK                         │
 ├──────────────────────┬─────────────────────────────────────────────────┤
 │ Frontend Framework   │ Next.js 15 (App Router), React 19, TypeScript   │
 │ 3D & Graphics        │ Three.js (r128+), WebGL2, Custom GLSL Shaders   │

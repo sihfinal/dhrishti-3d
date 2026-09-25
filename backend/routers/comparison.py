@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
 
-log = logging.getLogger("sagardrishti.comparison_router")
+log = logging.getLogger("sagarnetra.comparison_router")
 router = APIRouter(prefix="/compare", tags=["Model vs Observation Comparison"])
 
 

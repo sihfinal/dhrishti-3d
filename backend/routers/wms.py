@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException, Query, Request, Response
 
 from backend.services.wms_service import WMSService, LAYER_CATALOG
 
-log = logging.getLogger("sagardrishti.wms.router")
+log = logging.getLogger("sagarnetra.wms.router")
 router = APIRouter(tags=["OGC Web Map Service"])
 
 
@@ -69,7 +69,7 @@ async def wms_endpoint(
     if svc.upper() != "WMS":
         xml_err = wms_svc.make_service_exception_xml(
             "InvalidParameterValue",
-            f"Invalid SERVICE '{svc}'. SagarDrishti-3D supports SERVICE=WMS."
+            f"Invalid SERVICE '{svc}'. Sagar Netra 3D supports SERVICE=WMS."
         )
         return Response(content=xml_err, media_type="text/xml", status_code=400)
 

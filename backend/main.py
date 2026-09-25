@@ -1,7 +1,7 @@
 """
 backend/main.py
 ---------------
-FastAPI application entry point for the SagarDrishti-3D Real Data Backend.
+FastAPI application entry point for the Sagar Netra 3D Real Data Backend.
 Provides lazy-loaded CMEMS model APIs, WOD in-situ observation APIs, and Automated Ingestion Services.
 """
 from __future__ import annotations
@@ -38,12 +38,12 @@ logging.basicConfig(
     format="%(asctime)s  %(levelname)-8s  %(name)s: %(message)s",
     stream=sys.stdout,
 )
-log = logging.getLogger("sagardrishti.backend")
+log = logging.getLogger("sagarnetra.backend")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    log.info("=== SagarDrishti-3D Backend — Real Data Engine Starting ===")
+    log.info("=== Sagar Netra 3D Backend — Real Data Engine Starting ===")
     data_dir = Path(__file__).resolve().parent.parent / "data"
     incoming_dir = data_dir / "incoming"
     log.info("Authoritative datasets directory: %s", data_dir)
@@ -79,14 +79,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         yield
     finally:
-        log.info("SagarDrishti-3D Backend shutting down — closing cached NetCDF handles.")
+        log.info("Sagar Netra 3D Backend shutting down — closing cached NetCDF handles.")
         if hasattr(app.state, "model_service"):
             app.state.model_service.close()
         if hasattr(app.state, "obs_service"):
             app.state.obs_service.close()
 
 app = FastAPI(
-    title="SagarDrishti-3D Real Data API",
+    title="Sagar Netra 3D Real Data API",
     description=(
         "Production backend serving real CMEMS numerical model archives, "
         "WOD in-situ observations (Argo, Gliders, CTD, BGC), automated ASCII/CSV/TSV ingestion, "
@@ -128,7 +128,7 @@ app.include_router(opendap_router, prefix="/thredds/dodsC")
 @app.get("/")
 async def root():
     return {
-        "service": "SagarDrishti-3D Backend",
+        "service": "Sagar Netra 3D Backend",
         "docs": "/docs",
         "health": "/api/v1/health",
         "datasets": "/api/v1/datasets",

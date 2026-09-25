@@ -23,7 +23,7 @@ const MANUAL_CARDS: ManualItem[] = [
     category: "Volumetric Rendering",
     summary: "Volumetric 3D water block with depth-interpolated fields, data-derived bathymetry, and light shafts.",
     detailedText:
-      "SagarDrishti-3D renders the Indian Ocean as a true 3D spherical volume. Data from 25–40 discrete depth levels is GPU-filtered with custom GLSL shaders to reconstruct continuous temperature and salinity gradients from the surface mixed layer down to the bathymetric ocean floor.",
+      "Sagar Netra 3D renders the Indian Ocean as a true 3D spherical volume. Data from 25–40 discrete depth levels is GPU-filtered with custom GLSL shaders to reconstruct continuous temperature and salinity gradients from the surface mixed layer down to the bathymetric ocean floor.",
     actionLabel: "Copernicus Physical Model →",
     referenceUrl: "https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_PHY_001_030/description",
     specs: [
@@ -119,7 +119,7 @@ const MANUAL_CARDS: ManualItem[] = [
     category: "Temporal Dynamics",
     summary: "Stepped and continuous timeline playback across daily forecast steps and seasonal cycles.",
     detailedText:
-      "SagarDrishti-3D supports both monthly stepped progression and continuous simulation clock playback with variable speed multipliers (0.5× to 4×). Forecasters can observe the onset of the Indian Ocean Dipole (IOD) and seasonal thermocline deepening.",
+      "Sagar Netra 3D supports both monthly stepped progression and continuous simulation clock playback with variable speed multipliers (0.5× to 4×). Forecasters can observe the onset of the Indian Ocean Dipole (IOD) and seasonal thermocline deepening.",
     actionLabel: "Copernicus Time Series →",
     referenceUrl: "https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_PHY_001_030/description",
     specs: [
@@ -217,7 +217,7 @@ export default function Manual({
                   </div>
                 )}
                 <span className="text-[10px] uppercase font-mono tracking-widest text-slate-400 hidden sm:inline-block">
-                  SagarDrishti-3D · INCOIS SIH26067
+                  Sagar Netra 3D · INCOIS SIH26067
                 </span>
               </div>
 

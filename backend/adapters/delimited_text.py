@@ -1,7 +1,7 @@
 """
 backend/adapters/delimited_text.py
 ----------------------------------
-High-performance, scientific delimited-text observation adapter for SagarDrishti-3D.
+High-performance, scientific delimited-text observation adapter for Sagar Netra 3D.
 
 Supports:
   - CSV, TSV, semicolon-delimited, pipe-delimited, and whitespace-delimited ASCII files.

@@ -25,7 +25,7 @@ const fieldCache = new Map<string, ModelFieldResponse>()
 const MAX_CACHE_SIZE = 40
 
 /**
- * Decodes a SagarDrishti-3D (SD3D) binary envelope containing a 16-byte fixed header,
+ * Decodes a Sagar Netra 3D (SD3D) binary envelope containing a 16-byte fixed header,
  * UTF-8 JSON metadata, and contiguous Little-Endian Float32 values.
  */
 function decodeBinaryEnvelope(arrayBuffer: ArrayBuffer): {

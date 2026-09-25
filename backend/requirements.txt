@@ -1,4 +1,4 @@
-# SagarDrishti-3D Backend Dependencies
+# Sagar Netra 3D Backend Dependencies
 # Scientific Data Ingestion, OGC Services (WMS/WCS/OPeNDAP), and API Services
 
 fastapi>=0.111.0

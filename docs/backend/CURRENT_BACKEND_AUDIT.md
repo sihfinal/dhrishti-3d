@@ -1,6 +1,6 @@
 # Current Backend Audit
 
-This document audits the current backend capabilities of the SagarDrishti-3D repository. It identifies which parts of the existing data ingestion, parsing, processing, and delivery layers can be reused, extended, or replaced in the upcoming FastAPI transition.
+This document audits the current backend capabilities of the Sagar Netra 3D repository. It identifies which parts of the existing data ingestion, parsing, processing, and delivery layers can be reused, extended, or replaced in the upcoming FastAPI transition.
 
 ---
 

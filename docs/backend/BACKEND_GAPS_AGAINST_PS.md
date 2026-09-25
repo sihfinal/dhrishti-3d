@@ -1,11 +1,11 @@
 # Backend Gaps Against PS 26067 Requirements
 
-This document highlights the specific technical gaps that remain between the **current file-based, static architecture** of SagarDrishti-3D and the final requirements of **PS 26067**.
+This document highlights the specific technical gaps that remain between the **current file-based, static architecture** of Sagar Netra 3D and the final requirements of **PS 26067**.
 
 ---
 
 ## 1. Missing Active Runtime API Server
-- **Current State**: SagarDrishti-3D operates entirely as a static client website. Processed datasets are checked into git at `/public/data/` and loaded by the browser via standard HTTP GET fetches. No active server handles database queries or runs dynamic scripts.
+- **Current State**: Sagar Netra 3D operates entirely as a static client website. Processed datasets are checked into git at `/public/data/` and loaded by the browser via standard HTTP GET fetches. No active server handles database queries or runs dynamic scripts.
 - **PS Requirement**: A robust REST API backend capable of serving dynamic queries, authenticating users, managing ingestion schedules, and processing datasets on-the-fly.
 - **Impact**: Dynamic parameter changes (e.g. custom geographic ranges, different interpolation scopes) cannot be resolved without rebuilding and re-ingesting the static data files.
 
@@ -42,4 +42,4 @@ This document highlights the specific technical gaps that remain between the **c
 ## 6. Missing GIS WMS/WCS Interoperability Services
 - **Current State**: Ocean data is stored as raw quantized byte arrays (`.bin` files) designed specifically for the custom WebGL shader. There are no standardized GIS endpoints.
 - **PS Requirement**: Support for Web Map Service (WMS) and Web Coverage Service (WCS) OGC standard interfaces, allowing external tools (like QGIS, ArcGIS, or Google Earth) to overlay the ocean model outputs.
-- **Impact**: External oceanography research tools cannot connect to or query the SagarDrishti-3D data stream.
+- **Impact**: External oceanography research tools cannot connect to or query the Sagar Netra 3D data stream.

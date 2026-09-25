@@ -259,7 +259,7 @@ export default function ScientificJourney({
             label="Why am I looking at this?"
             icon="🔭"
             dotColor="bg-sky-400"
-            subtext="SagarDrishti-3D mission & problem statement"
+            subtext="Sagar Netra 3D mission & problem statement"
             active={activeTerm === "Why am I looking at this?" || activeTerm === "What am I looking at?"}
             onClick={() => onSelectTerm("Why am I looking at this?")}
           />

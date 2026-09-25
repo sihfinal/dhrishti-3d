@@ -1,4 +1,4 @@
-# SagarDrishti-3D — Implementation Status & Gap Analysis
+# Sagar Netra 3D — Implementation Status & Gap Analysis
 
 **Project:** SIH26067 — INCOIS (Ministry of Earth Sciences)  
 **System:** Browser-Native 3D Ocean Data Visualization & Analysis Platform  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-A thorough architectural audit and systematic engineering upgrade has been completed on SagarDrishti-3D. The platform delivers an operational, browser-native 3D oceanographic visualization and analysis environment meeting all INCOIS problem statement specifications:
+A thorough architectural audit and systematic engineering upgrade has been completed on Sagar Netra 3D. The platform delivers an operational, browser-native 3D oceanographic visualization and analysis environment meeting all INCOIS problem statement specifications:
 - **WebGL/Three.js Volumetric Engine:** Smooth 3D spherical rendering of the Indian Ocean, EEZ, bathymetry, depth layers, and custom atmospheric lighting.
 - **Dual-Mode Data Architecture:** Zero-network offline operation via pre-processed `.bin` stores, plus live streaming FastAPI backend with lazy xarray NetCDF slicing.
 - **Scientific Observation Inspector:** Full multi-tab inspector for Argo floats, gliders, and BGC-Argo sensors featuring multi-channel depth profiles, cycle history tables, calculated validation statistics (Bias, RMSE, MAE, Max Error, N), 3D historical trajectory tracks, camera centering, and CSV export.

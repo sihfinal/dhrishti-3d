@@ -1,7 +1,7 @@
 """
 backend/config.py
 -----------------
-Pydantic-settings configuration for the SagarDrishti-3D Phase 1 backend.
+Pydantic-settings configuration for the Sagar Netra 3D Phase 1 backend.
 
 All values can be overridden via environment variables or a .env file placed
 inside the `backend/` directory (or the project root).

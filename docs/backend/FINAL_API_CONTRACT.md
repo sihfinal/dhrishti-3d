@@ -1,6 +1,6 @@
 # Final API Contract Specification
 
-This document defines the concrete REST API routes, request parameters, response schemas, and binary encoding contracts served by the SagarDrishti-3D FastAPI backend.
+This document defines the concrete REST API routes, request parameters, response schemas, and binary encoding contracts served by the Sagar Netra 3D FastAPI backend.
 
 ---
 

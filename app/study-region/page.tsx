@@ -67,7 +67,7 @@ const STUDY_CONCEPTS: Record<string, ConceptDetail> = {
     category: "Physical Oceanography",
     badge: "Variables: uo, vo · Unit: m/s",
     explanation:
-      "Ocean currents transport immense volumes of heat, salt, and momentum across the ocean basin. The horizontal velocity vector is decomposed into orthogonal components: uo for eastward (zonal) velocity and vo for northward (meridional) velocity. SagarDrishti-3D visualizes speed and direction throughout the vertical water column.",
+      "Ocean currents transport immense volumes of heat, salt, and momentum across the ocean basin. The horizontal velocity vector is decomposed into orthogonal components: uo for eastward (zonal) velocity and vo for northward (meridional) velocity. Sagar Netra 3D visualizes speed and direction throughout the vertical water column.",
     keyPoints: [
       "Vector decomposition into orthogonal components uo (zonal) and vo (meridional).",
       "Features semiannual reversal driven by the Southwest and Northeast Monsoons.",
@@ -256,7 +256,7 @@ const STUDY_CONCEPTS: Record<string, ConceptDetail> = {
     category: "Why Does This Matter?",
     badge: "Cyclones, Surges, Waves",
     explanation:
-      "Ocean temperature, storm surge height, and current dynamics directly influence coastal hazard severity. SagarDrishti-3D visualizes cyclonic heat potential (TCHP), wave surge forecasts, and rip currents to empower disaster management authorities and port operators.",
+      "Ocean temperature, storm surge height, and current dynamics directly influence coastal hazard severity. Sagar Netra 3D visualizes cyclonic heat potential (TCHP), wave surge forecasts, and rip currents to empower disaster management authorities and port operators.",
     keyPoints: [
       "Tropical Cyclone Heat Potential (TCHP) tracking for intensity forecasting.",
       "Early warning indicators for storm surge and coastal inundation risks.",
@@ -277,7 +277,7 @@ const STUDY_CONCEPTS: Record<string, ConceptDetail> = {
     category: "Why Does This Matter?",
     badge: "Maritime Drift & SAROPS",
     explanation:
-      "Search and rescue (SAR) operations depend critically on accurate 3D ocean velocity vectors (uo, vo, wo) and wind-driven surface drift. SagarDrishti-3D provides current streamline forecasting to predict the probable drift trajectories of lost vessels, life rafts, and floating objects.",
+      "Search and rescue (SAR) operations depend critically on accurate 3D ocean velocity vectors (uo, vo, wo) and wind-driven surface drift. Sagar Netra 3D provides current streamline forecasting to predict the probable drift trajectories of lost vessels, life rafts, and floating objects.",
     keyPoints: [
       "Surface and subsurface current vector integration for trajectory simulation.",
       "SAROPS and Leeway model integration for maritime search sector optimization.",
@@ -298,7 +298,7 @@ const STUDY_CONCEPTS: Record<string, ConceptDetail> = {
     category: "Why Does This Matter?",
     badge: "PFZ & Thermal Fronts",
     explanation:
-      "Marine biological productivity concentrates along oceanic thermal fronts, upwelling zones, and chlorophyll gradients. SagarDrishti-3D fuses BGC chlorophyll-a data with Sea Surface Temperature (SST) to identify Potential Fishing Zones (PFZ), optimizing fishing effort and conserving fuel.",
+      "Marine biological productivity concentrates along oceanic thermal fronts, upwelling zones, and chlorophyll gradients. Sagar Netra 3D fuses BGC chlorophyll-a data with Sea Surface Temperature (SST) to identify Potential Fishing Zones (PFZ), optimizing fishing effort and conserving fuel.",
     keyPoints: [
       "Thermal front and chlorophyll gradient intersection mapping.",
       "Daily advisory support for artisanal and commercial fishing fleets.",
@@ -319,7 +319,7 @@ const STUDY_CONCEPTS: Record<string, ConceptDetail> = {
     category: "Why Does This Matter?",
     badge: "Indian Ocean Dipole (IOD)",
     explanation:
-      "The Indian Ocean absorbs a substantial portion of global oceanic excess heat. SagarDrishti-3D tracks long-term ocean heat content (OHC) anomalies, thermocline depth variations, and the Indian Ocean Dipole (IOD), providing scientists with high-resolution volumetric climate indicators.",
+      "The Indian Ocean absorbs a substantial portion of global oceanic excess heat. Sagar Netra 3D tracks long-term ocean heat content (OHC) anomalies, thermocline depth variations, and the Indian Ocean Dipole (IOD), providing scientists with high-resolution volumetric climate indicators.",
     keyPoints: [
       "Indian Ocean Dipole (IOD) index tracking and thermocline depth anomalies.",
       "Decadal ocean heat content (OHC) volumetric integration across depth strata.",
@@ -559,7 +559,7 @@ export default function StudyRegionPage() {
       ctaAction: () => launchExplorer("volume"),
     },
     about: {
-      title: "About SAGARDRISHTI-3D",
+      title: "About SAGAR NETRA 3D — The Ocean Eye",
       subtitle: "Ministry of Earth Sciences · INCOIS · Smart India Hackathon 2026",
       icon: "🇮🇳",
       sections: [

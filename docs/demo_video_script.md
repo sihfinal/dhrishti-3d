@@ -10,7 +10,7 @@ quotes.
 
 - Show the animated globe; let it rotate ~4 s before speaking.
 - VO: "India's EEZ demands constant ocean monitoring, yet model output and
-  real observations live in separate desktop tools. SagarDrishti-3D fuses them into
+  real observations live in separate desktop tools. Sagar Netra 3D fuses them into
   one interactive 3D environment."
 - Click **Launch 3D Explorer**.
 

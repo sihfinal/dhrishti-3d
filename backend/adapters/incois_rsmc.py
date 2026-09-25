@@ -34,7 +34,7 @@ future phase, add chunks={"TIME": 1, "DEPTH": 1} and import dask.
 
 Quantization contract
 ---------------------
-Matches the existing SagarDrishti frontend decoder in src/lib/api.ts:
+Matches the existing Sagar Netra frontend decoder in src/lib/api.ts:
 
   uint8 fields (TEMP, SALN, SSH):
     q   = round((v - vmin) * 254 / (vmax - vmin))   ∈ [0, 254]

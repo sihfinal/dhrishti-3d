@@ -26,7 +26,7 @@ async def health() -> dict[str, str]:
     return {
         "status": "healthy",
         "version": "2.0.0-phase1",
-        "service": "SagarDrishti-3D Real Data Backend",
+        "service": "Sagar Netra 3D Real Data Backend",
         "utcTime": datetime.now(timezone.utc).isoformat(timespec="seconds") + "Z",
     }
 

@@ -60,7 +60,7 @@ export const CONCEPTS_DATA: Record<string, ConceptDetail> = {
     category: "Physical Oceanography",
     badge: "Variables: uo, vo · Unit: m/s",
     explanation:
-      "Ocean currents transport immense volumes of heat, salt, and momentum across the ocean basin. The horizontal velocity vector is decomposed into orthogonal components: uo for eastward (zonal) velocity and vo for northward (meridional) velocity, with current speed magnitude computed as √(uo² + vo²). In SagarDrishti-3D, dynamic 3D vector arrows visualize speed and direction throughout the vertical water column.",
+      "Ocean currents transport immense volumes of heat, salt, and momentum across the ocean basin. The horizontal velocity vector is decomposed into orthogonal components: uo for eastward (zonal) velocity and vo for northward (meridional) velocity, with current speed magnitude computed as √(uo² + vo²). In Sagar Netra 3D, dynamic 3D vector arrows visualize speed and direction throughout the vertical water column.",
     keyPoints: [
       "Vector decomposition into orthogonal components uo (zonal) and vo (meridional).",
       "Current speed magnitude computed strictly as Speed = √(uo² + vo²).",
@@ -82,7 +82,7 @@ export const CONCEPTS_DATA: Record<string, ConceptDetail> = {
     category: "Physical Oceanography",
     badge: "Levels: 25–54 Standard Depths",
     explanation:
-      "The ocean is vertically structured into distinct strata: the sunlit surface mixed layer (0–200m), the sharp pycnocline/thermocline transition layer, and the deep bathypelagic abyss. Depth-resolved numerical models and autonomous profilers sample these discrete vertical layers. SagarDrishti-3D provides real-time vertical exaggeration (10×–200×) for comprehensive structural analysis.",
+      "The ocean is vertically structured into distinct strata: the sunlit surface mixed layer (0–200m), the sharp pycnocline/thermocline transition layer, and the deep bathypelagic abyss. Depth-resolved numerical models and autonomous profilers sample these discrete vertical layers. Sagar Netra 3D provides real-time vertical exaggeration (10×–200×) for comprehensive structural analysis.",
     keyPoints: [
       "Interactive horizontal depth slicing from 0 to 6,000 meters.",
       "Adjustable 10× to 200× vertical exaggeration highlights subtle thermoclines.",
@@ -176,11 +176,11 @@ export const CONCEPTS_DATA: Record<string, ConceptDetail> = {
     referenceLabel: "Copernicus BGC Chlorophyll Product",
   },
   "What am I looking at?": {
-    title: "SagarDrishti-3D Overview",
+    title: "SAGAR NETRA 3D — The Ocean Eye Overview",
     category: "System Architecture",
     badge: "INCOIS SIH26067 Solution",
     explanation:
-      "You are viewing SagarDrishti-3D, a browser-native 3D oceanographic visualization and analysis workspace developed for INCOIS (Ministry of Earth Sciences). It fuses 3D gridded numerical model fields (Copernicus / WOA23) with real in-situ autonomous sensor observations (Argo, Gliders, CTD, BGC) in a unified interactive environment.",
+      "You are viewing SAGAR NETRA 3D — The Ocean Eye (Sagar Numerical & Environmental Three-dimensional Rendering Architecture), a browser-native 3D oceanographic visualization and analysis workspace developed for INCOIS (Ministry of Earth Sciences). It fuses 3D gridded numerical model fields (Copernicus / WOA23) with real in-situ autonomous sensor observations (Argo, Gliders, CTD, BGC) in a unified interactive environment.",
     keyPoints: [
       "Interactive 3D volumetric rendering over India's EEZ and the Indian Ocean.",
       "Dual-mode architecture: offline binary store and live FastAPI streaming backend.",
@@ -194,11 +194,11 @@ export const CONCEPTS_DATA: Record<string, ConceptDetail> = {
     ],
   },
   "Why am I looking at this?": {
-    title: "SagarDrishti-3D Overview",
+    title: "SAGAR NETRA 3D — The Ocean Eye Overview",
     category: "System Architecture",
     badge: "INCOIS SIH26067 Solution",
     explanation:
-      "You are viewing SagarDrishti-3D, a browser-native 3D oceanographic visualization and analysis workspace developed for INCOIS (Ministry of Earth Sciences). It fuses 3D gridded numerical model fields (Copernicus / WOA23) with real in-situ autonomous sensor observations (Argo, Gliders, CTD, BGC) in a unified interactive environment.",
+      "You are viewing SAGAR NETRA 3D — The Ocean Eye (Sagar Numerical & Environmental Three-dimensional Rendering Architecture), a browser-native 3D oceanographic visualization and analysis workspace developed for INCOIS (Ministry of Earth Sciences). It fuses 3D gridded numerical model fields (Copernicus / WOA23) with real in-situ autonomous sensor observations (Argo, Gliders, CTD, BGC) in a unified interactive environment.",
     keyPoints: [
       "Interactive 3D volumetric rendering over India's EEZ and the Indian Ocean.",
       "Dual-mode architecture: offline binary store and live FastAPI streaming backend.",
@@ -270,7 +270,7 @@ export const CONCEPTS_DATA: Record<string, ConceptDetail> = {
     category: "Core Concepts",
     badge: "Lat: -35°..30° · Lon: 40°..100°",
     explanation:
-      "Ocean model fields and observation points are mapped across standardized spherical geographic coordinates (latitude and longitude on the WGS84 datum). SagarDrishti-3D covers the Arabian Sea, Bay of Bengal, Equatorial Indian Ocean, and southern tropical waters.",
+      "Ocean model fields and observation points are mapped across standardized spherical geographic coordinates (latitude and longitude on the WGS84 datum). Sagar Netra 3D covers the Arabian Sea, Bay of Bengal, Equatorial Indian Ocean, and southern tropical waters.",
     keyPoints: [
       "High-resolution 0.083° (~9 km) structured grid spanning the Indian Ocean basin.",
       "Exact geospatial projection mapped onto realistic 3D spherical Earth geometry.",
@@ -306,7 +306,7 @@ export const CONCEPTS_DATA: Record<string, ConceptDetail> = {
     category: "Core Concepts",
     badge: "Daily / Monthly Time Series",
     explanation:
-      "Ocean conditions undergo rapid temporal variations driven by wind stress, monsoon reversals, and eddy dynamics. SagarDrishti-3D provides interactive timeline controls, continuous simulation playback, and frame-by-frame seasonal progression to analyze dynamic oceanic processes.",
+      "Ocean conditions undergo rapid temporal variations driven by wind stress, monsoon reversals, and eddy dynamics. Sagar Netra 3D provides interactive timeline controls, continuous simulation playback, and frame-by-frame seasonal progression to analyze dynamic oceanic processes.",
     keyPoints: [
       "Continuous 90-day time-series and 12-month seasonal climatological cycles.",
       "Interactive timeline scrubber with variable playback speeds (0.5× to 4.0×).",
@@ -324,7 +324,7 @@ export const CONCEPTS_DATA: Record<string, ConceptDetail> = {
     category: "System Architecture",
     badge: "Error Residuals: Obs - Model",
     explanation:
-      "Numerical ocean models simulate geophysical hydrodynamics on discrete grids, but require rigorous observational validation. In SagarDrishti-3D, in-situ float profiles are matched with co-located model cells to compute point-by-point error residuals, Bias, RMSE, and Mean Absolute Error (MAE).",
+      "Numerical ocean models simulate geophysical hydrodynamics on discrete grids, but require rigorous observational validation. In Sagar Netra 3D, in-situ float profiles are matched with co-located model cells to compute point-by-point error residuals, Bias, RMSE, and Mean Absolute Error (MAE).",
     keyPoints: [
       "Co-location engine samples 3D model grids at exact instrument depths and coordinates.",
       "Calculates statistical metrics: Bias, RMSE, MAE, and Maximum Absolute Error.",

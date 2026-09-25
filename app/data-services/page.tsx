@@ -117,7 +117,7 @@ export default function DataServicesPage() {
       ctaAction: () => launchExplorer("volume"),
     },
     about: {
-      title: "About SagarDrishti-3D",
+      title: "About SAGAR NETRA 3D — The Ocean Eye",
       subtitle: "Next-generation 4D ocean data intelligence and interactive sub-surface visualization platform.",
       icon: "🌊",
       sections: [
@@ -203,11 +203,11 @@ export default function DataServicesPage() {
       sections: [
         {
           heading: "Open Access & Fair Use",
-          body: "All observational and model products served by SagarDrishti-3D are provided freely for scientific research, academic study, disaster mitigation, and operational marine planning.",
+          body: "All observational and model products served by Sagar Netra 3D are provided freely for scientific research, academic study, disaster mitigation, and operational marine planning.",
         },
         {
           heading: "Attribution Requirement",
-          body: "Publications and downstream applications utilizing data must cite: 'Ministry of Earth Sciences (MoES), Government of India / INCOIS SagarDrishti-3D Ocean Intelligence Portal'.",
+          body: "Publications and downstream applications utilizing data must cite: 'Ministry of Earth Sciences (MoES), Government of India / INCOIS Sagar Netra 3D Ocean Intelligence Portal'.",
         },
       ],
     },
@@ -235,7 +235,7 @@ export default function DataServicesPage() {
       sections: [
         {
           heading: "Developer & API Support",
-          body: "For questions regarding REST API rate limits, binary envelope decoders, or high-throughput batch extraction, contact the SagarDrishti-3D technical team.",
+          body: "For questions regarding REST API rate limits, binary envelope decoders, or high-throughput batch extraction, contact the Sagar Netra 3D technical team.",
         },
         {
           heading: "Institutional Data Desk",
@@ -247,7 +247,7 @@ export default function DataServicesPage() {
 
   // Real code snippets based on existing API
   const codeSnippets = {
-    python: `# Example: Access SagarDrishti-3D REST API & xarray model data
+    python: `# Example: Access Sagar Netra 3D REST API & xarray model data
 import requests
 import xarray as xr
 
@@ -266,7 +266,7 @@ field_data = slice_res.json()
 print(f"Grid dimensions: {field_data['width']}x{field_data['height']}")
 print("Sample values (5x5):", field_data['data'][0][:5])`,
 
-    javascript: `// Example: Query SagarDrishti-3D In-situ Observations using JavaScript/TypeScript
+    javascript: `// Example: Query Sagar Netra 3D In-situ Observations using JavaScript/TypeScript
 const API_BASE = "http://127.0.0.1:8000/api/v1";
 
 async function getArgoObservations() {
@@ -290,7 +290,7 @@ async function getArgoObservations() {
 
 getArgoObservations();`,
 
-    curl: `# Example: Query SagarDrishti-3D Health & Observation Endpoints via cURL
+    curl: `# Example: Query Sagar Netra 3D Health & Observation Endpoints via cURL
 # 1. Health check & status verification
 curl -X GET "${API_BASE}/health" \\
      -H "Accept: application/json"
@@ -343,7 +343,7 @@ curl -X GET "${API_BASE}/ogc/wcs?SERVICE=WCS&REQUEST=GetCoverage&VERSION=2.0.1&C
     opendap: `# OPeNDAP / THREDDS Scientific Dataset Access (Python xarray / netCDF4):
 import xarray as xr
 
-# 1. Connect directly to live SAGARDRISHTI-3D OPeNDAP endpoint remotely:
+# 1. Connect directly to live SAGAR NETRA 3D OPeNDAP endpoint remotely:
 dataset_url = "${API_BASE}/opendap/cmems_physical"
 ds = xr.open_dataset(dataset_url)
 
@@ -471,7 +471,7 @@ print("Surface Temperature sample (°C):", float(subset.values.flat[0]))`,
   const derivedDatasets = [
     {
       name: "Tropical Cyclone Heat Potential",
-      provider: "SagarDrishti-3D Engine",
+      provider: "Sagar Netra 3D Engine",
       variables: "Heat Content (D26 Isotherm)",
       spatial: "Bay of Bengal & Arab Sea",
       temporal: "Daily Cyclogenesis Forecast",
@@ -481,7 +481,7 @@ print("Surface Temperature sample (°C):", float(subset.values.flat[0]))`,
     },
     {
       name: "Sonic Layer Depth & Sound Speed",
-      provider: "SagarDrishti-3D Acoustic",
+      provider: "Sagar Netra 3D Acoustic",
       variables: "Sound Velocity, SLD Gradients",
       spatial: "Indian Ocean (0-2000m)",
       temporal: "Daily Operational Analysis",
@@ -491,7 +491,7 @@ print("Surface Temperature sample (°C):", float(subset.values.flat[0]))`,
     },
     {
       name: "Ocean Mixed Layer Depth (MLD)",
-      provider: "INCOIS / SagarDrishti-3D",
+      provider: "INCOIS / Sagar Netra 3D",
       variables: "Density & Temp Thresholds",
       spatial: "North Indian Ocean (1/12°)",
       temporal: "Daily Realtime & Climatology",
@@ -501,7 +501,7 @@ print("Surface Temperature sample (°C):", float(subset.values.flat[0]))`,
     },
     {
       name: "Upper Ocean Heat Content (OHC)",
-      provider: "SagarDrishti-3D Engine",
+      provider: "Sagar Netra 3D Engine",
       variables: "Integrated Thermal Energy",
       spatial: "Tropical Indian Ocean",
       temporal: "Operational Daily Analysis",
@@ -796,7 +796,7 @@ print("Surface Temperature sample (°C):", float(subset.values.flat[0]))`,
                 Access ocean data, anytime, anywhere
               </p>
               <p className="text-xs sm:text-[13px] text-slate-200/90 mt-2 leading-relaxed font-normal">
-                SAGARDRISHTI-3D provides seamless access to ocean model outputs and in-situ observations
+                SAGAR NETRA 3D provides seamless access to ocean model outputs and in-situ observations
                 through standard data services, enabling researchers, policymakers, and the public to use
                 data for exploration, analysis, and operational applications.
               </p>
@@ -1527,10 +1527,10 @@ print("Surface Temperature sample (°C):", float(subset.values.flat[0]))`,
                 <span className="text-[9.5px] text-emerald-600 font-semibold font-mono">Live Endpoint</span>
               </div>
               <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-800">
-                <span className="truncate">https://sagardrishti.incois.gov.in/api/v1</span>
+                <span className="truncate">https://sagarnetra.incois.gov.in/api/v1</span>
                 <button
                   type="button"
-                  onClick={() => handleCopy("https://sagardrishti.incois.gov.in/api/v1", "ep1")}
+                  onClick={() => handleCopy("https://sagarnetra.incois.gov.in/api/v1", "ep1")}
                   className="ml-2 text-slate-400 hover:text-sky-600 cursor-pointer"
                 >
                   {copiedField === "ep1" ? "✓" : "📋"}
@@ -1784,7 +1784,7 @@ print("Surface Temperature sample (°C):", float(subset.values.flat[0]))`,
 
               <div className="flex-1 min-w-[120px] bg-white border border-slate-200 rounded-lg p-2.5 text-center shadow-xs">
                 <div className="text-[10px] font-semibold text-blue-600 uppercase">Presentation</div>
-                <div className="text-xs font-bold text-[#0a2e5c] mt-0.5">SAGARDRISHTI-3D</div>
+                <div className="text-xs font-bold text-[#0a2e5c] mt-0.5">SAGAR NETRA 3D</div>
                 <div className="text-[10px] text-slate-500">WebGL / 3D Workstation</div>
               </div>
             </div>
@@ -2142,7 +2142,7 @@ print("Surface Temperature sample (°C):", float(subset.values.flat[0]))`,
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-[#0a2540]">SagarDrishti-3D REST API v2.0 Specification</h3>
+                    <h3 className="text-base font-bold text-[#0a2540]">Sagar Netra 3D REST API v2.0 Specification</h3>
                     <p className="text-xs text-slate-500">FastAPI backend endpoints serving real CMEMS & WOD in-situ datasets.</p>
                   </div>
                 </div>

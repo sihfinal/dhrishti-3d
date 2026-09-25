@@ -30,7 +30,7 @@ const CHAPTERS: Chapter[] = [
     timeStr: "00:00",
     seconds: 0,
     title: "Introduction",
-    subtitle: "Overview of SAGARDRISHTI-3D",
+    subtitle: "Overview of SAGAR NETRA 3D",
   },
   {
     id: 2,
@@ -288,7 +288,7 @@ export default function WatchDemoPage() {
       ctaAction: () => launchExplorer("volume"),
     },
     about: {
-      title: "About SAGARDRISHTI-3D",
+      title: "About SAGAR NETRA 3D — The Ocean Eye",
       subtitle: "Ministry of Earth Sciences · INCOIS · Smart India Hackathon 2026",
       icon: "🇮🇳",
       sections: [
@@ -575,13 +575,13 @@ export default function WatchDemoPage() {
               {/* Title & Subtitles */}
               <div>
                 <h1 className="text-2xl sm:text-3xl font-black text-[#0f2942] tracking-tight">
-                  Watch SAGARDRISHTI-3D in Action
+                  Watch SAGAR NETRA 3D in Action
                 </h1>
                 <p className="text-xs sm:text-sm font-semibold text-[#0284c7] mt-0.5">
                   A step-by-step walkthrough of India's ocean data visualization platform
                 </p>
                 <p className="text-[11px] sm:text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
-                  Explore how SAGARDRISHTI-3D integrates numerical model outputs and in-situ observations to provide an interactive 3D view of the Indian Ocean.
+                  Explore how SAGAR NETRA 3D integrates numerical model outputs and in-situ observations to provide an interactive 3D view of the Indian Ocean.
                 </p>
               </div>
             </div>
@@ -631,7 +631,7 @@ export default function WatchDemoPage() {
                 {/* Top Left Badge Overlay (matches reference visual) */}
                 <div className="absolute top-3 left-3 pointer-events-none z-10 flex items-center gap-2">
                   <div className="bg-[#0b1e36]/85 backdrop-blur-md px-2.5 py-1 rounded-md border border-slate-700/60 shadow-md">
-                    <span className="text-[11px] font-bold text-white tracking-wide">SAGARDRISHTI-3D</span>
+                    <span className="text-[11px] font-bold text-white tracking-wide">SAGAR NETRA 3D</span>
                     <span className="text-[9px] text-sky-300 block -mt-0.5">Ocean Observation & Model Explorer</span>
                   </div>
                 </div>
@@ -653,7 +653,7 @@ export default function WatchDemoPage() {
                 {/* Bottom Left Watermark Badge */}
                 <div className="absolute bottom-12 left-3 pointer-events-none z-10 hidden sm:block">
                   <div className="bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded text-[9px] text-slate-300 border border-white/10">
-                    <span className="font-semibold text-white">SAGARDRISHTI-3D</span>
+                    <span className="font-semibold text-white">SAGAR NETRA 3D</span>
                     <span className="text-slate-400 ml-1">Interactive 3D Ocean Data Visualization Platform</span>
                   </div>
                 </div>
@@ -847,7 +847,7 @@ export default function WatchDemoPage() {
                   About This Demo
                 </h3>
                 <p className="text-xs sm:text-[13px] text-slate-600 mt-1 leading-relaxed">
-                  This 2-minute demo gives you a complete overview of SAGARDRISHTI-3D — from exploring ocean model data and in-situ observations to visualizing 3D ocean structures and supporting real-world applications. See how the platform can help researchers, policymakers, and the public make informed decisions for a safer and more sustainable ocean.
+                  This 2-minute demo gives you a complete overview of SAGAR NETRA 3D — from exploring ocean model data and in-situ observations to visualizing 3D ocean structures and supporting real-world applications. See how the platform can help researchers, policymakers, and the public make informed decisions for a safer and more sustainable ocean.
                 </p>
               </div>
             </div>
@@ -1028,7 +1028,7 @@ export default function WatchDemoPage() {
       </section>
 
       {/* ────────────────────────────────────────────────────────────
-          6. ABOUT SAGARDRISHTI-3D SECTION (SPLIT LAYOUT)
+          6. ABOUT SAGAR NETRA 3D SECTION (SPLIT LAYOUT)
       ──────────────────────────────────────────────────────────── */}
       <section className="w-full py-4">
         <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -1045,10 +1045,10 @@ export default function WatchDemoPage() {
 
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-[#0a2e5c]">
-                  About SAGARDRISHTI-3D
+                  About SAGAR NETRA 3D — The Ocean Eye
                 </h3>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  SAGARDRISHTI-3D is a web-based interactive platform developed to visualize and analyze ocean model outputs and in-situ observations for the Indian Ocean region. It integrates data from global and regional sources, follows international standards (OGC, CF Conventions), and provides an easy-to-use interface for exploration, research and decision support.
+                  SAGAR NETRA 3D is a web-based interactive platform developed to visualize and analyze ocean model outputs and in-situ observations for the Indian Ocean region. It integrates data from global and regional sources, follows international standards (OGC, CF Conventions), and provides an easy-to-use interface for exploration, research and decision support.
                 </p>
                 <div className="mt-3">
                   <button

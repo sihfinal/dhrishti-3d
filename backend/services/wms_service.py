@@ -1,7 +1,7 @@
 """
 backend/services/wms_service.py
 -------------------------------
-Native OGC Web Map Service (WMS 1.3.0 & 1.1.1) Implementation for SagarDrishti-3D.
+Native OGC Web Map Service (WMS 1.3.0 & 1.1.1) Implementation for Sagar Netra 3D.
 
 Features:
   - Valid OGC WMS 1.3.0 & 1.1.1 GetCapabilities XML metadata.
@@ -29,7 +29,7 @@ import matplotlib as mpl
 
 from backend.services.model_service import ModelService
 
-log = logging.getLogger("sagardrishti.wms")
+log = logging.getLogger("sagarnetra.wms")
 
 # Layer specification with title, standard name, unit, and default colormap
 LAYER_CATALOG: Dict[str, Dict[str, Any]] = {
@@ -215,7 +215,7 @@ class WMSService:
     xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd">
   <Service>
     <Name>WMS</Name>
-    <Title>SagarDrishti-3D Ocean Model WMS Service</Title>
+    <Title>Sagar Netra 3D Ocean Model WMS Service</Title>
     <Abstract>OGC Web Map Service providing 2D georeferenced oceanographic map layers generated from Copernicus Marine Service (CMEMS) numerical model archives (Q1 2026) across the Indian Ocean basin.</Abstract>
     <KeywordList>
       <Keyword>Oceanography</Keyword>
@@ -225,12 +225,12 @@ class WMSService:
       <Keyword>Salinity</Keyword>
       <Keyword>Chlorophyll</Keyword>
       <Keyword>Currents</Keyword>
-      <Keyword>SagarDrishti-3D</Keyword>
+      <Keyword>Sagar Netra 3D</Keyword>
     </KeywordList>
     <OnlineResource xlink:type="simple" xlink:href="{base_url}"/>
     <ContactInformation>
       <ContactPersonPrimary>
-        <ContactPerson>SagarDrishti-3D Ocean Science Team</ContactPerson>
+        <ContactPerson>Sagar Netra 3D Ocean Science Team</ContactPerson>
         <ContactOrganization>Ministry of Earth Sciences / INCOIS</ContactOrganization>
       </ContactPersonPrimary>
       <ContactPosition>Technical Lead</ContactPosition>
@@ -243,7 +243,7 @@ class WMSService:
         <Country>India</Country>
       </ContactAddress>
       <ContactVoiceTelephone>+91-40-23895000</ContactVoiceTelephone>
-      <ContactElectronicMailAddress>sagardrishti@incois.gov.in</ContactElectronicMailAddress>
+      <ContactElectronicMailAddress>sagarnetra@incois.gov.in</ContactElectronicMailAddress>
     </ContactInformation>
     <Fees>NONE</Fees>
     <AccessConstraints>Public Access for Scientific and Research Applications</AccessConstraints>
@@ -285,7 +285,7 @@ class WMSService:
       <Format>INIMAGE</Format>
     </Exception>
     <Layer>
-      <Title>SagarDrishti-3D Ocean Layers</Title>
+      <Title>Sagar Netra 3D Ocean Layers</Title>
       <CRS>EPSG:4326</CRS>
       <CRS>CRS:84</CRS>
       <CRS>EPSG:3857</CRS>
@@ -339,7 +339,7 @@ class WMSService:
 <WMT_MS_Capabilities version="1.1.1">
   <Service>
     <Name>OGC:WMS</Name>
-    <Title>SagarDrishti-3D Ocean Model WMS Service</Title>
+    <Title>Sagar Netra 3D Ocean Model WMS Service</Title>
     <Abstract>OGC Web Map Service providing 2D georeferenced oceanographic map layers generated from Copernicus Marine Service (CMEMS) numerical model archives (Q1 2026) across the Indian Ocean basin.</Abstract>
     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="{base_url}"/>
   </Service>
@@ -364,7 +364,7 @@ class WMSService:
       </GetMap>
     </Request>
     <Layer>
-      <Title>SagarDrishti-3D Ocean Layers</Title>
+      <Title>Sagar Netra 3D Ocean Layers</Title>
       <SRS>EPSG:4326</SRS>
       <SRS>EPSG:3857</SRS>
       <LatLonBoundingBox minx="{lon_min:.4f}" miny="{lat_min:.4f}" maxx="{lon_max:.4f}" maxy="{lat_max:.4f}"/>
