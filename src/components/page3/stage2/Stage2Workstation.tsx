@@ -76,6 +76,11 @@ export default function Stage2Workstation({
   const [is3DMaximized, setIs3DMaximized] = useState<boolean>(false)
   const [manualOpen, setManualOpen] = useState<boolean>(false)
 
+  // Race-condition guards and abort controllers
+  const modelAbortRef = useRef<AbortController | null>(null)
+  const modelReqIdRef = useRef<number>(0)
+  const obsAbortRef = useRef<AbortController | null>(null)
+
   // Convert timeline index (0..89) to date string (2026-01-01 to 2026-03-31)
   const getDateStr = useCallback((idx: number) => {
     const start = new Date(2026, 0, 1)
@@ -94,6 +99,12 @@ export default function Stage2Workstation({
       return
     }
 
+    if (obsAbortRef.current) {
+      obsAbortRef.current.abort()
+    }
+    const abortController = new AbortController()
+    obsAbortRef.current = abortController
+
     const latMin = Math.min(selectedRegion.latMin, selectedRegion.latMax)
     const latMax = Math.max(selectedRegion.latMin, selectedRegion.latMax)
     const lonMin = Math.min(selectedRegion.lonMin, selectedRegion.lonMax)
@@ -108,6 +119,7 @@ export default function Stage2Workstation({
       lon_min: lonMin,
       lon_max: lonMax,
       limit: 2500,
+      signal: abortController.signal,
     })
       .then((res) => {
         if (!isMounted) return
@@ -126,6 +138,7 @@ export default function Stage2Workstation({
         setObsError(null)
       })
       .catch((err) => {
+        if (err?.name === "AbortError") return
         if (!isMounted) return
         console.warn("Regional observation fetch error:", err)
         setObsLoading(false)
@@ -134,6 +147,7 @@ export default function Stage2Workstation({
 
     return () => {
       isMounted = false
+      abortController.abort()
     }
   }, [selectedRegion])
 
@@ -141,6 +155,13 @@ export default function Stage2Workstation({
   useEffect(() => {
     let isMounted = true
     if (!selectedRegion) return
+
+    if (modelAbortRef.current) {
+      modelAbortRef.current.abort()
+    }
+    const abortController = new AbortController()
+    modelAbortRef.current = abortController
+    const currentReqId = ++modelReqIdRef.current
 
     const latMin = Math.min(selectedRegion.latMin, selectedRegion.latMax)
     const latMax = Math.max(selectedRegion.latMin, selectedRegion.latMax)
@@ -164,9 +185,10 @@ export default function Stage2Workstation({
         lon_min: lonMin,
         lon_max: lonMax,
         stride,
+        signal: abortController.signal,
       })
         .then(({ uSlices, vSlices }) => {
-          if (!isMounted) return
+          if (!isMounted || currentReqId !== modelReqIdRef.current) return
           setUDepthStack(uSlices || [])
           setVDepthStack(vSlices || [])
           setDepthStack([])
@@ -174,7 +196,8 @@ export default function Stage2Workstation({
           setModelError(null)
         })
         .catch((err) => {
-          if (!isMounted) return
+          if (err?.name === "AbortError") return
+          if (!isMounted || currentReqId !== modelReqIdRef.current) return
           console.warn("3D currents model fetch error:", err)
           setModelLoading(false)
           setModelError("3D Currents model data unavailable")
@@ -196,9 +219,10 @@ export default function Stage2Workstation({
         lon_min: lonMin,
         lon_max: lonMax,
         stride,
+        signal: abortController.signal,
       })
         .then(({ slices }) => {
-          if (!isMounted) return
+          if (!isMounted || currentReqId !== modelReqIdRef.current) return
           setDepthStack(slices)
           setUDepthStack([])
           setVDepthStack([])
@@ -206,7 +230,8 @@ export default function Stage2Workstation({
           setModelError(null)
         })
         .catch((err) => {
-          if (!isMounted) return
+          if (err?.name === "AbortError") return
+          if (!isMounted || currentReqId !== modelReqIdRef.current) return
           console.warn(`3D ${varName} model fetch error:`, err)
           setModelLoading(false)
           setModelError(`3D ${varName.toUpperCase()} model data unavailable`)
@@ -215,6 +240,7 @@ export default function Stage2Workstation({
 
     return () => {
       isMounted = false
+      abortController.abort()
     }
   }, [selectedRegion, modelState.variable, modelState.timeStepIndex, getDateStr])
 
@@ -357,7 +383,7 @@ export default function Stage2Workstation({
       <header className="w-full bg-white border-b border-slate-100 z-30 sticky top-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)] shrink-0">
         
         {/* Row 1: Institutional Badges, Tagline, Search, User */}
-        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
           <div className="flex items-center justify-between h-[64px] sm:h-[66px] gap-4">
             
             {/* Left: MoES Emblem & INCOIS Logo */}
@@ -370,7 +396,7 @@ export default function Stage2Workstation({
                   height={64}
                   priority
                   unoptimized
-                  className="h-10 sm:h-11 w-auto object-contain"
+                  className="h-8 sm:h-9 md:h-10 lg:h-11 w-auto max-w-[120px] sm:max-w-none object-contain"
                 />
               </Link>
 
@@ -385,7 +411,7 @@ export default function Stage2Workstation({
                   height={64}
                   priority
                   unoptimized
-                  className="h-10 sm:h-11 w-auto object-contain"
+                  className="h-8 sm:h-9 md:h-10 lg:h-11 w-auto max-w-[120px] sm:max-w-none object-contain"
                 />
               </Link>
             </div>
@@ -399,7 +425,7 @@ export default function Stage2Workstation({
                 height={70}
                 priority
                 unoptimized
-                className="h-[52px] sm:h-[54px] w-auto object-contain -translate-x-24"
+                className="h-[48px] sm:h-[52px] w-auto object-contain"
               />
             </div>
 
@@ -463,7 +489,7 @@ export default function Stage2Workstation({
 
         {/* Row 2: Institutional Navbar with EXPLORER ACTIVE */}
         <div className="w-full bg-white border-t border-slate-100">
-          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
             <div className="flex items-center justify-between h-[38px] sm:h-[40px]">
               
               {/* Navigation Links */}
@@ -593,7 +619,7 @@ export default function Stage2Workstation({
           2. BREADCRUMB ROW
       ──────────────────────────────────────────────────────────── */}
       <div className="w-full bg-transparent px-4 sm:px-6 lg:px-8 py-1.5 shrink-0">
-        <div className="max-w-[1536px] mx-auto flex items-center justify-between text-xs text-slate-500 font-sans">
+        <div className="w-full max-w-[1920px] mx-auto flex items-center justify-between text-xs text-slate-500 font-sans">
           <div className="flex items-center gap-1.5 text-xs">
             <Link href="/" className="hover:text-[#0284c7] transition flex items-center gap-1 text-slate-600">
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -625,12 +651,12 @@ export default function Stage2Workstation({
       {/* ────────────────────────────────────────────────────────────
           3. MAIN 3-COLUMN WORKSPACE: 21% LEFT | 54% CENTER | 25% RIGHT
       ──────────────────────────────────────────────────────────── */}
-      <main className="relative flex-1 w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pb-2 overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row gap-3">
+      <main className="relative flex-1 w-full w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pb-2 overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row gap-3">
         
         {/* ─── LEFT COLUMN: Model Controls & Visualization Options ─── */}
         {!is3DMaximized && (
           <section className="w-full lg:w-[22%] h-full flex flex-col shrink-0 overflow-y-auto pr-0 lg:pr-1 no-scrollbar">
-            <ModelControlPanel state={modelState} onChange={setModelState} />
+            <ModelControlPanel state={modelState} onChange={setModelState} modelLoading={modelLoading} />
           </section>
         )}
 
@@ -666,6 +692,7 @@ export default function Stage2Workstation({
               uFieldData={activeUSlice}
               vFieldData={activeVSlice}
               modelLoading={modelLoading}
+              obsLoading={obsLoading}
             />
           </section>
         )}

@@ -10,6 +10,7 @@ interface CurrentsVectorLayerProps {
   vField: ModelFieldResponse
   vectorDensity?: "low" | "medium" | "high"
   radius?: number
+  opacity?: number
 }
 
 // Convert geographic coordinates to 3D sphere position
@@ -27,6 +28,7 @@ export default function CurrentsVectorLayer({
   vField,
   vectorDensity = "medium",
   radius = 2.006,
+  opacity = 1.0,
 }: CurrentsVectorLayerProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
 
@@ -125,7 +127,11 @@ export default function CurrentsVectorLayer({
       args={[arrowGeo, undefined, vectors.length]}
       renderOrder={3} raycast={() => null}
     >
-      <meshBasicMaterial toneMapped={false} />
+      <meshBasicMaterial
+        toneMapped={false}
+        transparent={opacity < 1.0}
+        opacity={opacity}
+      />
     </instancedMesh>
   )
 }

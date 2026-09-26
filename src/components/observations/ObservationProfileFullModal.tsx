@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ObservationItem, ObservationProfileResponse, fetchObservationProfile } from "@/lib/observationsApi"
 import ObservationProfileChart from "../page3/ObservationProfileChart"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 interface ObservationProfileFullModalProps {
   observation: ObservationItem | null
@@ -83,7 +84,7 @@ export default function ObservationProfileFullModal({
           {/* Body */}
           {loading ? (
             <div className="h-64 flex flex-col items-center justify-center gap-2 text-sky-600 font-mono text-xs">
-              <span className="w-6 h-6 rounded-full border-2 border-sky-600 border-t-transparent animate-spin" />
+              <LoadingSpinner size="lg" color="#0284c7" label="Fetching sounding profile" />
               <span>Fetching full resolution sounding profile…</span>
             </div>
           ) : error ? (

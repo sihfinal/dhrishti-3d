@@ -3,6 +3,7 @@
 import React from "react"
 import { DataLayerItem } from "./page3Config"
 import { cssGradient, PaletteId } from "@/lib/colormaps"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 interface ColorbarCardProps {
   activeLayer: DataLayerItem | null
@@ -11,6 +12,7 @@ interface ColorbarCardProps {
   unit?: string
   depth?: number
   currentDateStr?: string
+  isLoading?: boolean
 }
 
 export default function ColorbarCard({
@@ -20,6 +22,7 @@ export default function ColorbarCard({
   unit,
   depth = 75,
   currentDateStr = "15 Feb 2026",
+  isLoading = false,
 }: ColorbarCardProps) {
   // If no model layer is selected -> Default to Base Ocean explanation or Temperature default
   const isBase = !activeLayer
@@ -56,16 +59,26 @@ export default function ColorbarCard({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] p-3.5 select-none">
-      <h3 className="text-[11px] font-bold tracking-[0.14em] text-slate-800 uppercase mb-2.5">
-        LAYER INFORMATION
-      </h3>
+      <div className="flex items-center justify-between mb-2.5">
+        <h3 className="text-[11px] font-bold tracking-[0.14em] text-slate-800 uppercase">
+          LAYER INFORMATION
+        </h3>
+        {isLoading && (
+          <span className="text-[10px] font-medium text-sky-600 flex items-center gap-1">
+            <LoadingSpinner size="xs" color="#0284c7" label="Updating layer" />
+            <span>Updating…</span>
+          </span>
+        )}
+      </div>
 
       {/* Layer Header */}
-      <div className="flex items-center gap-2 mb-2.5">
-        <span className="text-lg select-none">{icon}</span>
-        <h4 className="text-sm font-bold text-slate-900 tracking-tight">
-          {label}
-        </h4>
+      <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center gap-2">
+          <span className="text-lg select-none">{icon}</span>
+          <h4 className="text-sm font-bold text-slate-900 tracking-tight">
+            {label}
+          </h4>
+        </div>
       </div>
 
       {/* Metadata Table */}

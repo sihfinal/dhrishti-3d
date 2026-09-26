@@ -2,9 +2,11 @@
 
 import React, { useState } from "react"
 import { DATA_LAYERS, DataLayerItem } from "./page3Config"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 interface DataLayerSelectorProps {
   activeLayerId: string | null
+  loadingLayerId?: string | null
   onSelectLayer: (layer: DataLayerItem | null) => void
   layerVisibility: Record<string, boolean>
   onToggleVisibility: (layerId: string) => void
@@ -15,6 +17,7 @@ interface DataLayerSelectorProps {
 
 export default function DataLayerSelector({
   activeLayerId,
+  loadingLayerId,
   onSelectLayer,
   layerVisibility,
   onToggleVisibility,
@@ -80,22 +83,25 @@ export default function DataLayerSelector({
           </div>
 
           {/* Radio Indicator */}
-          <div
-            className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center transition-all ${
-              activeLayerId === null
-                ? "border-[#0284c7] bg-[#0284c7]"
-                : "border-slate-300 bg-white"
-            }`}
-          >
-            {activeLayerId === null && (
-              <span className="w-1.5 h-1.5 rounded-full bg-white block" />
-            )}
+          <div className="w-5 h-5 flex items-center justify-center shrink-0">
+            <div
+              className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center transition-all ${
+                activeLayerId === null
+                  ? "border-[#0284c7] bg-[#0284c7]"
+                  : "border-slate-300 bg-white"
+              }`}
+            >
+              {activeLayerId === null && (
+                <span className="w-1.5 h-1.5 rounded-full bg-white block" />
+              )}
+            </div>
           </div>
         </div>
 
         {/* Dynamic Model Layers */}
         {DATA_LAYERS.map((layer) => {
           const isActive = layer.id === activeLayerId
+          const isLoading = loadingLayerId === layer.id
 
           return (
             <div
@@ -107,21 +113,27 @@ export default function DataLayerSelector({
                   : "bg-white border-transparent hover:bg-slate-50 hover:border-slate-200 text-slate-700"
               }`}
             >
-              <div className="flex items-center gap-2">
-                <span className="text-xs select-none">{layer.icon}</span>
-                <span className="text-[11.5px] font-semibold">{layer.label}</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-xs select-none shrink-0">{layer.icon}</span>
+                <span className="text-[11.5px] font-semibold truncate">{layer.label}</span>
               </div>
 
-              {/* Radio Indicator */}
-              <div
-                className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center transition-all ${
-                  isActive
-                    ? "border-[#0284c7] bg-[#0284c7]"
-                    : "border-slate-300 bg-white"
-                }`}
-              >
-                {isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-white block" />
+              {/* Status / Radio indicator */}
+              <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                {isLoading ? (
+                  <LoadingSpinner size="sm" color="#0284c7" label={`Loading ${layer.label}`} />
+                ) : (
+                  <div
+                    className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center transition-all ${
+                      isActive
+                        ? "border-[#0284c7] bg-[#0284c7]"
+                        : "border-slate-300 bg-white"
+                    }`}
+                  >
+                    {isActive && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white block" />
+                    )}
+                  </div>
                 )}
               </div>
             </div>

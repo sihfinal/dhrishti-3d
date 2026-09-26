@@ -2,22 +2,27 @@
 
 import React from "react"
 import { DEPTH_CONFIG } from "./page3Config"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 interface DepthSliderProps {
   depth: number
   onChangeDepth: (val: number) => void
+  isUpdating?: boolean
 }
 
-export default function DepthSlider({ depth, onChangeDepth }: DepthSliderProps) {
+export default function DepthSlider({ depth, onChangeDepth, isUpdating = false }: DepthSliderProps) {
   return (
     <div className="pt-1">
       <div className="flex items-center justify-between mb-1">
         <span className="text-[11px] font-bold text-slate-800">
           Depth <span className="text-slate-500 font-normal">(Model Layer)</span>
         </span>
-        <span className="px-2 py-0.5 rounded-md border border-slate-200 bg-[#f8fafc] text-[11px] font-bold text-slate-800 font-mono shadow-2xs">
-          {depth} {DEPTH_CONFIG.unit}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {isUpdating && <LoadingSpinner size="xs" color="#0284c7" label="Updating depth data" />}
+          <span className="px-2 py-0.5 rounded-md border border-slate-200 bg-[#f8fafc] text-[11px] font-bold text-slate-800 font-mono shadow-2xs">
+            {depth} {DEPTH_CONFIG.unit}
+          </span>
+        </div>
       </div>
 
       <div className="relative flex flex-col gap-0.5 pt-0.5">

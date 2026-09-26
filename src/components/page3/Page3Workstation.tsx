@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -74,11 +74,36 @@ export default function Page3Workstation({
     bgc: true,
   })
   const [obsLoading, setObsLoading] = useState<boolean>(true)
+  const [obsLoadingTypes, setObsLoadingTypes] = useState<Record<string, boolean>>({
+    argo: true,
+    glider: true,
+    ctd: true,
+    bgc: true,
+  })
   const [obsError, setObsError] = useState<string | null>(null)
   const [selectedObservation, setSelectedObservation] = useState<ObservationItem | null>(null)
 
-  // Real Scientific Model Layers State (null = Base Ocean / No Model Layer)
-  const [activeLayer, setActiveLayer] = useState<DataLayerItem | null>(null)
+  // Real Scientific Model Layers State (Defaults to Temperature)
+  const [activeLayer, setActiveLayer] = useState<DataLayerItem | null>(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search)
+      const varParam = urlParams.get("var")?.toLowerCase()
+      if (varParam === "none" || varParam === "base") return null
+      if (varParam) {
+        const found = DATA_LAYERS.find(
+          (l) =>
+            l.id === varParam ||
+            (varParam === "temp" && l.id === "temperature") ||
+            (varParam === "sal" && l.id === "salinity") ||
+            (varParam === "chl" && l.id === "chlorophyll") ||
+            (varParam === "velocity" && l.id === "currents")
+        )
+        if (found) return found
+      }
+    }
+    return DATA_LAYERS[0]
+  })
+
   const [layerVisibility, setLayerVisibility] = useState<Record<string, boolean>>({
     temperature: true,
     salinity: true,
@@ -91,6 +116,28 @@ export default function Page3Workstation({
   const [vectorDensity, setVectorDensity] = useState<"low" | "medium" | "high">("medium")
   const [showEEZ, setShowEEZ] = useState<boolean>(true)
 
+  // Loading States Architecture
+  const [modelLoading, setModelLoading] = useState<boolean>(true)
+  const [loadingVariableId, setLoadingVariableId] = useState<string | null>(null)
+  const [isInitialModelLoad, setIsInitialModelLoad] = useState<boolean>(true)
+  const isInitialModelLoadRef = useRef<boolean>(true)
+  const [isDepthUpdating, setIsDepthUpdating] = useState<boolean>(false)
+  const [isTimeUpdating, setIsTimeUpdating] = useState<boolean>(false)
+  const [modelError, setModelError] = useState<string | null>(null)
+
+  // Fetched Model Data Slices
+  const [scalarFieldData, setScalarFieldData] = useState<ModelFieldResponse | null>(null)
+  const [uFieldData, setUFieldData] = useState<ModelFieldResponse | null>(null)
+  const [vFieldData, setVFieldData] = useState<ModelFieldResponse | null>(null)
+
+  // Race condition & in-flight request management
+  const modelAbortRef = useRef<AbortController | null>(null)
+  const modelReqIdRef = useRef<number>(0)
+  const obsAbortRef = useRef<AbortController | null>(null)
+  const prevDepthRef = useRef<number>(DEPTH_CONFIG.initial)
+  const prevDateRef = useRef<string>("2026-02-15")
+  const prevLayerIdRef = useRef<string | null>("temperature")
+
   // Auto-select layer from search params (?var=temperature | salinity | currents | chlorophyll | thetao | so | uo | vo | chl)
   useEffect(() => {
     if (!searchParams) return
@@ -102,112 +149,182 @@ export default function Page3Workstation({
       else if (normalized === "salinity" || normalized === "so" || normalized === "sal") targetId = "salinity"
       else if (normalized === "currents" || normalized === "velocity" || normalized === "uo" || normalized === "vo" || normalized === "current") targetId = "currents"
       else if (normalized === "chlorophyll" || normalized === "chl" || normalized === "bgc") targetId = "chlorophyll"
+      else if (normalized === "none" || normalized === "base") targetId = null
 
       if (targetId) {
         const foundLayer = DATA_LAYERS.find((l) => l.id === targetId)
-        if (foundLayer) {
+        if (foundLayer && foundLayer.id !== activeLayer?.id) {
+          setModelLoading(true)
+          setLoadingVariableId(foundLayer.id)
           setActiveLayer(foundLayer)
         }
+      } else if (normalized === "none" || normalized === "base") {
+        setActiveLayer(null)
       }
     }
   }, [searchParams])
 
-  // Fetched Model Data Slices
-  const [scalarFieldData, setScalarFieldData] = useState<ModelFieldResponse | null>(null)
-  const [uFieldData, setUFieldData] = useState<ModelFieldResponse | null>(null)
-  const [vFieldData, setVFieldData] = useState<ModelFieldResponse | null>(null)
-  const [modelLoading, setModelLoading] = useState<boolean>(false)
-  const [modelError, setModelError] = useState<string | null>(null)
-
   // Fetch real observation index from backend once on mount
   useEffect(() => {
-    let isMounted = true
+    const abortController = new AbortController()
+    obsAbortRef.current = abortController
     setObsLoading(true)
-    fetchObservations({ limit: 2500 })
+    setObsLoadingTypes({ argo: true, glider: true, ctd: true, bgc: true })
+    setObsError(null)
+
+    fetchObservations({ limit: 2500, signal: abortController.signal })
       .then((res) => {
-        if (!isMounted) return
+        if (abortController.signal.aborted) return
         setObservations(res.items || [])
         if (res.counts_by_type && Object.keys(res.counts_by_type).length > 0) {
           setObsCounts(res.counts_by_type)
         }
         setObsLoading(false)
+        setObsLoadingTypes({})
         setObsError(null)
       })
       .catch((err) => {
-        if (!isMounted) return
+        if (abortController.signal.aborted || (err as any)?.name === "AbortError") return
         console.warn("Backend observation fetch notice:", err)
         setObsLoading(false)
+        setObsLoadingTypes({})
         setObsError("Backend connection pending")
       })
 
     return () => {
-      isMounted = false
+      abortController.abort()
     }
   }, [])
 
   // Fetch real model field slice whenever activeLayer, depth, or selectedDate changes
   useEffect(() => {
-    let isMounted = true
-
     if (!activeLayer) {
+      if (modelAbortRef.current) {
+        modelAbortRef.current.abort()
+      }
       setModelLoading(false)
-      setModelError(null)
+      setLoadingVariableId(null)
+      setIsInitialModelLoad(false)
+      setIsDepthUpdating(false)
+      setIsTimeUpdating(false)
       setScalarFieldData(null)
       setUFieldData(null)
       setVFieldData(null)
+      setModelError(null)
       return
     }
 
+    const layerChanged = prevLayerIdRef.current !== activeLayer.id
+    const depthChanged = prevDepthRef.current !== depth
+    const dateChanged = prevDateRef.current !== selectedDate
+
+    prevLayerIdRef.current = activeLayer.id
+    prevDepthRef.current = depth
+    prevDateRef.current = selectedDate
+
+    // Abort previous in-flight request to handle race conditions
+    if (modelAbortRef.current) {
+      modelAbortRef.current.abort()
+    }
+    const abortController = new AbortController()
+    modelAbortRef.current = abortController
+    const reqId = ++modelReqIdRef.current
+
+    const isFirstLoad = isInitialModelLoadRef.current
     setModelLoading(true)
+    setLoadingVariableId(isFirstLoad ? null : activeLayer.id)
+    setIsDepthUpdating(depthChanged && !layerChanged && !isFirstLoad)
+    setIsTimeUpdating(dateChanged && !layerChanged && !isFirstLoad)
     setModelError(null)
 
     if (activeLayer.id === "currents") {
       // Fetch both u_velocity and v_velocity
       Promise.all([
-        fetchModelField({ variable: "u_velocity", time: selectedDate, depth, stride: 4 }),
-        fetchModelField({ variable: "v_velocity", time: selectedDate, depth, stride: 4 }),
+        fetchModelField({ variable: "u_velocity", time: selectedDate, depth, stride: 4, signal: abortController.signal }),
+        fetchModelField({ variable: "v_velocity", time: selectedDate, depth, stride: 4, signal: abortController.signal }),
       ])
         .then(([uRes, vRes]) => {
-          if (!isMounted) return
+          if (reqId !== modelReqIdRef.current || abortController.signal.aborted) return
           setUFieldData(uRes)
           setVFieldData(vRes)
           setScalarFieldData(null)
           setModelLoading(false)
+          setLoadingVariableId(null)
+          setIsInitialModelLoad(false)
+          setIsDepthUpdating(false)
+          setIsTimeUpdating(false)
           setModelError(null)
         })
         .catch((err) => {
-          if (!isMounted) return
+          if (reqId !== modelReqIdRef.current || abortController.signal.aborted || (err as any)?.name === "AbortError") return
           console.warn("Currents model fetch error:", err)
           setModelLoading(false)
+          setLoadingVariableId(null)
+          setIsInitialModelLoad(false)
+          setIsDepthUpdating(false)
+          setIsTimeUpdating(false)
           setModelError("Currents model data unavailable")
         })
     } else {
       // Fetch scalar variable: temperature, salinity, or chlorophyll
       const varName = activeLayer.id === "temperature" ? "temperature" : activeLayer.id === "salinity" ? "salinity" : "chlorophyll"
-      fetchModelField({ variable: varName, time: selectedDate, depth, stride: 4 })
+      fetchModelField({ variable: varName, time: selectedDate, depth, stride: 4, signal: abortController.signal })
         .then((res) => {
-          if (!isMounted) return
+          if (reqId !== modelReqIdRef.current || abortController.signal.aborted) return
           setScalarFieldData(res)
           setUFieldData(null)
           setVFieldData(null)
           setModelLoading(false)
+          setLoadingVariableId(null)
+          setIsInitialModelLoad(false)
+          setIsDepthUpdating(false)
+          setIsTimeUpdating(false)
           setModelError(null)
         })
         .catch((err) => {
-          if (!isMounted) return
+          if (reqId !== modelReqIdRef.current || abortController.signal.aborted || (err as any)?.name === "AbortError") return
           console.warn(`${activeLayer.label} model fetch error:`, err)
           setModelLoading(false)
+          setLoadingVariableId(null)
+          setIsInitialModelLoad(false)
+          setIsDepthUpdating(false)
+          setIsTimeUpdating(false)
           setModelError(`${activeLayer.label} data unavailable`)
         })
     }
 
     return () => {
-      isMounted = false
+      abortController.abort()
     }
   }, [activeLayer, depth, selectedDate])
 
+  const handleSelectLayer = useCallback((layer: DataLayerItem | null) => {
+    isInitialModelLoadRef.current = false
+    setIsInitialModelLoad(false)
+    if (layer) {
+      setModelLoading(true)
+      setLoadingVariableId(layer.id)
+      setModelError(null)
+    } else {
+      if (modelAbortRef.current) {
+        modelAbortRef.current.abort()
+      }
+      setModelLoading(false)
+      setLoadingVariableId(null)
+      setIsDepthUpdating(false)
+      setIsTimeUpdating(false)
+      setScalarFieldData(null)
+      setUFieldData(null)
+      setVFieldData(null)
+      setModelError(null)
+    }
+    setActiveLayer(layer)
+  }, [])
+
   // Convert timeline index (0..89) to date string (2026-01-01 to 2026-03-31)
   const handleDateIndexChange = useCallback((idx: number) => {
+    isInitialModelLoadRef.current = false
+    setIsInitialModelLoad(false)
     setSelectedDateIndex(idx)
     const start = new Date(2026, 0, 1)
     start.setDate(start.getDate() + idx)
@@ -349,7 +466,7 @@ export default function Page3Workstation({
       <header className="w-full bg-white border-b border-slate-100 z-30 sticky top-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)] shrink-0">
         
         {/* Row 1: Institutional Badges, Tagline, Search, User */}
-        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
           <div className="flex items-center justify-between h-[64px] sm:h-[66px] gap-4">
             
             {/* Left: MoES Emblem & INCOIS Logo */}
@@ -362,7 +479,7 @@ export default function Page3Workstation({
                   height={64}
                   priority
                   unoptimized
-                  className="h-10 sm:h-11 w-auto object-contain"
+                  className="h-8 sm:h-9 md:h-10 lg:h-11 w-auto max-w-[120px] sm:max-w-none object-contain"
                 />
               </Link>
 
@@ -377,7 +494,7 @@ export default function Page3Workstation({
                   height={64}
                   priority
                   unoptimized
-                  className="h-10 sm:h-11 w-auto object-contain"
+                  className="h-8 sm:h-9 md:h-10 lg:h-11 w-auto max-w-[120px] sm:max-w-none object-contain"
                 />
               </Link>
             </div>
@@ -391,7 +508,7 @@ export default function Page3Workstation({
                 height={70}
                 priority
                 unoptimized
-                className="h-[52px] sm:h-[54px] w-auto object-contain -translate-x-24"
+                className="h-[48px] sm:h-[52px] w-auto object-contain"
               />
             </div>
 
@@ -455,7 +572,7 @@ export default function Page3Workstation({
 
         {/* Row 2: Institutional Navbar with EXPLORER ACTIVE */}
         <div className="w-full bg-white border-t border-slate-100">
-          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
             <div className="flex items-center justify-between h-[38px] sm:h-[40px]">
               
               {/* Navigation Links */}
@@ -575,12 +692,16 @@ export default function Page3Workstation({
           <ObservationCounts
             counts={obsCounts}
             visibleTypes={obsVisibility}
+            loadingTypes={obsLoadingTypes}
+            obsLoading={obsLoading}
+            obsError={obsError}
             onToggleType={handleToggleObsType}
           />
 
           <DataLayerSelector
             activeLayerId={activeLayer ? activeLayer.id : null}
-            onSelectLayer={setActiveLayer}
+            loadingLayerId={loadingVariableId}
+            onSelectLayer={handleSelectLayer}
             layerVisibility={layerVisibility}
             onToggleVisibility={handleToggleLayerVisibility}
             showEEZ={showEEZ}
@@ -595,12 +716,17 @@ export default function Page3Workstation({
                   ANALYSIS CONTROLS
                 </h3>
               </div>
-              <DepthSlider depth={depth} onChangeDepth={setDepth} />
+              <DepthSlider
+                depth={depth}
+                onChangeDepth={setDepth}
+                isUpdating={isDepthUpdating && modelLoading}
+              />
             </div>
             <TimeSlider
               currentDateStr={getCurrentDateStr()}
               stepIndex={selectedDateIndex}
               onStepChange={handleDateIndexChange}
+              isUpdating={isTimeUpdating && modelLoading}
             />
           </div>
         </aside>
@@ -618,12 +744,19 @@ export default function Page3Workstation({
             selectedObservation={selectedObservation}
             onSelectObservation={setSelectedObservation}
             activeLayerId={activeLayer ? activeLayer.id : undefined}
+            activeLayerLabel={activeLayer?.label}
             layerVisibility={layerVisibility}
             scalarFieldData={scalarFieldData}
             uFieldData={uFieldData}
             vFieldData={vFieldData}
             modelLoading={modelLoading}
             modelError={modelError}
+            isInitialModelLoad={isInitialModelLoad}
+            loadingVariableId={loadingVariableId}
+            isDepthUpdating={isDepthUpdating}
+            isTimeUpdating={isTimeUpdating}
+            depth={depth}
+            currentDateStr={getCurrentDateStr()}
             vectorDensity={vectorDensity}
             showEEZ={showEEZ}
           />
@@ -649,6 +782,7 @@ export default function Page3Workstation({
             unit={scalarFieldData?.unit || (activeLayer?.id === "currents" ? "m/s" : activeLayer?.unit)}
             depth={depth}
             currentDateStr={getCurrentDateStr()}
+            isLoading={modelLoading && !isInitialModelLoad}
           />
 
           <HowToUseCard />

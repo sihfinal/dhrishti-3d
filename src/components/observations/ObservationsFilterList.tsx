@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react"
 import { ObservationItem } from "@/lib/observationsApi"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 export interface FilterState {
   searchQuery: string
@@ -292,7 +293,7 @@ export default function ObservationsFilterList({
         <div className="flex-1 overflow-y-auto pr-0.5 space-y-1 py-1.5 min-h-0">
           {loading ? (
             <div className="h-32 flex flex-col items-center justify-center gap-2 text-sky-600">
-              <span className="w-4 h-4 rounded-full border-2 border-sky-600 border-t-transparent animate-spin" />
+              <LoadingSpinner size="md" color="#0284c7" label="Fetching observations" />
               <span className="text-xs font-mono">Fetching observations…</span>
             </div>
           ) : paginatedItems.length === 0 ? (

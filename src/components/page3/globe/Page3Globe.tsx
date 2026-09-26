@@ -29,6 +29,7 @@ interface Page3GlobeProps {
   vFieldData?: ModelFieldResponse | null
   vectorDensity?: "low" | "medium" | "high"
   showEEZ?: boolean
+  isModelLoading?: boolean
 }
 
 const TARGET_CAM_POS = new THREE.Vector3(5.75, 0.38, 1.54)
@@ -138,6 +139,7 @@ export default function Page3Globe({
   vFieldData = null,
   vectorDensity = "medium",
   showEEZ = true,
+  isModelLoading = false,
 }: Page3GlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -182,6 +184,7 @@ export default function Page3Globe({
             vFieldData={vFieldData}
             vectorDensity={vectorDensity}
             showEEZ={showEEZ}
+            isModelLoading={isModelLoading}
           />
         </React.Suspense>
 

@@ -2,16 +2,23 @@
 
 import React from "react"
 import { OBSERVATION_COUNTS } from "./page3Config"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 interface ObservationCountsProps {
   counts?: Record<string, number>
   visibleTypes?: Record<string, boolean>
+  loadingTypes?: Record<string, boolean>
+  obsLoading?: boolean
+  obsError?: string | null
   onToggleType?: (type: string) => void
 }
 
 export default function ObservationCounts({
   counts = {},
   visibleTypes = { argo: true, glider: true, ctd: true, bgc: true },
+  loadingTypes = {},
+  obsLoading = false,
+  obsError = null,
   onToggleType,
 }: ObservationCountsProps) {
   return (
@@ -26,10 +33,18 @@ export default function ObservationCounts({
         </span>
       </div>
 
+      {obsError && (
+        <div className="mb-2 p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-mono flex items-center gap-1">
+          <span>⚠️</span>
+          <span className="truncate">{obsError}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2">
         {OBSERVATION_COUNTS.map((item) => {
           const isVisible = visibleTypes[item.id] !== false
           const realCount = counts[item.id] !== undefined ? counts[item.id] : item.count
+          const isLoading = loadingTypes[item.id] ?? obsLoading
 
           return (
             <button
@@ -81,17 +96,23 @@ export default function ObservationCounts({
                 </p>
               </div>
 
-              {/* Tick Mark Checkbox */}
+              {/* Tick Mark Checkbox or Loading Spinner */}
               <div
                 className={`w-4 h-4 rounded-[4px] flex items-center justify-center transition-all shrink-0 border ${
-                  isVisible
+                  isLoading
+                    ? "bg-sky-50 border-sky-300"
+                    : isVisible
                     ? "bg-[#0284c7] border-[#0284c7] text-white shadow-2xs"
                     : "bg-white border-slate-300 text-transparent"
                 }`}
               >
-                <svg className="w-3 h-3 stroke-current stroke-[2.5]" viewBox="0 0 24 24" fill="none">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+                {isLoading ? (
+                  <LoadingSpinner size="xs" color="#0284c7" label={`Loading ${item.label}`} />
+                ) : (
+                  <svg className="w-3 h-3 stroke-current stroke-[2.5]" viewBox="0 0 24 24" fill="none">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
               </div>
             </button>
           )

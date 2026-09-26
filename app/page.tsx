@@ -6,6 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { AnimatePresence, motion } from "framer-motion"
 import { useOcean } from "@/lib/store"
+import { SiteHeader } from "@/components/layout/SiteHeader"
 
 interface InfoModalData {
   title: string
@@ -183,240 +184,18 @@ export default function LandingPage() {
       {/* ────────────────────────────────────────────────────────────
           1. TOP INSTITUTIONAL HEADER (ROW 1 + ROW 2)
       ──────────────────────────────────────────────────────────── */}
-      <header className="w-full bg-white border-b border-slate-100 z-30 sticky top-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-        
-        {/* Row 1: Institutional Badges, Tagline, Search, User */}
-        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-[64px] sm:h-[66px] gap-4">
-            
-            {/* Left: MoES Emblem & INCOIS Logo */}
-            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-              <div className="flex items-center">
-                <Image
-                  src="/landing/header-emblem-moes.png"
-                  alt="Ministry of Earth Sciences, Government of India"
-                  width={220}
-                  height={64}
-                  priority
-                  unoptimized
-                  className="h-10 sm:h-11 w-auto object-contain"
-                />
-              </div>
-
-              {/* Vertical divider */}
-              <div className="h-8 w-[1px] bg-slate-200" />
-
-              <div className="flex items-center">
-                <Image
-                  src="/landing/header-incois.png"
-                  alt="INCOIS - Indian National Centre for Ocean Information Services"
-                  width={340}
-                  height={64}
-                  priority
-                  unoptimized
-                  className="h-10 sm:h-11 w-auto object-contain"
-                />
-              </div>
-            </div>
-
-            {/* Center: National Tagline + Tricolor Swirl Ribbon */}
-            <div className="hidden xl:flex items-center justify-center flex-1 px-4">
-              <Image
-                src="/landing/header-tagline-swirl.png"
-                alt="Oceans for a Safer, Sustainable and Prosperous India"
-                width={400}
-                height={70}
-                priority
-                unoptimized
-                className="h-[52px] sm:h-[54px] w-auto object-contain -translate-x-24"
-              />
-            </div>
-
-            {/* Right: Search Pill Input & User Avatar */}
-            <div className="flex items-center gap-3 shrink-0">
-              {/* Search Bar */}
-              <form onSubmit={handleSearch} className="relative hidden md:flex items-center">
-                <div className="relative flex items-center bg-white border border-slate-200/90 rounded-full px-3.5 py-1 w-60 lg:w-64 shadow-[0_1px_2px_rgba(0,0,0,0.04)] focus-within:ring-2 focus-within:ring-sky-500/40 focus-within:border-sky-500 transition-all">
-                  <svg
-                    className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search datasets, variables, regions..."
-                    className="w-full text-xs text-slate-700 bg-transparent placeholder-slate-400 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="ml-1 text-slate-400 hover:text-sky-600 transition cursor-pointer"
-                    title="Search"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </button>
-                </div>
-              </form>
-
-              {/* User Avatar Circle */}
-              <button
-                onClick={() => setInfoModal(navModals.about)}
-                className="w-8 h-8 rounded-full bg-[#0a2540] flex items-center justify-center text-white shadow-sm hover:bg-[#0f3458] transition-colors cursor-pointer"
-                title="User Profile & Ministry Session"
-              >
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.8}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </button>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Row 2: Institutional Navbar */}
-        <div className="w-full bg-white border-t border-slate-100">
-          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-[38px] sm:h-[40px]">
-              
-              {/* Navigation Links */}
-              <nav className="flex items-center gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-0.5">
-                {/* Home (Active) */}
-                <button
-                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                  className="relative flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-[#0284c7]" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                  </svg>
-                  <span>Home</span>
-                  {/* Blue Active Indicator Bar */}
-                  <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#0284c7] rounded-full" />
-                </button>
-
-                {/* Study Region */}
-                <button
-                  onClick={() => router.push("/study-region")}
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span>Study Region</span>
-                </button>
-
-                {/* Explorer */}
-                <button
-                  onClick={() => launchExplorer("volume")}
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" strokeWidth="1.8" />
-                    <path strokeWidth="1.8" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-                  </svg>
-                  <span>Explorer</span>
-                </button>
-
-                {/* Observations */}
-                <Link
-                  href="/observations"
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 17l6-6 4 4 8-8M17 7h4v4" />
-                  </svg>
-                  <span>Observations</span>
-                </Link>
-
-                {/* Data Services */}
-                <Link
-                  href="/data-services"
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <ellipse cx="12" cy="5" rx="9" ry="3" strokeWidth={1.8} />
-                    <path strokeWidth={1.8} d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-                    <path strokeWidth={1.8} d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-                  </svg>
-                  <span>Data Services</span>
-                </Link>
-
-                {/* Operational Applications */}
-                <Link
-                  href="/operational-applications"
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="7" height="7" rx="1.5" strokeWidth="1.8" />
-                    <rect x="14" y="3" width="7" height="7" rx="1.5" strokeWidth="1.8" />
-                    <rect x="14" y="14" width="7" height="7" rx="1.5" strokeWidth="1.8" />
-                    <rect x="3" y="14" width="7" height="7" rx="1.5" strokeWidth="1.8" />
-                  </svg>
-                  <span>Operational Applications</span>
-                </Link>
-
-                {/* Resources */}
-                <Link
-                  href="/resources"
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  <span>Resources</span>
-                </Link>
-
-                {/* About */}
-                <Link
-                  href="/about"
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" strokeWidth={1.8} />
-                    <path strokeLinecap="round" strokeWidth={1.8} d="M12 16v-4m0-4h.01" />
-                  </svg>
-                  <span>About</span>
-                </Link>
-              </nav>
-
-              {/* Right: Launch Explorer Pill Button */}
-              <div className="shrink-0 pl-4">
-                <button
-                  onClick={() => launchExplorer("volume")}
-                  className="rounded-full bg-[#0a2e5c] hover:bg-[#072142] text-white px-4 py-1 text-xs font-semibold flex items-center gap-1.5 shadow-[0_2px_4px_rgba(10,46,92,0.18)] hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <span>Launch Explorer</span>
-                  <span className="text-xs transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-                </button>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </header>
+      <SiteHeader
+        currentRoute="home"
+        onOpenAbout={() => setInfoModal(navModals.about)}
+        onLaunchExplorer={(mode) => launchExplorer(mode)}
+      />
 
       {/* ────────────────────────────────────────────────────────────
           2. HERO SECTION (WITH BATHYMETRIC MAP & 4 STATS CARDS)
       ──────────────────────────────────────────────────────────── */}
-      <section className="relative w-full overflow-hidden bg-white pt-0 sm:pt-0.5 pb-1.5 flex-1">
+      <section className="relative w-full overflow-hidden bg-white pt-2 sm:pt-4 pb-4 sm:pb-6 flex-1 flex flex-col justify-between">
         {/* Bathymetric Indian Ocean Map Backdrop on Right */}
-        <div className="absolute top-0 right-0 bottom-0 w-full lg:w-[68%] xl:w-[65%] pointer-events-none z-0">
+        <div className="absolute top-0 right-0 bottom-0 w-full lg:w-[60%] xl:w-[58%] 2xl:w-[55%] pointer-events-none z-0 opacity-30 sm:opacity-40 lg:opacity-100 transition-opacity">
           <Image
             src="/landing/hero-map-backdrop.png"
             alt="Indian Ocean Bathymetry and EEZ Demarcations"
@@ -427,10 +206,13 @@ export default function LandingPage() {
           />
         </div>
 
-        <div className="relative z-10 max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-between">
+        {/* Mobile readability gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent lg:hidden pointer-events-none z-0" />
+
+        <div className="relative z-10 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 h-full flex flex-col justify-between gap-6">
           
           {/* Hero Left Content Column */}
-          <div className="max-w-xl xl:max-w-2xl pt-0">
+          <div className="w-full max-w-2xl xl:max-w-3xl pt-0">
             
             {/* Metadata Badge */}
             <div className="text-[11px] sm:text-xs font-bold tracking-[0.18em] text-[#0066cc] uppercase mt-1 sm:mt-1.5 mb-1.5">
@@ -438,7 +220,7 @@ export default function LandingPage() {
             </div>
 
             {/* Main Title: SAGAR NETRA 3D — The Ocean Eye */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[62px] font-black tracking-tight leading-[1.06]">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[56px] xl:text-[62px] font-black tracking-tight leading-[1.08]">
               <span className="bg-gradient-to-r from-[#03254c] via-[#0284c7] to-[#00a896] bg-clip-text text-transparent">
                 SagarNetra - 3D
               </span>
@@ -451,7 +233,7 @@ export default function LandingPage() {
               <p className="text-xs sm:text-sm font-bold text-[#0066cc] tracking-wide mb-1">
                 Sagar Numerical &amp; Environmental Three-dimensional Rendering Architecture
               </p>
-              <h2 className="text-lg sm:text-xl font-bold text-[#0f2942] tracking-normal">
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-[#0f2942] tracking-normal">
                 Explore &nbsp;•&nbsp; Analyze &nbsp;•&nbsp; Understand &nbsp;•&nbsp; For a Safer Tomorrow
               </h2>
               {/* Short blue horizontal line accent */}
@@ -459,16 +241,16 @@ export default function LandingPage() {
             </div>
 
             {/* Description Copy */}
-            <p className="mt-4 text-xs sm:text-sm md:text-base text-slate-600 leading-relaxed max-w-lg font-normal">
+            <p className="mt-4 text-xs sm:text-sm md:text-base text-slate-600 leading-relaxed max-w-xl font-normal">
               An interactive 3D visualization platform for ocean model outputs and in-situ observations, enabling deeper insights across space, depth and time for a resilient and sustainable blue economy.
             </p>
 
             {/* Action Buttons: Launch 3D Explorer & Watch Demo */}
-            <div className="mt-6 flex flex-wrap items-center gap-4">
+            <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               {/* Primary CTA: Launch 3D Explorer */}
               <button
                 onClick={() => launchExplorer("volume")}
-                className="w-48 sm:w-52 h-11 sm:h-12 rounded-xl bg-[#0066cc] hover:bg-[#0052a3] text-white border border-transparent font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
+                className="w-full sm:w-52 h-11 sm:h-12 rounded-xl bg-[#0066cc] hover:bg-[#0052a3] text-white border border-transparent font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
               >
                 {/* Crosshair Compass Icon */}
                 <svg className="w-4.5 h-4.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -485,7 +267,7 @@ export default function LandingPage() {
               {/* Secondary CTA: Watch Demo */}
               <button
                 onClick={() => router.push("/watch-demo")}
-                className="w-48 sm:w-52 h-11 sm:h-12 rounded-xl bg-white hover:bg-blue-50/70 text-[#0f2942] border border-blue-400/90 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
+                className="w-full sm:w-52 h-11 sm:h-12 rounded-xl bg-white hover:bg-blue-50/70 text-[#0f2942] border border-blue-400/90 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
               >
                 {/* Solid Blue Play Circle Icon */}
                 <div className="w-4.5 h-4.5 rounded-full bg-[#0066cc] flex items-center justify-center shrink-0">
@@ -500,12 +282,12 @@ export default function LandingPage() {
           </div>
 
           {/* ────────────────────────────────────────────────────────────
-              4 FLOATING STATISTICS CARDS (COMPACT & LEFT-ALIGNED)
+              4 FLOATING STATISTICS CARDS (COMPACT & RESPONSIVE GRID)
           ──────────────────────────────────────────────────────────── */}
-          <div className="mt-4 sm:mt-4.5 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 w-full max-w-2xl xl:max-w-[720px]">
+          <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 w-full max-w-4xl xl:max-w-5xl">
             
             {/* Card 1: 4+ Data Sources */}
-            <div className="rounded-xl bg-white/95 backdrop-blur-sm border border-slate-300 shadow-[0_2px_5px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_10px_rgba(0,0,0,0.08)] transition-all p-2.5 sm:p-3 flex items-start gap-2.5">
+            <div className="rounded-xl bg-white/95 backdrop-blur-sm border border-slate-300 shadow-[0_2px_5px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_10px_rgba(0,0,0,0.08)] transition-all p-2.5 sm:p-3 flex items-start gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center shrink-0">
                 <svg className="w-4.5 h-4.5 text-[#0284c7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <ellipse cx="12" cy="5" rx="8" ry="2.5" strokeWidth="2" />
@@ -522,7 +304,7 @@ export default function LandingPage() {
             </div>
 
             {/* Card 2: 25K+ Observations */}
-            <div className="rounded-xl bg-white/95 backdrop-blur-sm border border-slate-300 shadow-[0_2px_5px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_10px_rgba(0,0,0,0.08)] transition-all p-2.5 sm:p-3 flex items-start gap-2.5">
+            <div className="rounded-xl bg-white/95 backdrop-blur-sm border border-slate-300 shadow-[0_2px_5px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_10px_rgba(0,0,0,0.08)] transition-all p-2.5 sm:p-3 flex items-start gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
                 <svg className="w-4.5 h-4.5 text-[#0d9488]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -537,7 +319,7 @@ export default function LandingPage() {
             </div>
 
             {/* Card 3: 4 Key Variables */}
-            <div className="rounded-xl bg-white/95 backdrop-blur-sm border border-slate-300 shadow-[0_2px_5px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_10px_rgba(0,0,0,0.08)] transition-all p-2.5 sm:p-3 flex items-start gap-2.5">
+            <div className="rounded-xl bg-white/95 backdrop-blur-sm border border-slate-300 shadow-[0_2px_5px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_10px_rgba(0,0,0,0.08)] transition-all p-2.5 sm:p-3 flex items-start gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
                 <svg className="w-4.5 h-4.5 text-[#7c3aed]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
@@ -551,7 +333,7 @@ export default function LandingPage() {
             </div>
 
             {/* Card 4: 90 Days Model Archive */}
-            <div className="rounded-xl bg-white/95 backdrop-blur-sm border border-slate-300 shadow-[0_2px_5px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_10px_rgba(0,0,0,0.08)] transition-all p-2.5 sm:p-3 flex items-start gap-2.5">
+            <div className="rounded-xl bg-white/95 backdrop-blur-sm border border-slate-300 shadow-[0_2px_5px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_10px_rgba(0,0,0,0.08)] transition-all p-2.5 sm:p-3 flex items-start gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
                 <svg className="w-4.5 h-4.5 text-[#ea580c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="9" strokeWidth="2" />
@@ -573,14 +355,14 @@ export default function LandingPage() {
       {/* ────────────────────────────────────────────────────────────
           3. OPERATIONAL APPLICATIONS SECTION
       ──────────────────────────────────────────────────────────── */}
-      <section id="operational-applications" className="relative z-10 w-full bg-gradient-to-b from-[#f0f5fa] via-[#f0f5fa] to-[#f0f5fa]/90 pt-1.3 sm:pt-1.25 pb-0">
-        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="operational-applications" className="relative z-10 w-full bg-gradient-to-b from-[#f0f5fa] via-[#f0f5fa] to-[#f0f5fa]/90 py-4 sm:py-5">
+        <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
           <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
             
             {/* Left Title Column */}
             <div className="w-full lg:w-52 shrink-0">
               <h3 className="text-lg sm:text-xl font-black text-[#0a2e5c] leading-tight">
-                Operational<br />Applications
+                Operational<br className="hidden sm:inline" /> Applications
               </h3>
               <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-snug">
                 From data to decisions for a safer, sustainable ocean future.
@@ -708,16 +490,16 @@ export default function LandingPage() {
       {/* ────────────────────────────────────────────────────────────
           4. LOWER OCEAN PANORAMA BANNER (COASTAL LIGHTHOUSE & SHIP)
       ──────────────────────────────────────────────────────────── */}
-      <section className="w-full relative z-0 bg-[#eef5fa] overflow-hidden -mt-3 sm:-mt-5 xl:-mt-6">
-        <div className="max-w-[1536px] mx-auto">
+      <section className="w-full relative z-0 bg-[#eef5fa] overflow-hidden">
+        <div className="w-full">
           <Image
             src="/landing/bottom-panorama.png"
             alt="Coastal Lighthouse, Knowledge of the Ocean Quote, and INCOIS Research Ship Banner"
-            width={1536}
-            height={192}
+            width={1920}
+            height={240}
             priority
             unoptimized
-            className="w-full h-auto object-cover block shadow-xs"
+            className="w-full h-auto min-h-[90px] sm:min-h-[130px] md:min-h-[160px] object-cover object-center block"
           />
         </div>
       </section>

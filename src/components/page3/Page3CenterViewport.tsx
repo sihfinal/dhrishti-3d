@@ -5,6 +5,7 @@ import Page3Globe from "./globe/Page3Globe"
 import { GeographicBounds } from "./globe/RegionSelectionBox"
 import RegionConfirmationModal from "./RegionConfirmationModal"
 import ObservationDetailModal from "./ObservationDetailModal"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 import { ObservationItem } from "@/lib/observationsApi"
 import { ModelFieldResponse } from "@/lib/modelApi"
 
@@ -25,12 +26,19 @@ interface Page3CenterViewportProps {
   onSelectObservation?: (obs: ObservationItem | null) => void
   // Real Model Data Layers
   activeLayerId?: string
+  activeLayerLabel?: string
   layerVisibility?: Record<string, boolean>
   scalarFieldData?: ModelFieldResponse | null
   uFieldData?: ModelFieldResponse | null
   vFieldData?: ModelFieldResponse | null
   modelLoading?: boolean
   modelError?: string | null
+  isInitialModelLoad?: boolean
+  loadingVariableId?: string | null
+  isDepthUpdating?: boolean
+  isTimeUpdating?: boolean
+  depth?: number
+  currentDateStr?: string
   vectorDensity?: "low" | "medium" | "high"
   showEEZ?: boolean
 }
@@ -50,12 +58,19 @@ export default function Page3CenterViewport({
   selectedObservation = null,
   onSelectObservation,
   activeLayerId = "temperature",
+  activeLayerLabel = "Temperature",
   layerVisibility = { temperature: true, salinity: true, currents: true, chlorophyll: true },
   scalarFieldData = null,
   uFieldData = null,
   vFieldData = null,
   modelLoading = false,
   modelError = null,
+  isInitialModelLoad = false,
+  loadingVariableId = null,
+  isDepthUpdating = false,
+  isTimeUpdating = false,
+  depth = 75,
+  currentDateStr = "15 Feb 2026",
   vectorDensity = "medium",
   showEEZ = true,
 }: Page3CenterViewportProps) {
@@ -158,6 +173,30 @@ export default function Page3CenterViewport({
         </div>
       )}
 
+      {/* ─── Non-Blocking Data Loading Banner ─── */}
+      {modelLoading && !selectionMode && !isInitialModelLoad && (
+        <div className="absolute top-3.5 inset-x-0 z-20 flex justify-center pointer-events-none">
+          <div className="bg-white/95 border border-sky-300 rounded-full px-4 py-1.5 shadow-lg backdrop-blur-md flex items-center gap-2 text-xs font-semibold text-slate-800 pointer-events-auto animate-in fade-in duration-200">
+            <LoadingSpinner size="xs" color="#0284c7" label={loadingVariableId ? `Fetching ${activeLayerLabel} model data` : "Updating ocean data"} />
+            {loadingVariableId ? (
+              <>
+                <span>Fetching {activeLayerLabel} model data…</span>
+                <span className="text-[10.5px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                  Depth: {depth}m · {currentDateStr}
+                </span>
+              </>
+            ) : (
+              <>
+                <span>Updating ocean data…</span>
+                <span className="text-[10.5px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                  {isDepthUpdating ? `Depth: ${depth}m` : currentDateStr}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ─── Right Floating Camera Toolbar ─── */}
       <div className="absolute right-3 top-4 z-20 pointer-events-auto flex flex-col items-center gap-1.5 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-md p-1.5">
         {/* Reset / Center View Button */}
@@ -234,6 +273,7 @@ export default function Page3CenterViewport({
           vFieldData={vFieldData}
           vectorDensity={vectorDensity}
           showEEZ={showEEZ}
+          isModelLoading={modelLoading && !isInitialModelLoad}
         />
       </div>
 
@@ -251,18 +291,24 @@ export default function Page3CenterViewport({
 
         <div className="flex items-center gap-3">
           {obsLoading && (
-            <span className="text-sky-600 font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-ping" />
-              Loading observations…
+            <span className="text-sky-600 font-semibold flex items-center gap-1.5">
+              <LoadingSpinner size="xs" color="#0284c7" label="Loading observations" />
+              <span>Loading observations…</span>
             </span>
           )}
-          {modelLoading && (
-            <span className="text-emerald-600 font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-              Loading {activeLayerId} model layer…
+          {modelLoading && !isInitialModelLoad && (
+            <span className="text-sky-700 font-semibold flex items-center gap-1.5">
+              <LoadingSpinner size="xs" color="#0284c7" label={`Loading ${activeLayerId} model layer`} />
+              <span>Loading {activeLayerLabel || activeLayerId} model layer…</span>
             </span>
           )}
-          {!obsLoading && !modelLoading && (
+          {modelError && !modelLoading && (
+            <span className="text-rose-600 font-semibold flex items-center gap-1">
+              <span>⚠️</span>
+              <span>{modelError}</span>
+            </span>
+          )}
+          {!obsLoading && !modelLoading && !modelError && (
             <span className="text-slate-400">Orbit, pan & zoom enabled</span>
           )}
         </div>

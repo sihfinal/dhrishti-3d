@@ -4,6 +4,7 @@ import React from "react"
 import { GeographicBounds } from "../globe/RegionSelectionBox"
 import { ModelControlState } from "./ModelControlPanel"
 import { ModelFieldResponse } from "@/lib/modelApi"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 interface RegionInformationPanelProps {
   selectedRegion: GeographicBounds | null
@@ -14,6 +15,7 @@ interface RegionInformationPanelProps {
   uFieldData: ModelFieldResponse | null
   vFieldData: ModelFieldResponse | null
   modelLoading: boolean
+  obsLoading?: boolean
 }
 
 const VAR_METADATA: Record<
@@ -55,6 +57,7 @@ export default function RegionInformationPanel({
   uFieldData,
   vFieldData,
   modelLoading,
+  obsLoading = false,
 }: RegionInformationPanelProps) {
   const getDateStr = (index: number) => {
     const baseDate = new Date(Date.UTC(2026, 0, 1))
@@ -187,8 +190,8 @@ export default function RegionInformationPanel({
             <span className="text-slate-400">CMEMS Status:</span>
             {modelLoading ? (
               <span className="text-[#0284c7] font-semibold text-[10px] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full border border-[#0284c7] border-t-transparent animate-spin inline-block" />
-                Loading…
+                <LoadingSpinner size="xs" color="#0284c7" label="Loading CMEMS model data" />
+                <span>Loading…</span>
               </span>
             ) : (
               <span className="text-emerald-600 font-semibold font-mono text-[10px]">Real CMEMS Data</span>
@@ -199,9 +202,17 @@ export default function RegionInformationPanel({
 
       {/* ─── CARD 3: INSTRUMENTS IN REGION ─── */}
       <div className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col gap-1.5 shrink-0">
-        <h3 className="text-[11.5px] font-bold tracking-wider text-slate-800 uppercase">
-          INSTRUMENTS IN REGION
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-[11.5px] font-bold tracking-wider text-slate-800 uppercase">
+            INSTRUMENTS IN REGION
+          </h3>
+          {obsLoading && (
+            <span className="text-[10px] font-medium text-sky-600 flex items-center gap-1">
+              <LoadingSpinner size="xs" color="#0284c7" label="Loading regional instruments" />
+              <span>Loading…</span>
+            </span>
+          )}
+        </div>
 
         <div className="space-y-1.5 text-[11.5px]">
           <div className="flex items-center justify-between py-1 px-2.5 rounded-lg bg-slate-50/90 hover:bg-slate-100/90 transition">

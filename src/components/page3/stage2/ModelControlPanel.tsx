@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 export interface ModelControlState {
   variable: string
@@ -19,6 +20,7 @@ export interface ModelControlState {
 interface ModelControlPanelProps {
   state: ModelControlState
   onChange: (updater: (prev: ModelControlState) => ModelControlState) => void
+  modelLoading?: boolean
 }
 
 const VARIABLES = [
@@ -28,7 +30,7 @@ const VARIABLES = [
   { id: "chlorophyll", label: "Chlorophyll (mg/m³)", icon: "🌿", unit: "mg/m³", min: 0.01, max: 5.0 },
 ]
 
-export default function ModelControlPanel({ state, onChange }: ModelControlPanelProps) {
+export default function ModelControlPanel({ state, onChange, modelLoading = false }: ModelControlPanelProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [speed, setSpeed] = useState(1)
 
@@ -108,9 +110,17 @@ export default function ModelControlPanel({ state, onChange }: ModelControlPanel
 
         {/* 1. Variable Selector */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] font-semibold text-slate-700">
-            Variable
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-semibold text-slate-700">
+              Variable
+            </label>
+            {modelLoading && (
+              <span className="text-[10px] font-mono text-sky-600 flex items-center gap-1 font-semibold">
+                <LoadingSpinner size="xs" color="#0284c7" label="Loading variable data" />
+                <span>Loading…</span>
+              </span>
+            )}
+          </div>
           <div className="relative">
             <select
               value={state.variable}
@@ -165,9 +175,14 @@ export default function ModelControlPanel({ state, onChange }: ModelControlPanel
         {/* 3. Time Slider & Media Playback */}
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between">
-            <label className="text-[11px] font-semibold text-slate-700">
-              Time
-            </label>
+            <div className="flex items-center gap-1.5">
+              <label className="text-[11px] font-semibold text-slate-700">
+                Time
+              </label>
+              {modelLoading && (
+                <LoadingSpinner size="xs" color="#0284c7" label="Updating time step" />
+              )}
+            </div>
             <span className="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-sky-50 border border-sky-200 text-[#0284c7]">
               {getDateStr(state.timeStepIndex)}
             </span>
@@ -250,7 +265,12 @@ export default function ModelControlPanel({ state, onChange }: ModelControlPanel
               onChange={(e) => onChange((prev) => ({ ...prev, showDepthSlices: e.target.checked }))}
               className="w-4 h-4 rounded text-[#0284c7] border-slate-300 focus:ring-sky-400/30 cursor-pointer"
             />
-            <span className="text-xs text-slate-700 font-medium group-hover:text-slate-900">Depth Slices</span>
+            <span className="text-xs text-slate-700 font-medium group-hover:text-slate-900 flex items-center gap-1.5">
+              <span>Depth Slices</span>
+              {modelLoading && state.showDepthSlices && (
+                <LoadingSpinner size="xs" color="#0284c7" label="Loading 3D Depth Slices" />
+              )}
+            </span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer group">
@@ -260,7 +280,12 @@ export default function ModelControlPanel({ state, onChange }: ModelControlPanel
               onChange={(e) => onChange((prev) => ({ ...prev, show3DVolume: e.target.checked }))}
               className="w-4 h-4 rounded text-[#0284c7] border-slate-300 focus:ring-sky-400/30 cursor-pointer"
             />
-            <span className="text-xs text-slate-700 font-medium group-hover:text-slate-900">3D Volume</span>
+            <span className="text-xs text-slate-700 font-medium group-hover:text-slate-900 flex items-center gap-1.5">
+              <span>3D Volume</span>
+              {modelLoading && state.show3DVolume && (
+                <LoadingSpinner size="xs" color="#0284c7" label="Loading 3D Volume" />
+              )}
+            </span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer group">
@@ -270,7 +295,12 @@ export default function ModelControlPanel({ state, onChange }: ModelControlPanel
               onChange={(e) => onChange((prev) => ({ ...prev, showIsosurfaces: e.target.checked }))}
               className="w-4 h-4 rounded text-[#0284c7] border-slate-300 focus:ring-sky-400/30 cursor-pointer"
             />
-            <span className="text-xs text-slate-700 font-medium group-hover:text-slate-900">Isosurfaces</span>
+            <span className="text-xs text-slate-700 font-medium group-hover:text-slate-900 flex items-center gap-1.5">
+              <span>Isosurfaces</span>
+              {modelLoading && state.showIsosurfaces && (
+                <LoadingSpinner size="xs" color="#0284c7" label="Loading Isosurfaces" />
+              )}
+            </span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer group">
@@ -280,7 +310,12 @@ export default function ModelControlPanel({ state, onChange }: ModelControlPanel
               onChange={(e) => onChange((prev) => ({ ...prev, showCurrentVectors: e.target.checked }))}
               className="w-4 h-4 rounded text-[#0284c7] border-slate-300 focus:ring-sky-400/30 cursor-pointer"
             />
-            <span className="text-xs text-slate-700 font-medium group-hover:text-slate-900">Current Vectors</span>
+            <span className="text-xs text-slate-700 font-medium group-hover:text-slate-900 flex items-center gap-1.5">
+              <span>Current Vectors</span>
+              {modelLoading && state.showCurrentVectors && (
+                <LoadingSpinner size="xs" color="#0284c7" label="Loading Current Vectors" />
+              )}
+            </span>
           </label>
         </div>
 

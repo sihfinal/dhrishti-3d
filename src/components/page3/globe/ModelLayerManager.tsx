@@ -12,6 +12,7 @@ interface ModelLayerManagerProps {
   uFieldData?: ModelFieldResponse | null
   vFieldData?: ModelFieldResponse | null
   vectorDensity?: "low" | "medium" | "high"
+  isModelLoading?: boolean
 }
 
 class ModelErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -41,6 +42,7 @@ export default function ModelLayerManager({
   uFieldData,
   vFieldData,
   vectorDensity = "medium",
+  isModelLoading = false,
 }: ModelLayerManagerProps) {
   if (!activeLayerId || !isVisible) return null
 
@@ -52,7 +54,7 @@ export default function ModelLayerManager({
           <ScalarModelLayer
             fieldData={scalarFieldData}
             radius={2.004}
-            opacity={0.88}
+            opacity={isModelLoading ? 0.35 : 0.88}
           />
         )}
 
@@ -63,6 +65,7 @@ export default function ModelLayerManager({
             vField={vFieldData}
             vectorDensity={vectorDensity}
             radius={2.006}
+            opacity={isModelLoading ? 0.35 : 1.0}
           />
         )}
       </group>

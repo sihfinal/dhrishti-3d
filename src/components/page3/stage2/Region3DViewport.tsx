@@ -9,6 +9,7 @@ import { ModelControlState } from "./ModelControlPanel"
 import { buildLut, cssGradient, PaletteId } from "@/lib/colormaps"
 import { extractIsosurface } from "@/lib/marchingCubes"
 import { createVolumeMesh, VolumeMeshHandle } from "@/lib/volumeRenderer"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 export interface ObservationCluster {
   id: string
@@ -1357,7 +1358,7 @@ export default function Region3DViewport({
         {/* Loading Indicator */}
         {modelLoading && (
           <div className="absolute top-4 left-14 z-30 px-3 py-1.5 rounded-lg bg-white/95 border border-sky-300 text-sky-700 text-[11px] font-mono font-bold flex items-center gap-2 shadow-lg backdrop-blur-md">
-            <span className="w-3.5 h-3.5 rounded-full border-2 border-[#0284c7] border-t-transparent animate-spin" />
+            <LoadingSpinner size="sm" color="#0284c7" label={`Loading 3D CMEMS ${modelState.variable} depth planes`} />
             <span>Loading 3D CMEMS {modelState.variable} depth planes…</span>
           </div>
         )}

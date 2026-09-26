@@ -93,6 +93,7 @@ export async function fetchModelField(params: {
   lon_min?: number
   lon_max?: number
   stride?: number
+  signal?: AbortSignal
 }): Promise<ModelFieldResponse> {
   const variable = params.variable || "temperature"
   const time = params.time || "2026-02-15"
@@ -122,6 +123,7 @@ export async function fetchModelField(params: {
   const res = await fetch(`${API_BASE}/model/field?${query.toString()}`, {
     method: "GET",
     headers: { Accept: "application/octet-stream, application/json;q=0.9" },
+    signal: params.signal,
   })
 
   if (!res.ok) {
@@ -207,6 +209,7 @@ export async function fetchModelFieldStack(params: {
   lon_min?: number
   lon_max?: number
   stride?: number
+  signal?: AbortSignal
 }): Promise<{
   slices: ModelFieldResponse[]
   uSlices?: ModelFieldResponse[]
@@ -235,6 +238,7 @@ export async function fetchModelFieldStack(params: {
   const res = await fetch(`${API_BASE}/model/field-stack?${query.toString()}`, {
     method: "GET",
     headers: { Accept: "application/octet-stream, application/json;q=0.9" },
+    signal: params.signal,
   })
 
   if (!res.ok) {

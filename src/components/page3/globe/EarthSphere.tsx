@@ -34,6 +34,7 @@ interface EarthSphereProps {
   vFieldData?: ModelFieldResponse | null
   vectorDensity?: "low" | "medium" | "high"
   showEEZ?: boolean
+  isModelLoading?: boolean
 }
 
 export default function EarthSphere({
@@ -53,6 +54,7 @@ export default function EarthSphere({
   vFieldData = null,
   vectorDensity = "medium",
   showEEZ = true,
+  isModelLoading = false,
 }: EarthSphereProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   const isDraggingRef = useRef(false)
@@ -179,6 +181,7 @@ export default function EarthSphere({
         uFieldData={uFieldData}
         vFieldData={vFieldData}
         vectorDensity={vectorDensity}
+        isModelLoading={isModelLoading}
       />
 
       {/* ─── 3. Natural Earth Country Boundary Outlines (R = 2.008) ─── */}

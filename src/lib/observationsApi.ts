@@ -60,6 +60,7 @@ export async function fetchObservations(params?: {
   lon_min?: number
   lon_max?: number
   limit?: number
+  signal?: AbortSignal
 }): Promise<ObservationListResponse> {
   const query = new URLSearchParams()
   if (params?.type) query.set("type", params.type)
@@ -70,16 +71,16 @@ export async function fetchObservations(params?: {
   if (params?.limit) query.set("limit", params.limit.toString())
 
   const url = `${API_BASE}/observations?${query.toString()}`
-  const res = await fetch(url, { method: "GET" })
+  const res = await fetch(url, { method: "GET", signal: params?.signal })
   if (!res.ok) {
     throw new Error(`Failed to fetch observations: HTTP ${res.status}`)
   }
   return await res.json()
 }
 
-export async function fetchObservationProfile(obsId: string): Promise<ObservationProfileResponse> {
+export async function fetchObservationProfile(obsId: string, signal?: AbortSignal): Promise<ObservationProfileResponse> {
   const url = `${API_BASE}/observations/${obsId}/profile`
-  const res = await fetch(url, { method: "GET" })
+  const res = await fetch(url, { method: "GET", signal })
   if (!res.ok) {
     throw new Error(`Failed to fetch profile for ${obsId}: HTTP ${res.status}`)
   }

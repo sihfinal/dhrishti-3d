@@ -2,17 +2,20 @@
 
 import React, { useState, useEffect } from "react"
 import { TIME_CONFIG } from "./page3Config"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 interface TimeSliderProps {
   currentDateStr: string
   stepIndex: number
   onStepChange: (index: number) => void
+  isUpdating?: boolean
 }
 
 export default function TimeSlider({
   currentDateStr,
   stepIndex,
   onStepChange,
+  isUpdating = false,
 }: TimeSliderProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [speed, setSpeed] = useState<number>(1)
@@ -32,9 +35,12 @@ export default function TimeSlider({
         <span className="text-[11px] font-bold text-slate-800">
           Time
         </span>
-        <span className="px-2 py-0.5 rounded-md border border-slate-200 bg-[#f8fafc] text-[11px] font-bold text-slate-800 font-mono shadow-2xs">
-          {currentDateStr}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {isUpdating && <LoadingSpinner size="xs" color="#0284c7" label="Updating time data" />}
+          <span className="px-2 py-0.5 rounded-md border border-slate-200 bg-[#f8fafc] text-[11px] font-bold text-slate-800 font-mono shadow-2xs">
+            {currentDateStr}
+          </span>
+        </div>
       </div>
 
       <div className="relative flex flex-col gap-0.5 pt-0.5">

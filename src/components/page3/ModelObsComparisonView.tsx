@@ -7,6 +7,7 @@ import {
   ComparisonResponse,
   ComparisonPoint,
 } from "@/lib/comparisonApi"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 interface ModelObsComparisonViewProps {
   observation: ObservationItem
@@ -179,7 +180,7 @@ export default function ModelObsComparisonView({
       {/* ─── Loading / Error States ─── */}
       {loading ? (
         <div className="rounded-xl bg-[#f8fafc] border border-slate-200/80 p-6 flex flex-col items-center justify-center gap-2 text-[#0284c7]">
-          <span className="w-6 h-6 rounded-full border-2 border-[#0284c7] border-t-transparent animate-spin" />
+          <LoadingSpinner size="md" color="#0284c7" label="Fetching numerical model slice" />
           <span className="text-xs font-mono font-semibold">
             Fetching numerical model slice &amp; calculating residuals…
           </span>

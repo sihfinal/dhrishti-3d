@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { SiteHeader } from "@/components/layout/SiteHeader"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -47,93 +48,11 @@ export default function ResourcesPage() {
     <div className="min-h-screen w-full bg-white text-slate-900 font-sans flex flex-col selection:bg-sky-100 selection:text-sky-900">
 
       {/* ── HEADER ── */}
-      <header className="w-full bg-white border-b border-slate-100 z-30 sticky top-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-[64px] sm:h-[66px] gap-4">
-            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-              <div className="flex items-center">
-                <Image src="/landing/header-emblem-moes.png" alt="Ministry of Earth Sciences, Government of India" width={220} height={64} priority unoptimized className="h-10 sm:h-11 w-auto object-contain" />
-              </div>
-              <div className="h-8 w-[1px] bg-slate-200" />
-              <div className="flex items-center">
-                <Image src="/landing/header-incois.png" alt="INCOIS" width={340} height={64} priority unoptimized className="h-10 sm:h-11 w-auto object-contain" />
-              </div>
-            </div>
-            <div className="hidden xl:flex items-center justify-center flex-1 px-4">
-              <Image src="/landing/header-tagline-swirl.png" alt="Oceans for a Safer, Sustainable and Prosperous India" width={400} height={70} priority unoptimized className="h-[52px] sm:h-[54px] w-auto object-contain -translate-x-24" />
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <form onSubmit={handleSearch} className="relative hidden md:flex items-center">
-                <div className="relative flex items-center bg-white border border-slate-200/90 rounded-full px-3.5 py-1 w-60 lg:w-64 shadow-[0_1px_2px_rgba(0,0,0,0.04)] focus-within:ring-2 focus-within:ring-sky-500/40 focus-within:border-sky-500 transition-all">
-                  <svg className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                  <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search datasets, variables, regions..." className="w-full text-xs text-slate-700 bg-transparent placeholder-slate-400 focus:outline-none" />
-                  <button type="submit" className="ml-1 text-slate-400 hover:text-sky-600 transition cursor-pointer" title="Search">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                  </button>
-                </div>
-              </form>
-              <button onClick={() => setInfoModal(navModals.about)} className="w-8 h-8 rounded-full bg-[#0a2540] flex items-center justify-center text-white shadow-sm hover:bg-[#0f3458] transition-colors cursor-pointer" title="About">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        {/* Row 2 Nav */}
-        <div className="w-full bg-white border-t border-slate-100">
-          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-[38px] sm:h-[40px]">
-              <nav className="flex items-center gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-0.5">
-                <button onClick={() => router.push("/")} className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer">
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
-                  <span>Home</span>
-                </button>
-                <button onClick={() => router.push("/study-region")} className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer">
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  <span>Study Region</span>
-                </button>
-                <button onClick={() => launchExplorer("volume")} className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer">
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="1.8" /><path strokeWidth="1.8" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" /></svg>
-                  <span>Explorer</span>
-                </button>
-                <Link href="/observations" className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer">
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 17l6-6 4 4 8-8M17 7h4v4" /></svg>
-                  <span>Observations</span>
-                </Link>
-                <Link href="/data-services" className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer">
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3" strokeWidth={1.8} /><path strokeWidth={1.8} d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" /><path strokeWidth={1.8} d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" /></svg>
-                  <span>Data Services</span>
-                </Link>
-                <Link href="/operational-applications" className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer">
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" strokeWidth="1.8" /><rect x="14" y="3" width="7" height="7" rx="1.5" strokeWidth="1.8" /><rect x="14" y="14" width="7" height="7" rx="1.5" strokeWidth="1.8" /><rect x="3" y="14" width="7" height="7" rx="1.5" strokeWidth="1.8" /></svg>
-                  <span>Operational Applications</span>
-                </Link>
-                {/* Resources ACTIVE */}
-                <Link href="/resources" className="relative flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer">
-                  <svg className="w-3.5 h-3.5 text-[#0284c7]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                  <span>Resources</span>
-                  <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#0284c7] rounded-full" />
-                </Link>                {/* About */}
-                <Link
-                  href="/about"
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" strokeWidth={1.8} />
-                    <path strokeLinecap="round" strokeWidth={1.8} d="M12 16v-4m0-4h.01" />
-                  </svg>
-                  <span>About</span>
-                </Link>
-              </nav>
-              <div className="shrink-0 pl-4">
-                <button onClick={() => launchExplorer("volume")} className="rounded-full bg-[#0a2e5c] hover:bg-[#072142] text-white px-4 py-1 text-xs font-semibold flex items-center gap-1.5 shadow-[0_2px_4px_rgba(10,46,92,0.18)] hover:shadow-md transition-all cursor-pointer group">
-                  <span>Launch Explorer</span>
-                  <span className="text-xs transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <SiteHeader
+        currentRoute="resources"
+        onOpenAbout={() => setInfoModal(navModals.about)}
+        onLaunchExplorer={(mode) => launchExplorer(mode)}
+      />
 
       {/* ── HERO ── */}
       <section className="relative w-full overflow-hidden bg-gradient-to-r from-[#e0f2fe] via-[#dbeafe] to-[#bae6fd] select-none py-8 sm:py-10 border-b border-sky-100 shadow-xs shrink-0">
@@ -144,7 +63,7 @@ export default function ResourcesPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#e0f2fe] via-[#e0f2fe]/90 to-transparent pointer-events-none" />
 
-        <div className="relative z-10 max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative z-10 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="max-w-2xl">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0a2540] tracking-tight drop-shadow-xs">Resources</h1>
             <p className="text-base sm:text-lg font-semibold text-[#0284c7] mt-1">Learn&nbsp;&bull;&nbsp;Explore&nbsp;&bull;&nbsp;Use&nbsp;&bull;&nbsp;Contribute</p>
@@ -169,7 +88,7 @@ export default function ResourcesPage() {
       </section>
 
       {/* ── 4 FEATURE CARDS ── */}
-      <section className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-0">
+      <section className="w-full w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pt-5 pb-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="bg-white border border-slate-200/90 rounded-xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center gap-3.5 hover:border-sky-300 hover:shadow-sm transition group">
             <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0 text-sky-600 group-hover:bg-sky-100 transition">
@@ -223,7 +142,7 @@ export default function ResourcesPage() {
       </section>
 
       {/* ── MAIN GRID ROW 1 ── */}
-      <main className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex-1">
+      <main className="w-full w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-5 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
           {/* Documentation */}
@@ -477,7 +396,7 @@ export default function ResourcesPage() {
 
       {/* ── FOOTER ── */}
       <footer className="w-full border-t border-slate-200/80 bg-white mt-auto">
-        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
+        <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="font-semibold text-slate-600">Data Sources:</span>
             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-cyan-500 inline-block" />Copernicus Marine Service (CMEMS)</span>

@@ -9,6 +9,7 @@ import {
 } from "@/lib/observationsApi"
 import ObservationProfileChart from "./ObservationProfileChart"
 import ModelObsComparisonView from "./ModelObsComparisonView"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
 interface ObservationDetailModalProps {
   observation: ObservationItem | null
@@ -222,7 +223,7 @@ export default function ObservationDetailModal({
               {/* Scientific Depth Profile Section */}
               {loadingProfile ? (
                 <div className="rounded-xl bg-[#f8fafc] border border-slate-200/80 p-6 flex flex-col items-center justify-center gap-2 text-[#0284c7]">
-                  <span className="w-6 h-6 rounded-full border-2 border-[#0284c7] border-t-transparent animate-spin" />
+                  <LoadingSpinner size="md" color="#0284c7" label="Loading depth profile" />
                   <span className="text-xs font-mono font-semibold">
                     Loading depth profile…
                   </span>
