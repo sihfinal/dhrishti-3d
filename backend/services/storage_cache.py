@@ -218,7 +218,10 @@ class StorageCache:
                             if stream.status_code == 404:
                                 raise FileNotFoundError(f"File '{rel_path}' not found in Supabase bucket '{self.bucket}'.")
                             if stream.status_code not in (200, 206):
-                                raise RuntimeError(f"Supabase Storage returned HTTP {stream.status_code}: {stream.read().decode('utf-8', errors='replace')[:200]}")
+                                body = stream.read().decode("utf-8", errors="replace")[:200]
+                                if "NoSuchBucket" in body or "Bucket not found" in body:
+                                    raise FileNotFoundError(f"Supabase bucket '{self.bucket}' does not exist.")
+                                raise RuntimeError(f"Supabase Storage returned HTTP {stream.status_code}: {body}")
 
                             with open(tmp_path, "wb") as f_out:
                                 for chunk in stream.iter_bytes(chunk_size=1024 * 1024):
@@ -247,6 +250,9 @@ class StorageCache:
                             tmp_path.unlink()
                         except Exception:
                             pass
+                    if isinstance(exc, FileNotFoundError):
+                        # Non-existent bucket or file: do not perform wasteful retries
+                        break
                     if attempt < max_retries:
                         time.sleep(2 ** attempt)
 
