@@ -70,10 +70,7 @@ export interface ComparisonResponse {
   model_full_profile?: ModelFullProfilePoint[]
 }
 
-const API_BASE =
-  typeof window !== "undefined" && process.env.NEXT_PUBLIC_API_URL
-    ? process.env.NEXT_PUBLIC_API_URL
-    : "http://127.0.0.1:8000/api/v1"
+import { API_BASE } from "./apiBase"
 
 /**
  * Fetch Model vs Observation profile comparison for a specific observation and variable.

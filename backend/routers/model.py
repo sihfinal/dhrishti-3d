@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
 from fastapi import APIRouter, HTTPException, Query, Request, Response
+from fastapi.responses import JSONResponse
 
 from backend.schemas.model import (
     ModelMetadataResponse,
@@ -138,7 +138,7 @@ async def model_field(
         accept = request.headers.get("Accept", "").lower()
         if "application/octet-stream" in accept:
             return Response(content=encode_binary_field_slice(res), media_type="application/octet-stream")
-        return res
+        return JSONResponse(content=res)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -185,7 +185,7 @@ async def model_field_stack(
         accept = request.headers.get("Accept", "").lower()
         if "application/octet-stream" in accept:
             return Response(content=encode_binary_field_stack(res), media_type="application/octet-stream")
-        return res
+        return JSONResponse(content=res)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except FileNotFoundError as e:

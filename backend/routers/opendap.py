@@ -25,7 +25,14 @@ _opendap_service: Optional[OpenDAPService] = None
 def get_opendap_service() -> OpenDAPService:
     global _opendap_service
     if _opendap_service is None:
-        data_dir = Path(__file__).resolve().parent.parent.parent / "data"
+        import os
+        data_dir_env = os.environ.get("DATA_DIR")
+        if data_dir_env:
+            data_dir = Path(data_dir_env)
+            if not data_dir.is_absolute():
+                data_dir = Path(__file__).resolve().parent.parent.parent / data_dir
+        else:
+            data_dir = Path(__file__).resolve().parent.parent.parent / "data"
         _opendap_service = OpenDAPService(data_dir=data_dir)
     return _opendap_service
 

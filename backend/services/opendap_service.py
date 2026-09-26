@@ -30,6 +30,21 @@ from webob.request import Request as WebobRequest
 log = logging.getLogger(__name__)
 
 
+class LazyDapArray:
+    """A lightweight lazy array proxy that defers loading NetCDF data until sliced."""
+    def __init__(self, data_array: Any):
+        self._da = data_array
+        self.shape = tuple(data_array.shape)
+        self.dtype = np.dtype(data_array.dtype)
+        self.ndim = len(self.shape)
+
+    def __getitem__(self, key: Any) -> np.ndarray:
+        val = self._da[key]
+        if hasattr(val, "values"):
+            return np.asarray(val.values)
+        return np.asarray(val)
+
+
 def _parse_ce_parts(query_string: str) -> List[Tuple[str, Optional[Tuple[slice, ...]]]]:
     """
     Parse a DAP2 constraint expression projection string.
@@ -77,6 +92,7 @@ class OpenDAPService:
         self._bgc_files: List[str] = sorted(glob.glob(str(self.bgc_dir / "*.nc")))
 
         self._date_to_phy_file: Dict[str, str] = {}
+        self._date_to_phy_files: Dict[str, List[str]] = collections.defaultdict(list)
         self._date_to_bgc_file: Dict[str, str] = {}
         self._index_files()
 
@@ -90,6 +106,7 @@ class OpenDAPService:
             if "T00-00-00" in stem:
                 d_str = stem.split("_")[-1].replace("T00-00-00", "")
                 self._date_to_phy_file[d_str] = f
+                self._date_to_phy_files[d_str].append(f)
 
         for f in self._bgc_files:
             stem = Path(f).stem
@@ -97,8 +114,15 @@ class OpenDAPService:
                 d_str = stem.split("_")[-1].replace("T00-00-00", "")
                 self._date_to_bgc_file[d_str] = f
 
+    def _open_phy_dataset(self, file_paths: List[str]) -> xr.Dataset:
+        if len(file_paths) == 1:
+            return xr.open_dataset(file_paths[0], decode_times=False)
+        return xr.merge([xr.open_dataset(f, decode_times=False) for f in file_paths])
+
     def get_available_datasets(self) -> List[Dict[str, Any]]:
         """List all valid configured dataset identifiers and metadata."""
+        days_phy = len(self._date_to_phy_files) if self._date_to_phy_files else len(self._phy_files)
+        days_bgc = len(self._date_to_bgc_file) if self._date_to_bgc_file else len(self._bgc_files)
         datasets = [
             {
                 "id": "cmems_physical",
@@ -108,7 +132,7 @@ class OpenDAPService:
                 "spatial_bounds": {"lat_min": -35.0, "lat_max": 30.0, "lon_min": 40.0, "lon_max": 100.0},
                 "depth_range": [0.494, 2000.0],
                 "time_range": ["2026-01-01", "2026-03-31"],
-                "days_count": len(self._phy_files),
+                "days_count": days_phy,
             },
             {
                 "id": "cmems_bgc",
@@ -118,7 +142,7 @@ class OpenDAPService:
                 "spatial_bounds": {"lat_min": -35.0, "lat_max": 30.0, "lon_min": 40.0, "lon_max": 100.0},
                 "depth_range": [0.505, 2000.0],
                 "time_range": ["2026-01-01", "2026-03-31"],
-                "days_count": len(self._bgc_files),
+                "days_count": days_bgc,
             },
         ]
         return datasets
@@ -134,8 +158,12 @@ class OpenDAPService:
             if dataset_id in ("cmems_physical", "copernicus_daily", "physics"):
                 if not self._phy_files:
                     return None
-                file_path = self._phy_files[0]
-                xds = xr.open_dataset(file_path, decode_times=False)
+                if self._date_to_phy_files:
+                    first_date = sorted(self._date_to_phy_files.keys())[0]
+                    date_files = self._date_to_phy_files[first_date]
+                    xds = self._open_phy_dataset(date_files)
+                else:
+                    xds = xr.open_dataset(self._phy_files[0], decode_times=False)
                 pds = self._create_physical_pydap_ds("cmems_physical", xds)
 
             elif dataset_id in ("cmems_bgc", "copernicus_chlorophyll_daily", "chlorophyll", "bgc"):
@@ -145,9 +173,13 @@ class OpenDAPService:
                 xds = xr.open_dataset(file_path, decode_times=False)
                 pds = self._create_bgc_pydap_ds("cmems_bgc", xds)
 
-            elif dataset_id.startswith("cmems_phy_") or dataset_id in self._date_to_phy_file:
+            elif dataset_id.startswith("cmems_phy_") or dataset_id in self._date_to_phy_files or dataset_id in self._date_to_phy_file:
                 date_key = dataset_id.replace("cmems_phy_", "")
-                if date_key in self._date_to_phy_file:
+                if date_key in self._date_to_phy_files:
+                    date_files = self._date_to_phy_files[date_key]
+                    xds = self._open_phy_dataset(date_files)
+                    pds = self._create_physical_pydap_ds(f"cmems_phy_{date_key}", xds)
+                elif date_key in self._date_to_phy_file:
                     file_path = self._date_to_phy_file[date_key]
                     xds = xr.open_dataset(file_path, decode_times=False)
                     pds = self._create_physical_pydap_ds(f"cmems_phy_{date_key}", xds)
@@ -184,8 +216,7 @@ class OpenDAPService:
 
         for var_name in ["thetao", "so", "uo", "vo"]:
             if var_name in xds.data_vars:
-                var_data = xds[var_name].data
-                b_var = pm.BaseType(var_name, var_data, dims=("time", "depth", "latitude", "longitude"))
+                b_var = pm.BaseType(var_name, LazyDapArray(xds[var_name]), dims=("time", "depth", "latitude", "longitude"))
                 # Clean attributes to prevent double scaling in external netCDF clients
                 for k, v in xds[var_name].attrs.items():
                     if k not in ("scale_factor", "add_offset", "valid_min", "valid_max"):
@@ -216,8 +247,7 @@ class OpenDAPService:
                 pds[coord_name] = c_var
 
         if "chl" in xds.data_vars:
-            var_data = xds["chl"].data
-            b_var = pm.BaseType("chl", var_data, dims=("time", "depth", "latitude", "longitude"))
+            b_var = pm.BaseType("chl", LazyDapArray(xds["chl"]), dims=("time", "depth", "latitude", "longitude"))
             for k, v in xds["chl"].attrs.items():
                 if k not in ("scale_factor", "add_offset", "valid_min", "valid_max"):
                     b_var.attributes[k] = str(v)
@@ -266,13 +296,13 @@ class OpenDAPService:
 
             # Handle 4D data variables
             elif var_name in xds.data_vars:
-                arr = xds[var_name].data
+                da = xds[var_name]
                 if slices:
-                    arr = arr[slices]
+                    arr = np.asarray(da[slices].values)
                 else:
-                    arr = arr[:]
+                    arr = LazyDapArray(da)
                 b_var = pm.BaseType(var_name, arr, dims=("time", "depth", "latitude", "longitude"))
-                for k, v in xds[var_name].attrs.items():
+                for k, v in da.attrs.items():
                     if k not in ("scale_factor", "add_offset", "valid_min", "valid_max"):
                         b_var.attributes[k] = str(v)
                 b_var.attributes["_FillValue"] = -9999.0
@@ -280,16 +310,15 @@ class OpenDAPService:
 
             # Handle derived currents magnitude: sqrt(uo^2 + vo^2)
             elif var_name == "currents" and "uo" in xds.data_vars and "vo" in xds.data_vars:
-                uo_arr = xds["uo"].data
-                vo_arr = xds["vo"].data
                 if slices:
-                    uo_arr = uo_arr[slices]
-                    vo_arr = vo_arr[slices]
+                    uo_arr = np.asarray(xds["uo"][slices].values)
+                    vo_arr = np.asarray(xds["vo"][slices].values)
                 else:
-                    uo_arr = uo_arr[:]
-                    vo_arr = vo_arr[:]
+                    # If entire array requested without constraint, avoid full 90MB cube in RAM
+                    uo_arr = np.asarray(xds["uo"].isel(time=0, depth=0).values)
+                    vo_arr = np.asarray(xds["vo"].isel(time=0, depth=0).values)
                 speed_arr = np.sqrt(np.square(uo_arr) + np.square(vo_arr))
-                b_var = pm.BaseType("currents", speed_arr, dims=("time", "depth", "latitude", "longitude"))
+                b_var = pm.BaseType("currents", speed_arr, dims=("time", "depth", "latitude", "longitude") if not slices else None)
                 b_var.attributes["long_name"] = "Hydrodynamic Ocean Current Speed"
                 b_var.attributes["units"] = "m/s"
                 b_var.attributes["_FillValue"] = -9999.0

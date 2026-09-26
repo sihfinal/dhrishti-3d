@@ -1,0 +1,327 @@
+{
+  "dataset_name": "Sagar Netra 3D Representative Deployment Dataset",
+  "created_at": "2026-09-26T06:13:39Z",
+  "total_files": 38,
+  "total_size_bytes": 937471604,
+  "total_size_formatted": "894.0 MB",
+  "supabase_target": {
+    "url": "https://wqdzzyeisvycfnhkzomu.supabase.co",
+    "bucket": "sagar-netra-data",
+    "max_file_size_bytes": 52428800,
+    "storage_budget_target": "850\u2013950 MB"
+  },
+  "scientific_coverage": {
+    "physical_model": "CMEMS 4D Daily (thetao, so, uo, vo) - 6 dates",
+    "bgc_model": "CMEMS 4D Daily (chl) - 6 dates",
+    "argo_floats": "2000 casts (T, S, BGC sensors)",
+    "ctd_casts": "200 casts (T, S, BGC sensors)",
+    "glider_missions": "500 casts (T, S, O2)",
+    "geospatial": "India EEZ official boundary GeoJSON"
+  },
+  "files": [
+    {
+      "relative_path": "MANIFEST.md",
+      "size_bytes": 12694,
+      "size_formatted": "12.4 KB",
+      "sha256": "dccbfc5640fbc6adb3b0e977d1c1f46c927925ea4ee70e01d3b579e417affc64",
+      "mime_type": "text/markdown; charset=utf-8",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/MANIFEST.md"
+    },
+    {
+      "relative_path": "argo/ocldb1788270080.21439_PFL.nc",
+      "size_bytes": 9274766,
+      "size_formatted": "8.8 MB",
+      "sha256": "7389beb46f91dccb4d4a6ed1b044bb19ca49081b725726b60700f49d99125f68",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/argo/ocldb1788270080.21439_PFL.nc"
+    },
+    {
+      "relative_path": "bgc/ocldb1788270080.21439_PFL.nc",
+      "size_bytes": 9274766,
+      "size_formatted": "8.8 MB",
+      "sha256": "7389beb46f91dccb4d4a6ed1b044bb19ca49081b725726b60700f49d99125f68",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/bgc/ocldb1788270080.21439_PFL.nc"
+    },
+    {
+      "relative_path": "bgc/source.md",
+      "size_bytes": 438,
+      "size_formatted": "438.0 B",
+      "sha256": "8f5691d010cdd35b2774682b7936ed0c6f3f260bfd834813399277c5127b0123",
+      "mime_type": "text/markdown; charset=utf-8",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/bgc/source.md"
+    },
+    {
+      "relative_path": "ctd/ocldb1788270080.21439_CTD.nc",
+      "size_bytes": 2143173,
+      "size_formatted": "2.0 MB",
+      "sha256": "74046dc467cd5aef2bf634ff3c92450bee778bbe6e992b0f01dd32384d18bc81",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/ctd/ocldb1788270080.21439_CTD.nc"
+    },
+    {
+      "relative_path": "geospatial/india_eez.geojson",
+      "size_bytes": 1873631,
+      "size_formatted": "1.8 MB",
+      "sha256": "38145627c31f6228afc840678cb462faf8ae36689771a36b0453d8ea0ba377ba",
+      "mime_type": "application/geo+json",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/geospatial/india_eez.geojson"
+    },
+    {
+      "relative_path": "glider/ocldb1788270080.21439_GLD.nc",
+      "size_bytes": 833843,
+      "size_formatted": "814.3 KB",
+      "sha256": "75b0f3697252fbb3a2cf3a8820c85f1e8fb869894dd910c430beb2fb31364a31",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/glider/ocldb1788270080.21439_GLD.nc"
+    },
+    {
+      "relative_path": "manifest.json",
+      "size_bytes": 20639,
+      "size_formatted": "20.2 KB",
+      "sha256": "55c562c886a9a6d874cbec0913e004eb88bebb84261429b7d8997937aa8ef939",
+      "mime_type": "application/geo+json",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/manifest.json"
+    },
+    {
+      "relative_path": "model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-01-01T00-00-00.nc",
+      "size_bytes": 6771421,
+      "size_formatted": "6.5 MB",
+      "sha256": "ed34fb374497b76a3e719e5814d377c6593ebfd3bf378ecedde3905637af7c66",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-01-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-01-15T00-00-00.nc",
+      "size_bytes": 6768541,
+      "size_formatted": "6.5 MB",
+      "sha256": "d68c3d0dded107b8a5ab6fdb0756f1248b622eabecd5073f4417e2c59aec349e",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-01-15T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-02-01T00-00-00.nc",
+      "size_bytes": 6761565,
+      "size_formatted": "6.4 MB",
+      "sha256": "373f214c8ea6126682af9e29fa518f7cea0c403ade400c3c31bb2de874dc7d99",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-02-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-02-15T00-00-00.nc",
+      "size_bytes": 6749129,
+      "size_formatted": "6.4 MB",
+      "sha256": "e12160f3aa4717e864173297df703a6fa7390b9f2a3a9fc93064f165b7547106",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-02-15T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-03-01T00-00-00.nc",
+      "size_bytes": 6734474,
+      "size_formatted": "6.4 MB",
+      "sha256": "943b13978465edb94e2c417eb03b3378d18d84c71c398f645a0d612b75b202bc",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-03-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-03-31T00-00-00.nc",
+      "size_bytes": 6681341,
+      "size_formatted": "6.4 MB",
+      "sha256": "b44358f9fb85f0ef34f27f99c14b39f2d391bdda66f61c96a0af2753e3d927e5",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_chlorophyll_daily/cmems_mod_glo_bgc_my_0.25deg_P1D-m_chl_40.00E-100.00E_35.00S-30.00N_0.51-2000.00m_2026-03-31T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-01T00-00-00.nc",
+      "size_bytes": 29546456,
+      "size_formatted": "28.2 MB",
+      "sha256": "a671fdb79bba8c68b2becf2a0867c2fccf01de1f60181a146e16fd44b5aca891",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-15T00-00-00.nc",
+      "size_bytes": 29332267,
+      "size_formatted": "28.0 MB",
+      "sha256": "83d68a194edab41d270acfad28c08c727f41dfc6365e597a938aaf23f00399c0",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-15T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-01T00-00-00.nc",
+      "size_bytes": 29210034,
+      "size_formatted": "27.9 MB",
+      "sha256": "7db21796881e343a33d5d768034dd05182b1a757157aa81952150827256f0972",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-15T00-00-00.nc",
+      "size_bytes": 29141501,
+      "size_formatted": "27.8 MB",
+      "sha256": "ff2b92fbe30f872fbe95d011fa14d7c8367cccb64f6a561a887d21814dc07504",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-15T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-01T00-00-00.nc",
+      "size_bytes": 29104504,
+      "size_formatted": "27.8 MB",
+      "sha256": "716cee3f44a1a1b1e367900e334ebf49c9c05c6be9f88c083c78e6e2d0f03d32",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-31T00-00-00.nc",
+      "size_bytes": 28985616,
+      "size_formatted": "27.6 MB",
+      "sha256": "3aa7137b0fc9ccc6ea4a92706e08e93630b932a3543a8aae21e76873839d3e28",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_so_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-31T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-01T00-00-00.nc",
+      "size_bytes": 34155233,
+      "size_formatted": "32.6 MB",
+      "sha256": "57dc079cef7e75c28d68728fba02949f72a64ae6e2d9db8154c7996ae779f8ee",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-15T00-00-00.nc",
+      "size_bytes": 33974810,
+      "size_formatted": "32.4 MB",
+      "sha256": "4cb8c59095aa9a39d473eb742bc43b006701cb34478ad644fc5c18f861a942fa",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-15T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-01T00-00-00.nc",
+      "size_bytes": 33723759,
+      "size_formatted": "32.2 MB",
+      "sha256": "815ebe2380c1ee4bad75e10aacaba34508c6de5b433c5ef7485186ec4b96a600",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-15T00-00-00.nc",
+      "size_bytes": 33511008,
+      "size_formatted": "32.0 MB",
+      "sha256": "f342786571b3094d2c47c5eff62262ebaaa5cdf96d1b85c88a69b6dec3afcf4b",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-15T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-01T00-00-00.nc",
+      "size_bytes": 33379452,
+      "size_formatted": "31.8 MB",
+      "sha256": "9e76f896d4fbeea3b02a3471189849655a0875df9cb0ea934586afb07a2b9279",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-31T00-00-00.nc",
+      "size_bytes": 33201697,
+      "size_formatted": "31.7 MB",
+      "sha256": "6447b53be0aa04f860fb583877245d23b04c2f59ae753790bafb1430f153fb40",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_thetao_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-31T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-01T00-00-00.nc",
+      "size_bytes": 41542061,
+      "size_formatted": "39.6 MB",
+      "sha256": "b0ccb76c993f9ea2d3e3825b9a1fdd8a8b14ebb676dc0d58feefef538365c409",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-15T00-00-00.nc",
+      "size_bytes": 41458307,
+      "size_formatted": "39.5 MB",
+      "sha256": "4168509464ba5c527a86bbc9d827003a34f2d39829c378920e10b67762c36af3",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-15T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-01T00-00-00.nc",
+      "size_bytes": 41223636,
+      "size_formatted": "39.3 MB",
+      "sha256": "0d60036b5718eed49bca35bc775c18b8ea993e51e12c6469967e0e3c471b4699",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-15T00-00-00.nc",
+      "size_bytes": 41191993,
+      "size_formatted": "39.3 MB",
+      "sha256": "3b8a47befcefe66ccd25c469b7daa1aa178e8f9a2048b8b43c855d00c23f3810",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-15T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-01T00-00-00.nc",
+      "size_bytes": 41129460,
+      "size_formatted": "39.2 MB",
+      "sha256": "5f9f12050c56a3357c6b82615a77af855a1cdb44be32c4234f17b77f93a188a2",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-31T00-00-00.nc",
+      "size_bytes": 40791614,
+      "size_formatted": "38.9 MB",
+      "sha256": "1f97e03fef6178341960f2b1db151cfc11e83d1e9f3f9dc2286e3834b0ec79f4",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_uo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-31T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-01T00-00-00.nc",
+      "size_bytes": 41923822,
+      "size_formatted": "40.0 MB",
+      "sha256": "9c189a89ed48c9db773dd52f143884d367d57020685d2802af34f47381ba4d73",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-15T00-00-00.nc",
+      "size_bytes": 41773398,
+      "size_formatted": "39.8 MB",
+      "sha256": "e085b4d103fb215c7c266c00c353a3a4c05e3b5aa60923745bbac8a3237682b8",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-01-15T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-01T00-00-00.nc",
+      "size_bytes": 41522527,
+      "size_formatted": "39.6 MB",
+      "sha256": "555f4bfa39bcdee1717be9535d002c0c652891c1a3e298630629f185a3c7d827",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-15T00-00-00.nc",
+      "size_bytes": 41356322,
+      "size_formatted": "39.4 MB",
+      "sha256": "4066105151408d93dbd090641acdfebe75767f820a4177d625e6542279b72089",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-02-15T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-01T00-00-00.nc",
+      "size_bytes": 41285350,
+      "size_formatted": "39.4 MB",
+      "sha256": "a623106808560fb67a43be545f7f2efed877301410d2bb83d8effa310a1dc7cd",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-01T00-00-00.nc"
+    },
+    {
+      "relative_path": "model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-31T00-00-00.nc",
+      "size_bytes": 41106356,
+      "size_formatted": "39.2 MB",
+      "sha256": "e80f713df25c3ce9aa9fbff1a5cead3a1f59b8a0ece089582aa15b3b76898f9a",
+      "mime_type": "application/x-netcdf",
+      "local_path": "/home/Sohan/PROJECTS/dhrishti-3d/sagar-netra-deployment-data/model/copernicus_daily/cmems_mod_glo_phy_my_0.083deg_P1D-m_vo_40.00E-100.00E_35.00S-30.00N_0.49-2000.00m_2026-03-31T00-00-00.nc"
+    }
+  ]
+}

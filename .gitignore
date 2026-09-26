@@ -53,6 +53,8 @@ ingest/_cache_woa/
 
 # Large raw scientific datasets & archives (hosted on Hugging Face / external storage)
 /data/
+/sagar-netra-data/
+/sagar-netra-deployment-data/
 data.zip
 *.zip
 *.tar

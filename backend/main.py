@@ -6,13 +6,14 @@ Provides lazy-loaded CMEMS model APIs, WOD in-situ observation APIs, and Automat
 """
 from __future__ import annotations
 
+import gc
 import logging
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncIterator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
@@ -44,7 +45,18 @@ log = logging.getLogger("sagarnetra.backend")
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     log.info("=== Sagar Netra 3D Backend — Real Data Engine Starting ===")
-    data_dir = Path(__file__).resolve().parent.parent / "data"
+    # Support DATA_DIR env var for deployment dataset switching
+    # Defaults to sagar-netra-deployment-data if present, else data/
+    import os
+    data_dir_env = os.environ.get("DATA_DIR") or settings.DATA_DIR
+    if data_dir_env:
+        data_dir = Path(data_dir_env).resolve()
+        if not data_dir.is_absolute():
+            data_dir = Path(__file__).resolve().parent.parent / data_dir_env
+    else:
+        deploy_dir = Path(__file__).resolve().parent.parent / "sagar-netra-deployment-data"
+        full_dir = Path(__file__).resolve().parent.parent / "data"
+        data_dir = deploy_dir if deploy_dir.exists() else full_dir
     incoming_dir = data_dir / "incoming"
     log.info("Authoritative datasets directory: %s", data_dir)
     log.info("Automated incoming directory: %s", incoming_dir)
@@ -104,10 +116,33 @@ app.add_middleware(
     compresslevel=6,
 )
 
+# Step 3: Production Memory Management Middleware
+# Releases free heap pages back to the OS via glibc malloc_trim after heavy scientific requests
+try:
+    import ctypes
+    _libc = ctypes.CDLL("libc.so.6")
+    _malloc_trim = getattr(_libc, "malloc_trim", None)
+except Exception:
+    _malloc_trim = None
+
+@app.middleware("http")
+async def memory_management_middleware(request: Request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if any(p in path for p in ("/model/field", "/compare", "/ogc/", "/opendap/")):
+        gc.collect(1)
+        if _malloc_trim is not None:
+            _malloc_trim(0)
+    return response
+
+cors_origins = list(settings.CORS_ORIGINS)
+if settings.FRONTEND_URL and settings.FRONTEND_URL not in cors_origins:
+    cors_origins.append(settings.FRONTEND_URL)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origins=cors_origins,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://.*\.onrender\.com$",
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,0 +1,60 @@
+# ==============================================================================
+# SAGAR NETRA 3D — RENDER INFRASTRUCTURE AS CODE BLUEPRINT
+# ==============================================================================
+# Documentation: https://render.com/docs/blueprint-spec
+#
+# This Blueprint provisions:
+#   1. sagar-netra-backend: FastAPI Python Web Service (Free plan)
+#   2. sagar-netra-frontend: Next.js Static Site (Free plan)
+#
+# Scientific Data Architecture:
+#   - Representative dataset is stored in Supabase Free Object Storage.
+#   - Backend utilizes in-memory LRU caching and lazy NetCDF slicing.
+#   - No unnecessary cloud database or Redis required.
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. FastAPI Scientific Backend Service
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: sagar-netra-backend
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATA_DIR
+        value: sagar-netra-deployment-data
+      - key: SUPABASE_URL
+        value: https://wqdzzyeisvycfnhkzomu.supabase.co
+      - key: SUPABASE_BUCKET
+        value: sagar-netra-data
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+  # ----------------------------------------------------------------------------
+  # 2. Next.js 3D Ocean Explorer Frontend (Static Site)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: sagar-netra-frontend
+    runtime: static
+    plan: free
+    region: oregon
+    buildCommand: corepack enable && pnpm install && pnpm build
+    staticPublishPath: ./out
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -22,10 +22,14 @@ import { buildRsmcManifest, fetchRsmcFieldBinary } from "./rsmc"
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
-const API_BASE: string =
+const rawApiUrl: string =
   typeof process !== "undefined"
-    ? (process.env.NEXT_PUBLIC_API_URL ?? "")
+    ? ((process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL) ?? "").trim()
     : ""
+
+const API_BASE: string = rawApiUrl
+  ? (rawApiUrl.endsWith("/api/v1") ? rawApiUrl : `${rawApiUrl.replace(/\/+$/, "")}/api/v1`)
+  : ""
 
 export const USE_API = API_BASE.length > 0
 

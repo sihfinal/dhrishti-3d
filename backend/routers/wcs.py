@@ -22,9 +22,16 @@ def _get_wcs_service(request: Request) -> WCSService:
     if hasattr(request.app.state, "model_service"):
         ms = request.app.state.model_service
     else:
+        import os
         from pathlib import Path
         from backend.services.model_service import ModelService
-        data_dir = Path(__file__).resolve().parent.parent.parent / "data"
+        data_dir_env = os.environ.get("DATA_DIR")
+        if data_dir_env:
+            data_dir = Path(data_dir_env)
+            if not data_dir.is_absolute():
+                data_dir = Path(__file__).resolve().parent.parent.parent / data_dir
+        else:
+            data_dir = Path(__file__).resolve().parent.parent.parent / "data"
         ms = ModelService(data_dir)
         request.app.state.model_service = ms
     svc = WCSService(ms)

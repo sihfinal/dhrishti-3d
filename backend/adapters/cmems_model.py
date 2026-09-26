@@ -21,7 +21,7 @@ class DatasetCache:
     Safely closes NetCDF files upon eviction or shutdown.
     """
 
-    def __init__(self, max_size: int = 12):
+    def __init__(self, max_size: int = 6):
         self.max_size = max_size
         self._cache: collections.OrderedDict[str, xr.Dataset] = collections.OrderedDict()
         self._lock = threading.Lock()
@@ -92,35 +92,121 @@ class CMEMSModelAdapter(BaseModelAdapter):
         self._bgc_files = sorted(glob.glob(str(self.bgc_dir / "*.nc")))
         self._date_to_phy_file: dict[str, str] = {}
         self._date_to_bgc_file: dict[str, str] = {}
-        self._dataset_cache = DatasetCache(max_size=12)
+        self._var_date_to_file: dict[tuple[str, str], str] = {}
+        self._dataset_cache = DatasetCache(max_size=6)
         self._index_files()
 
     def _index_files(self) -> None:
-        """Map YYYY-MM-DD to specific daily NetCDF file path for instant O(1) lookup."""
+        """Map YYYY-MM-DD and (var, YYYY-MM-DD) to specific daily NetCDF file path for instant O(1) lookup."""
         for f in self._phy_files:
             # File name pattern: ..._YYYY-MM-DDT00-00-00.nc
             name = Path(f).stem
             if "T00-00-00" in name:
                 d_str = name.split("_")[-1].replace("T00-00-00", "")
                 self._date_to_phy_file[d_str] = f
+                for v in ["thetao", "so", "uo", "vo"]:
+                    if f"_{v}_" in name or f"_{v}-" in name or f"-{v}_" in name or f"-{v}-" in name or "thetao-so-uo-vo" in name:
+                        self._var_date_to_file[(v, d_str)] = f
 
         for f in self._bgc_files:
             name = Path(f).stem
             if "T00-00-00" in name:
                 d_str = name.split("_")[-1].replace("T00-00-00", "")
                 self._date_to_bgc_file[d_str] = f
+                self._var_date_to_file[("chl", d_str)] = f
+
+    def get_file_for_variable(self, nc_var: str, date_str: str) -> str:
+        """Resolve file path for a specific variable and date, handling combined, split, and lazy-downloaded NetCDF files."""
+        resolved_path = None
+        if (nc_var, date_str) in self._var_date_to_file:
+            resolved_path = self._var_date_to_file[(nc_var, date_str)]
+        else:
+            avail_dates = [d for (v, d) in self._var_date_to_file.keys() if v == nc_var]
+            if avail_dates:
+                target_date = min(avail_dates, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
+                resolved_path = self._var_date_to_file[(nc_var, target_date)]
+            elif nc_var == "chl" and self._date_to_bgc_file:
+                avail = sorted(self._date_to_bgc_file.keys())
+                target_date = min(avail, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
+                resolved_path = self._date_to_bgc_file[target_date]
+            elif self._date_to_phy_file:
+                avail = sorted(self._date_to_phy_file.keys())
+                target_date = min(avail, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
+                resolved_path = self._date_to_phy_file[target_date]
+
+        # If file exists on disk, return it
+        if resolved_path and Path(resolved_path).exists():
+            return resolved_path
+
+        # Otherwise, fetch on-demand via StorageCache
+        try:
+            from backend.services.storage_cache import StorageCache
+            cache = StorageCache.get_instance(self.data_dir)
+            cached = cache.resolve_model_file(nc_var, date_str)
+            if cached and cached.exists():
+                p_str = str(cached)
+                self._var_date_to_file[(nc_var, date_str)] = p_str
+                return p_str
+        except Exception as err:
+            log.warning("Lazy download attempt for (%s, %s) failed: %s", nc_var, date_str, err)
+
+        if resolved_path:
+            return resolved_path
+        raise FileNotFoundError(f"No model file found or downloaded for {nc_var} on {date_str}")
 
     def get_metadata(self) -> dict[str, Any]:
         """Read sample coordinate metadata lazily from the first file."""
         if not self._phy_files:
-            return {}
+            try:
+                times = self.get_available_times()
+                d_str = times[0] if times else "2026-02-15"
+                sample_file = self.get_file_for_variable("thetao", d_str)
+                if sample_file and Path(sample_file).exists():
+                    self._phy_files = [sample_file]
+            except Exception as err:
+                log.warning("Could not lazily resolve sample file for metadata: %s", err)
+
+        if not self._phy_files:
+            return {
+                "id": "cmems-global-ocean-physics-bgc",
+                "name": "Copernicus Marine Global Ocean Analysis and Forecast (Q1 2026)",
+                "source": "Copernicus Marine Service (CMEMS)",
+                "product": "GLOBAL_ANALYSIS_PHY_001_024 / GLOBAL_ANALYSIS_BGC_001_028",
+                "variables": ["temperature", "salinity", "u_velocity", "v_velocity", "chlorophyll"],
+                "variable_mappings": {
+                    "temperature": "thetao",
+                    "salinity": "so",
+                    "u_velocity": "uo",
+                    "v_velocity": "vo",
+                    "chlorophyll": "chl",
+                },
+                "units": {
+                    "temperature": "°C",
+                    "salinity": "PSU",
+                    "u_velocity": "m/s",
+                    "v_velocity": "m/s",
+                    "chlorophyll": "mg/m³",
+                },
+                "latitude_range": (-35.0, 30.0),
+                "longitude_range": (40.0, 100.0),
+                "depth_range": (0.49, 2000.0),
+                "time_range": ("2026-01-01", "2026-03-31"),
+                "file_count": 35,
+                "grid": {
+                    "physics_res_deg": 0.083,
+                    "bgc_res_deg": 0.25,
+                    "lat_points": 721,
+                    "lon_points": 781,
+                    "depth_levels": 40,
+                },
+            }
 
         ds = self._dataset_cache.get(self._phy_files[0])
         lats = ds.latitude.values
         lons = ds.longitude.values
         depths = ds.depth.values
 
-        times = sorted(list(self._date_to_phy_file.keys()))
+        times = self.get_available_times()
         t_start = times[0] if times else "2026-01-01"
         t_end = times[-1] if times else "2026-03-31"
 
@@ -148,7 +234,7 @@ class CMEMSModelAdapter(BaseModelAdapter):
             "longitude_range": (float(lons.min()), float(lons.max())),
             "depth_range": (float(depths.min()), float(depths.max())),
             "time_range": (t_start, t_end),
-            "file_count": len(self._phy_files) + len(self._bgc_files),
+            "file_count": max(len(self._phy_files) + len(self._bgc_files), len(times)),
             "grid": {
                 "physics_res_deg": 0.083,
                 "bgc_res_deg": 0.25,
@@ -159,15 +245,36 @@ class CMEMSModelAdapter(BaseModelAdapter):
         }
 
     def get_available_times(self) -> list[str]:
-        """Return list of all 90 available daily dates (YYYY-MM-DD)."""
-        return sorted(list(self._date_to_phy_file.keys()))
+        """Return list of all available daily dates (YYYY-MM-DD)."""
+        if self._date_to_phy_file:
+            return sorted(list(self._date_to_phy_file.keys()))
+        try:
+            from backend.services.storage_cache import StorageCache
+            cache = StorageCache.get_instance(self.data_dir)
+            dates = cache.get_available_dates()
+            if dates:
+                return dates
+        except Exception:
+            pass
+        return []
 
     def get_available_depths(self, variable: str = "temperature") -> list[float]:
         """Return available depth levels from NetCDF depth coordinate."""
-        if not self._phy_files:
-            return []
-        
         target_files = self._bgc_files if variable == "chlorophyll" else self._phy_files
+        if not target_files:
+            try:
+                var_name = "chl" if variable == "chlorophyll" else "thetao"
+                times = self.get_available_times()
+                d_str = times[0] if times else "2026-02-15"
+                sample_file = self.get_file_for_variable(var_name, d_str)
+                if sample_file and Path(sample_file).exists():
+                    target_files = [sample_file]
+            except Exception as err:
+                log.warning("Could not resolve sample file for depths: %s", err)
+
+        if not target_files:
+            return []
+
         ds = self._dataset_cache.get(target_files[0])
         return [float(d) for d in ds.depth.values]
 
@@ -191,19 +298,7 @@ class CMEMSModelAdapter(BaseModelAdapter):
             raise ValueError(f"Unsupported model variable '{variable}'")
 
         nc_var, sub_dir, unit, min_fallback, max_fallback = var_info
-        file_map = self._date_to_bgc_file if sub_dir == "copernicus_chlorophyll_daily" else self._date_to_phy_file
-
-        # Resolve nearest date file
-        if date_str not in file_map:
-            # Pick nearest date
-            avail_dates = sorted(file_map.keys())
-            if not avail_dates:
-                raise FileNotFoundError(f"No model NetCDF files found for {sub_dir}")
-            target_date = min(avail_dates, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
-        else:
-            target_date = date_str
-
-        file_path = file_map[target_date]
+        file_path = self.get_file_for_variable(nc_var, date_str)
 
         # Reuse already-open dataset handle from bounded cache (lazy metadata, no full array reading)
         ds = self._dataset_cache.get(file_path)
@@ -259,7 +354,7 @@ class CMEMSModelAdapter(BaseModelAdapter):
         return {
             "variable": variable,
             "nc_variable": nc_var,
-            "time": target_date,
+            "time": date_str,
             "depth": actual_depth,
             "requested_depth": depth,
             "actual_depth": actual_depth,
@@ -300,75 +395,50 @@ class CMEMSModelAdapter(BaseModelAdapter):
         is_currents = (var_lower == "currents")
 
         if is_currents:
-            sub_dir = "copernicus_daily"
             unit = "m/s"
-            file_map = self._date_to_phy_file
-        else:
-            var_info = VARIABLE_MAPPING.get(var_lower)
-            if not var_info:
-                raise ValueError(f"Unsupported model variable '{variable}'")
-            nc_var, sub_dir, unit, min_fallback, max_fallback = var_info
-            file_map = self._date_to_bgc_file if sub_dir == "copernicus_chlorophyll_daily" else self._date_to_phy_file
+            file_u = self.get_file_for_variable("uo", date_str)
+            file_v = self.get_file_for_variable("vo", date_str)
+            ds_u = self._dataset_cache.get(file_u)
+            ds_v = self._dataset_cache.get(file_v)
 
-        # Resolve nearest date file
-        if date_str not in file_map:
-            avail_dates = sorted(file_map.keys())
-            if not avail_dates:
-                raise FileNotFoundError(f"No model NetCDF files found for {sub_dir}")
-            target_date = min(avail_dates, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
-        else:
+            depth_coord = ds_u.depth
+            actual_depths = [float(depth_coord.sel(depth=d, method="nearest").values) for d in depths]
+
+            lat_coords = ds_u.latitude.values
+            lon_coords = ds_u.longitude.values
+            is_lat_desc = bool(lat_coords[0] > lat_coords[-1])
+            is_lon_desc = bool(lon_coords[0] > lon_coords[-1])
+
+            eff_lat_min = min(lat_min, lat_max)
+            eff_lat_max = max(lat_min, lat_max)
+            eff_lon_min = min(lon_min, lon_max)
+            eff_lon_max = max(lon_min, lon_max)
+
+            lat_slice = slice(eff_lat_max, eff_lat_min) if is_lat_desc else slice(eff_lat_min, eff_lat_max)
+            lon_slice = slice(eff_lon_max, eff_lon_min) if is_lon_desc else slice(eff_lon_min, eff_lon_max)
             target_date = date_str
 
-        file_path = file_map[target_date]
-
-        # Reuse cached open dataset
-        ds = self._dataset_cache.get(file_path)
-        depth_coord = ds.depth
-
-        # Resolve actual depth coordinates for each requested depth level
-        actual_depths = [float(depth_coord.sel(depth=d, method="nearest").values) for d in depths]
-
-        # Check coordinate direction
-        lat_coords = ds.latitude.values
-        lon_coords = ds.longitude.values
-        is_lat_desc = bool(lat_coords[0] > lat_coords[-1])
-        is_lon_desc = bool(lon_coords[0] > lon_coords[-1])
-
-        eff_lat_min = min(lat_min, lat_max)
-        eff_lat_max = max(lat_min, lat_max)
-        eff_lon_min = min(lon_min, lon_max)
-        eff_lon_max = max(lon_min, lon_max)
-
-        # Spatial slice with coordinate orientation protection
-        lat_slice = slice(eff_lat_max, eff_lat_min) if is_lat_desc else slice(eff_lat_min, eff_lat_max)
-        lon_slice = slice(eff_lon_max, eff_lon_min) if is_lon_desc else slice(eff_lon_min, eff_lon_max)
-
-        # Unique actual depths for direct vertical subsetting
-        unique_actual_depths = list(dict.fromkeys(actual_depths))
-
-        if is_currents:
-            # Smart vertical, spatial, and stride subsetting for both uo and vo
-            sub_u = ds["uo"].sel(depth=unique_actual_depths, latitude=lat_slice, longitude=lon_slice)
-            sub_v = ds["vo"].sel(depth=unique_actual_depths, latitude=lat_slice, longitude=lon_slice)
+            lat_sub = ds_u.latitude.sel(latitude=lat_slice)
+            lon_sub = ds_u.longitude.sel(longitude=lon_slice)
             if stride > 1:
-                sub_u = sub_u.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
-                sub_v = sub_v.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
-            if "time" in sub_u.dims:
-                sub_u = sub_u.squeeze("time")
-            if "time" in sub_v.dims:
-                sub_v = sub_v.squeeze("time")
+                lat_sub = lat_sub.isel(latitude=slice(None, None, stride))
+                lon_sub = lon_sub.isel(longitude=slice(None, None, stride))
 
-            lats = [float(x) for x in sub_u.latitude.values]
-            lons = [float(x) for x in sub_u.longitude.values]
+            lats = [float(x) for x in lat_sub.values]
+            lons = [float(x) for x in lon_sub.values]
 
+            # Sequential depth extraction for U component (avoid holding multiple 4D arrays in RAM)
             u_slices = []
-            v_slices = []
-
             for req_d, act_d in zip(depths, actual_depths):
-                # Slice u
-                arr_u = sub_u.sel(depth=act_d).values.squeeze()
+                da_u = ds_u["uo"].sel(depth=act_d, latitude=lat_slice, longitude=lon_slice)
+                if "time" in da_u.dims:
+                    da_u = da_u.squeeze("time")
+                if stride > 1:
+                    da_u = da_u.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
+
+                arr_u = da_u.values.squeeze()
                 val_u = ~np.isnan(arr_u)
-                has_u = np.any(val_u)
+                has_u = bool(np.any(val_u))
                 arr_u_clean = np.where(val_u, arr_u, None)
                 min_u = float(np.amin(arr_u[val_u])) if has_u else -3.0
                 max_u = float(np.amax(arr_u[val_u])) if has_u else 3.0
@@ -381,11 +451,20 @@ class CMEMSModelAdapter(BaseModelAdapter):
                     "min_value": min_u,
                     "max_value": max_u,
                 })
+                del arr_u, val_u, arr_u_clean, da_u
 
-                # Slice v
-                arr_v = sub_v.sel(depth=act_d).values.squeeze()
+            # Sequential depth extraction for V component
+            v_slices = []
+            for req_d, act_d in zip(depths, actual_depths):
+                da_v = ds_v["vo"].sel(depth=act_d, latitude=lat_slice, longitude=lon_slice)
+                if "time" in da_v.dims:
+                    da_v = da_v.squeeze("time")
+                if stride > 1:
+                    da_v = da_v.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
+
+                arr_v = da_v.values.squeeze()
                 val_v = ~np.isnan(arr_v)
-                has_v = np.any(val_v)
+                has_v = bool(np.any(val_v))
                 arr_v_clean = np.where(val_v, arr_v, None)
                 min_v = float(np.amin(arr_v[val_v])) if has_v else -3.0
                 max_v = float(np.amax(arr_v[val_v])) if has_v else 3.0
@@ -398,6 +477,7 @@ class CMEMSModelAdapter(BaseModelAdapter):
                     "min_value": min_v,
                     "max_value": max_v,
                 })
+                del arr_v, val_v, arr_v_clean, da_v
 
             return {
                 "variable": "currents",
@@ -419,21 +499,51 @@ class CMEMSModelAdapter(BaseModelAdapter):
             }
 
         else:
-            # Scalar variable: temperature, salinity, chlorophyll, etc.
-            sub_var = ds[nc_var].sel(depth=unique_actual_depths, latitude=lat_slice, longitude=lon_slice)
+            var_info = VARIABLE_MAPPING.get(var_lower)
+            if not var_info:
+                raise ValueError(f"Unsupported model variable '{variable}'")
+            nc_var, sub_dir, unit, min_fallback, max_fallback = var_info
+            file_path = self.get_file_for_variable(nc_var, date_str)
+
+            ds = self._dataset_cache.get(file_path)
+            depth_coord = ds.depth
+            actual_depths = [float(depth_coord.sel(depth=d, method="nearest").values) for d in depths]
+
+            lat_coords = ds.latitude.values
+            lon_coords = ds.longitude.values
+            is_lat_desc = bool(lat_coords[0] > lat_coords[-1])
+            is_lon_desc = bool(lon_coords[0] > lon_coords[-1])
+
+            eff_lat_min = min(lat_min, lat_max)
+            eff_lat_max = max(lat_min, lat_max)
+            eff_lon_min = min(lon_min, lon_max)
+            eff_lon_max = max(lon_min, lon_max)
+
+            lat_slice = slice(eff_lat_max, eff_lat_min) if is_lat_desc else slice(eff_lat_min, eff_lat_max)
+            lon_slice = slice(eff_lon_max, eff_lon_min) if is_lon_desc else slice(eff_lon_min, eff_lon_max)
+            target_date = date_str
+
+            lat_sub = ds.latitude.sel(latitude=lat_slice)
+            lon_sub = ds.longitude.sel(longitude=lon_slice)
             if stride > 1:
-                sub_var = sub_var.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
-            if "time" in sub_var.dims:
-                sub_var = sub_var.squeeze("time")
+                lat_sub = lat_sub.isel(latitude=slice(None, None, stride))
+                lon_sub = lon_sub.isel(longitude=slice(None, None, stride))
 
-            lats = [float(x) for x in sub_var.latitude.values]
-            lons = [float(x) for x in sub_var.longitude.values]
+            lats = [float(x) for x in lat_sub.values]
+            lons = [float(x) for x in lon_sub.values]
 
+            # Sequential scalar depth extraction
             slices = []
             for req_d, act_d in zip(depths, actual_depths):
-                arr = sub_var.sel(depth=act_d).values.squeeze()
+                da_s = ds[nc_var].sel(depth=act_d, latitude=lat_slice, longitude=lon_slice)
+                if "time" in da_s.dims:
+                    da_s = da_s.squeeze("time")
+                if stride > 1:
+                    da_s = da_s.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
+
+                arr = da_s.values.squeeze()
                 val_mask = ~np.isnan(arr)
-                has_val = np.any(val_mask)
+                has_val = bool(np.any(val_mask))
                 arr_clean = np.where(val_mask, arr, None)
                 min_val = float(np.amin(arr[val_mask])) if has_val else min_fallback
                 max_val = float(np.amax(arr[val_mask])) if has_val else max_fallback
@@ -446,6 +556,7 @@ class CMEMSModelAdapter(BaseModelAdapter):
                     "min_value": min_val,
                     "max_value": max_val,
                 })
+                del arr, val_mask, arr_clean, da_s
 
             return {
                 "variable": variable,

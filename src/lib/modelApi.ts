@@ -18,7 +18,7 @@ export interface ModelFieldResponse {
   unit: string
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api/v1"
+import { API_BASE } from "./apiBase"
 
 // In-memory LRU cache to prevent redundant requests
 const fieldCache = new Map<string, ModelFieldResponse>()

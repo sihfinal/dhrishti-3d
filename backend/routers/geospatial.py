@@ -16,7 +16,15 @@ from fastapi import APIRouter, HTTPException, status
 log = logging.getLogger("sagarnetra.geospatial")
 router = APIRouter(prefix="/geospatial", tags=["Geospatial Layers"])
 
-_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "geospatial"
+import os
+data_dir_env = os.environ.get("DATA_DIR")
+if data_dir_env:
+    _base_dir = Path(data_dir_env)
+    if not _base_dir.is_absolute():
+        _base_dir = Path(__file__).resolve().parent.parent.parent / _base_dir
+    _DATA_DIR = _base_dir / "geospatial"
+else:
+    _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "geospatial"
 _EEZ_FILE = _DATA_DIR / "india_eez.geojson"
 
 _CACHED_EEZ: Dict[str, Any] | None = None

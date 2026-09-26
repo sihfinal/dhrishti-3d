@@ -141,11 +141,14 @@ class ModelObservationComparisonService:
         else:
             target_date = avail_dates[0]
 
-        file_map = getattr(adapter, "_date_to_phy_file", {}) if var_key != "chlorophyll" else getattr(adapter, "_date_to_bgc_file", {})
-        if target_date not in file_map:
-            raise FileNotFoundError(f"Model NetCDF slice file not mapped for date {target_date}")
+        if hasattr(adapter, "get_file_for_variable"):
+            file_path = adapter.get_file_for_variable(nc_var, target_date)
+        else:
+            file_map = getattr(adapter, "_date_to_phy_file", {}) if var_key != "chlorophyll" else getattr(adapter, "_date_to_bgc_file", {})
+            if target_date not in file_map:
+                raise FileNotFoundError(f"Model NetCDF slice file not mapped for date {target_date}")
+            file_path = file_map[target_date]
 
-        file_path = file_map[target_date]
         ds = adapter._dataset_cache.get(file_path)
 
         if nc_var not in ds:

@@ -3,13 +3,16 @@ backend/tests/test_comparison.py
 --------------------------------
 Tests for Model vs Observation vertical sounding comparison service and API endpoint.
 """
+import pytest
 from fastapi.testclient import TestClient
 from backend.main import app
 
-client = TestClient(app)
+@pytest.fixture(scope="module")
+def client():
+    with TestClient(app) as c:
+        yield c
 
-
-def test_compare_model_observation_temperature():
+def test_compare_model_observation_temperature(client):
     # Use real Argo observation in Indian Ocean
     response = client.get("/api/v1/compare/model-observation?obs_id=argo_19770705&variable=temperature")
     assert response.status_code == 200
@@ -47,7 +50,7 @@ def test_compare_model_observation_temperature():
     assert abs(first_pt["residual"] - (first_pt["obs_value"] - first_pt["model_value"])) < 1e-4
 
 
-def test_compare_model_observation_salinity():
+def test_compare_model_observation_salinity(client):
     response = client.get("/api/v1/compare/model-observation?obs_id=argo_19770705&variable=salinity")
     assert response.status_code == 200
     data = response.json()
@@ -58,7 +61,7 @@ def test_compare_model_observation_salinity():
     assert len(data["profile_comparison"]) > 0
 
 
-def test_compare_unmeasured_variable_error():
+def test_compare_unmeasured_variable_error(client):
     # Observation argo_19770706 does not measure chlorophyll
     response = client.get("/api/v1/compare/model-observation?obs_id=argo_19770706&variable=chlorophyll")
     assert response.status_code == 400
@@ -66,6 +69,6 @@ def test_compare_unmeasured_variable_error():
     assert "not measured" in detail.lower()
 
 
-def test_compare_nonexistent_observation():
+def test_compare_nonexistent_observation(client):
     response = client.get("/api/v1/compare/model-observation?obs_id=nonexistent_float_999999&variable=temperature")
     assert response.status_code == 400 or response.status_code == 404

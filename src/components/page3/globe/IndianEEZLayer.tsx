@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react"
 import * as THREE from "three"
+import { getApiBaseUrl } from "@/lib/apiBase"
 
 interface IndianEEZLayerProps {
   radius?: number
@@ -57,7 +58,7 @@ export default function IndianEEZLayer({
       })
       .catch((err) => {
         console.warn("Fallback to FastAPI backend for EEZ layer:", err)
-        fetch("http://127.0.0.1:8000/api/v1/geospatial/india-eez")
+        fetch(`${getApiBaseUrl()}/geospatial/india-eez`)
           .then((res) => res.json())
           .then((data: GeoJSONData) => {
             if (active) setGeoData(data)
