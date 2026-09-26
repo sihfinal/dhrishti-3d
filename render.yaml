@@ -47,7 +47,7 @@ services:
   - type: web
     name: sagar-netra-frontend
     runtime: static
-    buildCommand: corepack enable && pnpm install && pnpm build
+    buildCommand: pnpm install && pnpm build
     staticPublishPath: ./out
     envVars:
       - key: NEXT_PUBLIC_API_URL
