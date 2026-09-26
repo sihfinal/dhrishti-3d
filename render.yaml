@@ -51,7 +51,7 @@ services:
     staticPublishPath: ./out
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        sync: false
+        value: https://sagar-netra-backend-pnpk.onrender.com
     routes:
       - type: rewrite
         source: /*

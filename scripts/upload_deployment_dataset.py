@@ -151,30 +151,54 @@ class SupabaseStorageClient:
             log.error("Failed to access bucket '%s': %s %s", self.bucket, resp.status_code, resp.text)
             return False
 
-    def list_objects(self, prefix: str = "") -> Dict[str, Dict[str, Any]]:
-        """List objects in the bucket, returning dict mapping relative name -> metadata."""
-        url = f"{self.base_url}/storage/v1/object/list/{self.bucket}"
+    def list_all_objects(self) -> Dict[str, Dict[str, Any]]:
+        """Recursively list all objects across all folders in the bucket."""
         objects: Dict[str, Dict[str, Any]] = {}
+        prefixes_to_scan = [""]
+
         with httpx.Client(timeout=self.timeout) as client:
-            payload = {
-                "prefix": prefix,
-                "limit": 1000,
-                "offset": 0,
-                "sortBy": {"column": "name", "order": "asc"},
-            }
-            resp = client.post(url, headers=self.headers, json=payload)
-            if resp.status_code == 200:
-                items = resp.json()
-                for item in items:
-                    name = item.get("name")
-                    if name:
-                        objects[name] = item
-            else:
-                log.warning("Could not list objects in bucket '%s': %s", self.bucket, resp.text)
+            while prefixes_to_scan:
+                prefix = prefixes_to_scan.pop(0)
+                url = f"{self.base_url}/storage/v1/object/list/{self.bucket}"
+                payload = {
+                    "prefix": prefix,
+                    "limit": 1000,
+                    "offset": 0,
+                    "sortBy": {"column": "name", "order": "asc"},
+                }
+                resp = client.post(url, headers=self.headers, json=payload)
+                if resp.status_code == 200:
+                    items = resp.json()
+                    for item in items:
+                        name = item.get("name")
+                        if not name:
+                            continue
+                        rel_name = f"{prefix}/{name}" if prefix else name
+                        # Folder detection: in Supabase Storage, folder entries have id=None
+                        if item.get("id") is None:
+                            prefixes_to_scan.append(rel_name)
+                        else:
+                            objects[rel_name] = item
+                else:
+                    log.warning("Could not list prefix '%s' in bucket '%s': %s", prefix, self.bucket, resp.text)
+
         return objects
 
+    def verify_object_exists(self, remote_path: str) -> bool:
+        """Verify an object exists and is accessible in the bucket."""
+        # Check via public or authenticated object URL
+        url = f"{self.base_url}/storage/v1/object/public/{self.bucket}/{remote_path}"
+        with httpx.Client(timeout=10.0) as client:
+            resp = client.head(url)
+            if resp.status_code in (200, 206):
+                return True
+            # Fallback to authenticated
+            auth_url = f"{self.base_url}/storage/v1/object/authenticated/{self.bucket}/{remote_path}"
+            resp_auth = client.head(auth_url, headers=self.headers)
+            return resp_auth.status_code in (200, 206)
+
     def upload_file(self, local_path: Path, remote_path: str, max_retries: int = 3) -> bool:
-        """Upload a local file to Supabase Storage with retries."""
+        """Upload a local file to Supabase Storage with retries and existence verification."""
         url = f"{self.base_url}/storage/v1/object/{self.bucket}/{remote_path}"
         content_type = get_mime_type(local_path)
         headers = dict(self.headers)
@@ -188,14 +212,18 @@ class SupabaseStorageClient:
                 with httpx.Client(timeout=self.timeout) as client:
                     resp = client.post(url, headers=headers, content=file_content)
                 if resp.status_code in (200, 201):
-                    return True
-                log.warning(
-                    "Upload attempt %d for '%s' returned HTTP %s: %s",
-                    attempt,
-                    remote_path,
-                    resp.status_code,
-                    resp.text,
-                )
+                    # Verify object is accessible
+                    if self.verify_object_exists(remote_path):
+                        return True
+                    log.warning("Upload returned HTTP %s but object verification failed for '%s'", resp.status_code, remote_path)
+                else:
+                    log.warning(
+                        "Upload attempt %d for '%s' returned HTTP %s: %s",
+                        attempt,
+                        remote_path,
+                        resp.status_code,
+                        resp.text,
+                    )
             except Exception as e:
                 log.warning("Upload attempt %d for '%s' failed: %s", attempt, remote_path, str(e))
             if attempt < max_retries:
@@ -378,11 +406,42 @@ def main() -> int:
         log.error("Could not verify or create bucket '%s'. Aborting upload.", args.bucket)
         return 1
 
-    # Step 4: Upload files
-    log.info("Initiating upload of %d files to bucket '%s'...", len(files_info), args.bucket)
-    existing_objects = client.list_objects()
-    log.info("Found %d existing objects in remote bucket.", len(existing_objects))
+    # Step 4: Discover remote objects recursively
+    log.info("Querying remote bucket '%s' for existing objects...", args.bucket)
+    existing_objects = client.list_all_objects()
+    already_present = len(existing_objects)
+    log.info("Found %d existing objects in remote bucket.", already_present)
 
+    if args.verify:
+        log.info("=" * 72)
+        log.info("VERIFYING REMOTE OBJECTS AGAINST LOCAL DATASET")
+        log.info("=" * 72)
+        missing = []
+        size_mismatches = []
+        for item in files_info:
+            rel = item["relative_path"]
+            if rel not in existing_objects:
+                missing.append(rel)
+            else:
+                rem_size = existing_objects[rel].get("metadata", {}).get("size")
+                if rem_size is not None and rem_size != item["size_bytes"]:
+                    size_mismatches.append((rel, item["size_bytes"], rem_size))
+
+        log.info("Verification Results:")
+        log.info("  Matched objects: %d / %d", len(files_info) - len(missing) - len(size_mismatches), len(files_info))
+        if missing:
+            log.warning("  Missing remote files (%d):", len(missing))
+            for m in missing[:10]:
+                log.warning("    - %s", m)
+        if size_mismatches:
+            log.warning("  Size mismatched files (%d):", len(size_mismatches))
+            for sm in size_mismatches[:10]:
+                log.warning("    - %s (local: %d, remote: %d)", sm[0], sm[1], sm[2])
+
+        return 0 if (not missing and not size_mismatches) else 1
+
+    # Step 5: Upload files
+    log.info("Initiating upload of %d files to bucket '%s'...", len(files_info), args.bucket)
     uploaded_count = 0
     skipped_count = 0
     failed_count = 0
@@ -399,7 +458,7 @@ def main() -> int:
         if remote_meta and not args.force:
             meta_size = remote_meta.get("metadata", {}).get("size")
             if meta_size == size:
-                log.info("[%d/%d] SKIPPED (already uploaded): %s (%s)", i, len(files_info), rel_path, item["size_formatted"])
+                log.info("[%d/%d] SKIPPED (already present): %s (%s)", i, len(files_info), rel_path, item["size_formatted"])
                 skipped_count += 1
                 continue
 
@@ -410,16 +469,27 @@ def main() -> int:
             bytes_uploaded += size
             elapsed = time.time() - start_time
             rate = (bytes_uploaded / (1024 * 1024)) / max(elapsed, 0.1)
-            log.info("   -> Uploaded successfully. (Throughput: %.2f MB/s)", rate)
+            log.info("   -> Uploaded & verified successfully. (Throughput: %.2f MB/s)", rate)
         else:
             log.error("   -> FAILED to upload: %s", rel_path)
             failed_count += 1
 
+    # Re-query remote state for authoritative total remote bytes
+    log.info("Refreshing remote object inventory...")
+    final_remote_objects = client.list_all_objects()
+    total_remote_bytes = sum(
+        obj.get("metadata", {}).get("size", 0) for obj in final_remote_objects.values()
+    )
+
     log.info("=" * 72)
-    log.info("Upload Process Finished:")
-    log.info("  Uploaded: %d files (%s)", uploaded_count, format_size(bytes_uploaded))
-    log.info("  Skipped:  %d files (identical on remote)", skipped_count)
-    log.info("  Failed:   %d files", failed_count)
+    log.info("Sagar Netra 3D — Storage Synchronization Summary:")
+    log.info("  Files discovered:      %d", len(files_info))
+    log.info("  Files already present: %d", already_present)
+    log.info("  Files uploaded:        %d", uploaded_count)
+    log.info("  Files skipped:         %d", skipped_count)
+    log.info("  Files failed:          %d", failed_count)
+    log.info("  Total uploaded bytes:  %d (%s)", bytes_uploaded, format_size(bytes_uploaded))
+    log.info("  Total remote bytes:    %d (%s)", total_remote_bytes, format_size(total_remote_bytes))
     log.info("=" * 72)
 
     return 0 if failed_count == 0 else 1

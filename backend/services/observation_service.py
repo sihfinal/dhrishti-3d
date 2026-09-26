@@ -62,17 +62,8 @@ class ObservationService:
         limit: int = 2000,
     ) -> list[dict[str, Any]]:
         """Query platform locations from WOD NetCDF and ingested text files with bounding box filtering."""
-        results = self.adapter.get_observations(
-            obs_type=obs_type,
-            lat_min=lat_min,
-            lat_max=lat_max,
-            lon_min=lon_min,
-            lon_max=lon_max,
-            limit=limit,
-        )
-
-        remaining_limit = limit - len(results)
-        if remaining_limit > 0 and self._extra_adapters:
+        extra_results = []
+        if self._extra_adapters:
             for extra in self._extra_adapters.values():
                 extra_obs = extra.get_observations(
                     obs_type=obs_type,
@@ -80,14 +71,21 @@ class ObservationService:
                     lat_max=lat_max,
                     lon_min=lon_min,
                     lon_max=lon_max,
-                    limit=remaining_limit,
+                    limit=limit,
                 )
-                results.extend(extra_obs)
-                remaining_limit = limit - len(results)
-                if remaining_limit <= 0:
-                    break
+                extra_results.extend(extra_obs)
 
-        return results
+        sub_limit = max(limit - len(extra_results), 0)
+        results = self.adapter.get_observations(
+            obs_type=obs_type,
+            lat_min=lat_min,
+            lat_max=lat_max,
+            lon_min=lon_min,
+            lon_max=lon_max,
+            limit=sub_limit,
+        )
+
+        return extra_results + results
 
     def get_profile(self, obs_id: str) -> Optional[dict[str, Any]]:
         """Retrieve depth-resolved soundings for an observation ID from WOD or ingested text adapters."""

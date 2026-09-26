@@ -13,6 +13,10 @@ export function getApiBaseUrl(): string {
       : ""
 
   if (!rawApiUrl) {
+    // When loaded in a browser on a cloud domain (e.g. Render), default to the live production backend
+    if (typeof window !== "undefined" && !window.location.hostname.includes("localhost") && window.location.hostname !== "127.0.0.1") {
+      return "https://sagar-netra-backend-pnpk.onrender.com/api/v1"
+    }
     return "http://localhost:8000/api/v1"
   }
 

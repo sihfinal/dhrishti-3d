@@ -56,9 +56,16 @@ class StorageCache:
         with cls._singleton_lock:
             if cls._instance is None:
                 from backend.config import settings
-                base_dir = data_dir or (Path(settings.DATA_DIR) if settings.DATA_DIR else Path("/tmp/sagar-netra-cache"))
-                if not base_dir.is_absolute():
-                    base_dir = BACKEND_DIR.parent / base_dir
+                cand_dir = data_dir or (Path(settings.DATA_DIR) if settings.DATA_DIR else None)
+                if cand_dir and not cand_dir.is_absolute():
+                    cand_dir = BACKEND_DIR.parent / cand_dir
+
+                # If local directory exists and contains NetCDF files, use it; otherwise use ephemeral /tmp cache
+                if cand_dir and cand_dir.exists() and any(cand_dir.glob("**/*.nc")):
+                    base_dir = cand_dir
+                else:
+                    base_dir = Path(os.environ.get("EPHEMERAL_CACHE_DIR", "/tmp/sagar-netra-cache"))
+
                 cls._instance = StorageCache(
                     data_dir=base_dir,
                     supabase_url=settings.SUPABASE_URL,
@@ -199,12 +206,10 @@ class StorageCache:
 
             headers = {}
             if self.api_key:
-                url = f"{self.supabase_url}/storage/v1/object/{self.bucket}/{rel_path}"
                 headers["Authorization"] = f"Bearer {self.api_key}"
                 headers["apiKey"] = self.api_key
-            else:
-                # Public bucket URL (zero credential requirement)
-                url = f"{self.supabase_url}/storage/v1/object/public/{self.bucket}/{rel_path}"
+            # Canonical public bucket download URL (supported with or without keys)
+            url = f"{self.supabase_url}/storage/v1/object/public/{self.bucket}/{rel_path}"
 
             success = False
             for attempt in range(1, max_retries + 1):
