@@ -47,8 +47,6 @@ services:
   - type: web
     name: sagar-netra-frontend
     runtime: static
-    plan: free
-    region: oregon
     buildCommand: corepack enable && pnpm install && pnpm build
     staticPublishPath: ./out
     envVars:
