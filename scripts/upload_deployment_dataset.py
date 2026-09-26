@@ -57,6 +57,13 @@ log = logging.getLogger("upload_deployment_dataset")
 
 # Constants
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(PROJECT_ROOT / ".env")
+except ImportError:
+    pass
+
 DEFAULT_DATA_DIR = PROJECT_ROOT / "sagar-netra-deployment-data"
 DEFAULT_SUPABASE_URL = "https://wqdzzyeisvycfnhkzomu.supabase.co"
 DEFAULT_BUCKET = "sagar-netra-data"
