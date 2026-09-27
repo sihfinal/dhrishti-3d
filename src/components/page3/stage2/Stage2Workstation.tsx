@@ -615,15 +615,16 @@ export default function Stage2Workstation({
     if (startIndex >= dates.length - 1) {
       startIndex = 0
       const firstDate = dates[0]
+      setModelState((prev) => ({
+        ...prev,
+        timeStepIndex: dateStringToTimeStepIndex(firstDate),
+      }))
       const frame = activeFramesMapRef.current.get(firstDate)
       if (frame) {
         setDepthStack(frame.depthStack)
         setUDepthStack(frame.uDepthStack || [])
         setVDepthStack(frame.vDepthStack || [])
-        setModelState((prev) => ({
-          ...prev,
-          timeStepIndex: dateStringToTimeStepIndex(firstDate),
-        }))
+        logFrameRender(frame, modelState.variable, firstDate, modelState.depth)
       }
     }
     playbackIndexRef.current = startIndex
@@ -1072,6 +1073,7 @@ export default function Stage2Workstation({
               speed={speed}
               onSpeedChange={setSpeed}
               preloadProgress={preloadProgress}
+              totalFrames={totalFrames}
             />
           </section>
         )}
