@@ -124,28 +124,13 @@ class CMEMSModelAdapter(BaseModelAdapter):
 
     def get_file_for_variable(self, nc_var: str, date_str: str) -> str:
         """Resolve file path for a specific variable and date, handling combined, split, and lazy-downloaded NetCDF files."""
-        resolved_path = None
+        # 1. Exact match in local indexed map
         if (nc_var, date_str) in self._var_date_to_file:
-            resolved_path = self._var_date_to_file[(nc_var, date_str)]
-        else:
-            avail_dates = [d for (v, d) in self._var_date_to_file.keys() if v == nc_var]
-            if avail_dates:
-                target_date = min(avail_dates, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
-                resolved_path = self._var_date_to_file[(nc_var, target_date)]
-            elif nc_var == "chl" and self._date_to_bgc_file:
-                avail = sorted(self._date_to_bgc_file.keys())
-                target_date = min(avail, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
-                resolved_path = self._date_to_bgc_file[target_date]
-            elif self._date_to_phy_file:
-                avail = sorted(self._date_to_phy_file.keys())
-                target_date = min(avail, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
-                resolved_path = self._date_to_phy_file[target_date]
+            cand = self._var_date_to_file[(nc_var, date_str)]
+            if Path(cand).exists():
+                return cand
 
-        # If file exists on disk, return it
-        if resolved_path and Path(resolved_path).exists():
-            return resolved_path
-
-        # Otherwise, fetch on-demand via StorageCache
+        # 2. Try StorageCache download/resolution for this exact date FIRST (critical for cloud/Render deployments)
         try:
             from backend.services.storage_cache import StorageCache
             cache = StorageCache.get_instance(self.data_dir)
@@ -157,8 +142,24 @@ class CMEMSModelAdapter(BaseModelAdapter):
         except Exception as err:
             log.warning("Lazy download attempt for (%s, %s) failed: %s", nc_var, date_str, err)
 
-        if resolved_path:
+        # 3. Fallback only if StorageCache does not have this variable or file
+        resolved_path = None
+        avail_dates = [d for (v, d) in self._var_date_to_file.keys() if v == nc_var]
+        if avail_dates:
+            target_date = min(avail_dates, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
+            resolved_path = self._var_date_to_file[(nc_var, target_date)]
+        elif nc_var == "chl" and self._date_to_bgc_file:
+            avail = sorted(self._date_to_bgc_file.keys())
+            target_date = min(avail, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
+            resolved_path = self._date_to_bgc_file[target_date]
+        elif self._date_to_phy_file:
+            avail = sorted(self._date_to_phy_file.keys())
+            target_date = min(avail, key=lambda d: abs(np.datetime64(d) - np.datetime64(date_str)))
+            resolved_path = self._date_to_phy_file[target_date]
+
+        if resolved_path and Path(resolved_path).exists():
             return resolved_path
+
         raise FileNotFoundError(f"No model file found or downloaded for {nc_var} on {date_str}")
 
     def resolve_bounding_files_and_weight(self, nc_var: str, date_str: str) -> tuple[str, Optional[str], float]:

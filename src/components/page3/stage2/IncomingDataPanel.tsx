@@ -124,17 +124,17 @@ export default function IncomingDataPanel({
   const scalarStats = useMemo(() => {
     if (!nearestSlice?.values) return null
     return computeStats(nearestSlice.values)
-  }, [nearestSlice])
+  }, [nearestSlice, timeStepIndex])
 
   const uStats = useMemo(() => {
     if (!isCurrents || !nearestSlice?.values) return null
     return computeStats(nearestSlice.values)
-  }, [nearestSlice, isCurrents])
+  }, [nearestSlice, isCurrents, timeStepIndex])
 
   const vStats = useMemo(() => {
     if (!isCurrents || !nearestVSlice?.values) return null
     return computeStats(nearestVSlice.values)
-  }, [nearestVSlice, isCurrents])
+  }, [nearestVSlice, isCurrents, timeStepIndex])
 
   const resolvedDepth = nearestSlice?.depth ?? depth
   const gridW = nearestSlice?.width ?? 0

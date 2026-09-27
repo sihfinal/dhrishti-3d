@@ -47,55 +47,144 @@ export type PreloadedFrameData = {
 function computeFrameDiagnostics(
   frame: PreloadedFrameData | undefined,
   variable: string,
-  date: string
+  date: string,
+  targetDepth: number = 0
 ) {
   if (!frame) {
-    return { date, frameFound: false, variable, depthCount: 0, grid: "N/A", sample: "null", min: "N/A", max: "N/A", checksum: "none" }
+    return { date, frameFound: false, variable, depth: targetDepth, depthCount: 0, grid: "N/A", sample: "null", min: "N/A", max: "N/A", mean: "N/A", firstFloat: "N/A", lastFloat: "N/A", checksum: "none" }
   }
   const isCur = variable.toLowerCase() === "currents"
   const slices = isCur ? frame.uDepthStack || [] : frame.depthStack || []
   const depthCount = slices.length
   if (depthCount === 0) {
-    return { date, frameFound: true, variable, depthCount: 0, grid: "N/A", sample: "null", min: "N/A", max: "N/A", checksum: "empty" }
+    return { date, frameFound: true, variable, depth: targetDepth, depthCount: 0, grid: "N/A", sample: "null", min: "N/A", max: "N/A", mean: "N/A", firstFloat: "N/A", lastFloat: "N/A", checksum: "empty" }
   }
-  const s0 = slices[0]
-  const vals = s0.values || []
+
+  // Select slice closest to targetDepth
+  const slice = slices.reduce((prev, curr) =>
+    Math.abs((curr.depth ?? 0) - targetDepth) < Math.abs((prev.depth ?? 0) - targetDepth) ? curr : prev
+  , slices[0])
+
+  const vals = slice.values || []
   const rowCount = vals.length
   const colCount = rowCount > 0 ? vals[0]?.length || 0 : 0
   const midRow = Math.floor(rowCount / 2)
   const midCol = Math.floor(colCount / 2)
-  const sample = vals[midRow]?.[midCol] ?? null
+  let sample = vals[midRow]?.[midCol] ?? null
 
-  // Fast deterministic 32-bit FNV-1a checksum of sampled float values
+  let firstFloat: number | null = null
+  let lastFloat: number | null = null
+  let sum = 0
+  let validCount = 0
+  let min = Infinity
+  let max = -Infinity
+
   let hash = 0x811c9dc5
-  let count = 0
-  for (let r = 0; r < rowCount && count < 250; r++) {
+  let sampledCount = 0
+
+  for (let r = 0; r < rowCount; r++) {
     const row = vals[r]
     if (!row) continue
-    for (let c = 0; c < row.length && count < 250; c++) {
+    for (let c = 0; c < row.length; c++) {
       const v = row[c]
       if (v !== null && v !== undefined && !Number.isNaN(v)) {
-        const intVal = Math.round(Number(v) * 1000)
-        hash ^= intVal & 0xff
-        hash = Math.imul(hash, 0x01000193)
-        hash ^= (intVal >> 8) & 0xff
-        hash = Math.imul(hash, 0x01000193)
-        count++
+        const num = Number(v)
+        if (firstFloat === null) firstFloat = num
+        lastFloat = num
+        sum += num
+        validCount++
+        if (num < min) min = num
+        if (num > max) max = num
+
+        if (sampledCount < 500) {
+          const intVal = Math.round(num * 1000)
+          hash ^= intVal & 0xff
+          hash = Math.imul(hash, 0x01000193)
+          hash ^= (intVal >> 8) & 0xff
+          hash = Math.imul(hash, 0x01000193)
+          sampledCount++
+        }
       }
     }
   }
+
+  const mean = validCount > 0 ? sum / validCount : 0
   const checksum = (hash >>> 0).toString(16).padStart(8, "0")
 
   return {
     date,
     frameFound: true,
     variable,
+    depth: slice.depth ?? targetDepth,
     depthCount,
     grid: `${colCount}x${rowCount}`,
-    min: s0.min_value != null ? Number(s0.min_value).toFixed(3) : "N/A",
-    max: s0.max_value != null ? Number(s0.max_value).toFixed(3) : "N/A",
-    sample: sample != null ? Number(sample).toFixed(4) : "null",
+    min: validCount > 0 ? min.toFixed(3) : "N/A",
+    max: validCount > 0 ? max.toFixed(3) : "N/A",
+    mean: validCount > 0 ? mean.toFixed(3) : "N/A",
+    sample: sample != null ? Number(sample).toFixed(4) : (firstFloat != null ? firstFloat.toFixed(4) : "null"),
+    firstFloat: firstFloat != null ? firstFloat.toFixed(4) : "null",
+    lastFloat: lastFloat != null ? lastFloat.toFixed(4) : "null",
     checksum,
+  }
+}
+
+function logFrameRender(
+  frame: PreloadedFrameData | undefined,
+  variable: string,
+  date: string,
+  depth: number
+) {
+  const diag = computeFrameDiagnostics(frame, variable, date, depth)
+  console.log(
+    `[FRAME_RENDER]\n` +
+    `date=${diag.date}\n` +
+    `variable=${diag.variable}\n` +
+    `depth=${diag.depth}m\n` +
+    `depthStackLen=${diag.depthCount}\n` +
+    `mean=${diag.mean}\n` +
+    `min=${diag.min}\n` +
+    `max=${diag.max}\n` +
+    `sample=${diag.sample}\n` +
+    `firstFloat=${diag.firstFloat}\n` +
+    `lastFloat=${diag.lastFloat}\n` +
+    `checksum=${diag.checksum}`
+  )
+  return diag
+}
+
+function computeFrameEvolutionStats(
+  frame: PreloadedFrameData,
+  depthVal: number,
+  dateStr: string,
+  isCurrents: boolean
+): { date: string; mean: number; min: number; max: number } {
+  const stack = isCurrents ? frame.uDepthStack || [] : frame.depthStack || []
+  if (stack.length === 0) return { date: dateStr, mean: 0, min: 0, max: 0 }
+  const targetSlice = stack.reduce((prev, curr) =>
+    Math.abs((curr.depth ?? 0) - depthVal) < Math.abs((prev.depth ?? 0) - depthVal) ? curr : prev
+  , stack[0])
+  const vals = targetSlice?.values || []
+  let sum = 0, count = 0
+  let min = Infinity, max = -Infinity
+  for (let r = 0; r < vals.length; r++) {
+    const row = vals[r]
+    if (!row) continue
+    for (let c = 0; c < row.length; c++) {
+      const v = row[c]
+      if (v !== null && v !== undefined && !Number.isNaN(v as number)) {
+        const num = Number(v)
+        sum += num
+        count++
+        if (num < min) min = num
+        if (num > max) max = num
+      }
+    }
+  }
+  return {
+    date: dateStr,
+    mean: count > 0 ? sum / count : 0,
+    min: isFinite(min) ? min : Number(targetSlice?.min_value ?? 0),
+    max: isFinite(max) ? max : Number(targetSlice?.max_value ?? 0),
   }
 }
 
@@ -303,7 +392,14 @@ export default function Stage2Workstation({
         if (frameIdx !== timeStepIndexRef.current) {
           setModelState((prev) => ({ ...prev, timeStepIndex: frameIdx }))
         }
+        logFrameRender(frame, modelState.variable, targetDate, modelState.depth)
       }
+
+      // Recompute and populate evolution data from cached frames for currently selected depth
+      const cachedEvolution = cached.dates
+        .filter((d) => cached.frames.has(d))
+        .map((d) => computeFrameEvolutionStats(cached.frames.get(d)!, modelState.depth, d, isCurrents))
+      setEvolutionData(cachedEvolution)
 
       setIsPreloading(false)
       setPreloadProgress(null)
@@ -368,29 +464,15 @@ export default function Stage2Workstation({
           }
           const elapsed = performance.now() - tReq
 
-          // Compute frame stats for diagnostics and evolution chart
-          const statsSlices = isCurrents ? frame.uDepthStack || [] : frame.depthStack
-          const s0 = statsSlices[0]
-          const minV = s0?.min_value ?? 0
-          const maxV = s0?.max_value ?? 0
-          const vals = s0?.values || []
-          let sum = 0, count = 0
-          for (let r = 0; r < vals.length; r++) {
-            const row = vals[r]
-            if (!row) continue
-            for (let c = 0; c < row.length; c++) {
-              const v = row[c]
-              if (v !== null && v !== undefined && !Number.isNaN(v as number)) { sum += v as number; count++ }
-            }
-          }
-          const meanV = count > 0 ? sum / count : 0
+          // Compute frame stats for diagnostics and evolution chart at currently selected depth
+          const stats = computeFrameEvolutionStats(frame, modelState.depth, dStr, isCurrents)
 
           console.log(
             `[PRELOAD] ${idx + 1}/${targetDates.length} ${dStr} | ${elapsed.toFixed(0)}ms | ` +
-            `min=${typeof minV === 'number' ? minV.toFixed(2) : 'N/A'} max=${typeof maxV === 'number' ? maxV.toFixed(2) : 'N/A'} mean=${meanV.toFixed(2)}`
+            `min=${stats.min.toFixed(2)} max=${stats.max.toFixed(2)} mean=${stats.mean.toFixed(2)}`
           )
 
-          return { frame, stats: { date: dStr, mean: meanV, min: Number(minV), max: Number(maxV) } }
+          return { frame, stats }
         }
 
         // ── STEP 1: Load the currently selected frame FIRST for instant display ──
@@ -409,6 +491,7 @@ export default function Stage2Workstation({
         setDepthStack(firstFrame.depthStack)
         setUDepthStack(firstFrame.uDepthStack || [])
         setVDepthStack(firstFrame.vDepthStack || [])
+        logFrameRender(firstFrame, modelState.variable, priorityDate, modelState.depth)
         setModelLoading(false)
         setMonthlyDataReady(true) // Enable playback controls immediately
         setPreloadedCount(1)
@@ -435,7 +518,8 @@ export default function Stage2Workstation({
           ...targetDates.slice(0, priorityIdx),
         ]
 
-        const evolutionAccum: { date: string; mean: number; min: number; max: number }[] = [firstStats]
+        const evolutionMap = new Map<string, { date: string; mean: number; min: number; max: number }>()
+        evolutionMap.set(priorityDate, firstStats)
 
         for (let i = 0; i < remainingDates.length; i++) {
           if (!isMounted || currentReqId !== monthPreloadReqIdRef.current) return
@@ -447,12 +531,14 @@ export default function Stage2Workstation({
 
           framesMap.set(dStr, frame)
           activeFramesMapRef.current = framesMap
+          evolutionMap.set(dStr, stats)
 
           // If user currently has this date selected, immediately render it
           if (timeStepIndexToDateString(timeStepIndexRef.current) === dStr) {
             setDepthStack(frame.depthStack)
             setUDepthStack(frame.uDepthStack || [])
             setVDepthStack(frame.vDepthStack || [])
+            logFrameRender(frame, modelState.variable, dStr, modelState.depth)
           }
 
           const loadedSoFar = framesMap.size
@@ -464,9 +550,10 @@ export default function Stage2Workstation({
           })
 
           // Update evolution data sorted by date
-          evolutionAccum.push(stats)
-          evolutionAccum.sort((a, b) => a.date.localeCompare(b.date))
-          setEvolutionData([...evolutionAccum])
+          const sortedEvolution = targetDates
+            .filter((d) => evolutionMap.has(d))
+            .map((d) => evolutionMap.get(d)!)
+          setEvolutionData(sortedEvolution)
         }
 
         if (!isMounted || currentReqId !== monthPreloadReqIdRef.current) return
@@ -566,12 +653,7 @@ export default function Stage2Workstation({
 
       playbackIndexRef.current = nextIdx
 
-      // Production diagnostics: log frame checksum to verify data varies per date
-      const diag = computeFrameDiagnostics(frame, modelState.variable, nextDate)
-      console.log(
-        `[PLAYBACK] ${nextIdx + 1}/${datesList.length} date: ${diag.date}, ` +
-        `min: ${diag.min}, max: ${diag.max}, sample: ${diag.sample}, checksum: ${diag.checksum}`
-      )
+      logFrameRender(frame, modelState.variable, nextDate, modelState.depth)
 
       setDepthStack(frame.depthStack)
       setUDepthStack(frame.uDepthStack || [])
@@ -601,8 +683,22 @@ export default function Stage2Workstation({
       setDepthStack(frame.depthStack)
       setUDepthStack(frame.uDepthStack || [])
       setVDepthStack(frame.vDepthStack || [])
+      logFrameRender(frame, modelState.variable, curDateStr, modelState.depth)
     }
   }, [modelState.timeStepIndex, isPlaying, monthlyDataReady])
+
+  // Dynamic evolution chart update when user changes depth level
+  useEffect(() => {
+    const dates = activeDatesRef.current
+    const frames = activeFramesMapRef.current
+    if (!dates || dates.length === 0 || frames.size === 0) return
+    const isCur = modelState.variable.toLowerCase() === "currents"
+    const depthVal = modelState.depth
+    const updated = dates
+      .filter((d) => frames.has(d))
+      .map((d) => computeFrameEvolutionStats(frames.get(d)!, depthVal, d, isCur))
+    setEvolutionData(updated)
+  }, [modelState.depth, modelState.variable])
 
   const handlePrevDay = useCallback(() => {
     if (!monthlyDataReady) return
@@ -623,8 +719,9 @@ export default function Stage2Workstation({
         ...prev,
         timeStepIndex: dateStringToTimeStepIndex(prevDate),
       }))
+      logFrameRender(frame, modelState.variable, prevDate, modelState.depth)
     }
-  }, [monthlyDataReady, modelState.timeStepIndex])
+  }, [monthlyDataReady, modelState.timeStepIndex, modelState.depth, modelState.variable])
 
   const handleNextDay = useCallback(() => {
     if (!monthlyDataReady) return
@@ -645,8 +742,9 @@ export default function Stage2Workstation({
         ...prev,
         timeStepIndex: dateStringToTimeStepIndex(nextDate),
       }))
+      logFrameRender(frame, modelState.variable, nextDate, modelState.depth)
     }
-  }, [monthlyDataReady, modelState.timeStepIndex])
+  }, [monthlyDataReady, modelState.timeStepIndex, modelState.depth, modelState.variable])
 
   // Get single primary slice matching the selected depth for the right panel metadata
   const activePrimarySlice = depthStack.find((s) => s.depth && Math.abs(s.depth - modelState.depth) < 100) || depthStack[0] || null

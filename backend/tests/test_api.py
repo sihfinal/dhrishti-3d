@@ -824,6 +824,29 @@ def test_step10_binary_gzip(client):
     assert r.headers.get("content-encoding") == "gzip"
 
 
+def test_cloud_anchor_interpolation_bounding_files():
+    """
+    Verify that in cloud environments without local full archives,
+    intermediate dates (e.g. 2026-02-16) correctly resolve distinct bounding anchor
+    files (2026-02-15 and 2026-03-01) with non-zero interpolation weight.
+    """
+    from pathlib import Path
+    from backend.adapters.cmems_model import CMEMSModelAdapter
+
+    adapter = CMEMSModelAdapter(Path("/tmp/nonexistent_test_cloud_dir"))
+    f15, f15_B, alpha15 = adapter.resolve_bounding_files_and_weight("thetao", "2026-02-15")
+    f16, f16_B, alpha16 = adapter.resolve_bounding_files_and_weight("thetao", "2026-02-16")
+    f17, f17_B, alpha17 = adapter.resolve_bounding_files_and_weight("thetao", "2026-02-17")
+    f01, f01_B, alpha01 = adapter.resolve_bounding_files_and_weight("thetao", "2026-03-01")
+
+    assert Path(f15).name != Path(f01).name, "Anchor dates 15 Feb and 01 Mar must map to distinct files"
+    assert Path(f16).name == Path(f15).name, "16 Feb anchor A must be 15 Feb"
+    assert f16_B is not None and Path(f16_B).name == Path(f01).name, "16 Feb anchor B must be 01 Mar"
+    assert 0.0 < alpha16 < alpha17 < 1.0, f"Alpha must increase monotonically (alpha16={alpha16}, alpha17={alpha17})"
+    assert alpha01 == 0.0 and f01_B is None, "Exact anchor date 01 Mar must have alpha=0.0 and no file_B"
+
+
+
 
 
 

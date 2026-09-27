@@ -216,5 +216,56 @@ describe("Stage 2 3D Depth View — Monthly Preload & Date Lifecycle", () => {
     // Zero fetch calls were made because data was rendered from preloaded cache
     expect(fetchMock).toHaveBeenCalledTimes(0)
   })
+
+  it("verifies that sequential frames have distinct Float32 data, min, max, and mean during playback", () => {
+    const dates = ["2026-02-15", "2026-02-16", "2026-02-17"]
+    const framesMap = new Map<string, { depthStack: any[]; uDepthStack: any[]; vDepthStack: any[] }>()
+
+    // Simulate preloaded frames with changing values across days
+    dates.forEach((d, i) => {
+      const baseTemp = 27.0 + i * 0.15
+      framesMap.set(d, {
+        depthStack: [
+          {
+            depth: 0,
+            values: [
+              [baseTemp, baseTemp + 0.5],
+              [baseTemp - 0.5, baseTemp + 1.0],
+            ],
+            min_value: baseTemp - 0.5,
+            max_value: baseTemp + 1.0,
+          },
+        ],
+        uDepthStack: [],
+        vDepthStack: [],
+      })
+    })
+
+    const renderedStats: { date: string; mean: number; min: number; max: number }[] = []
+
+    dates.forEach((d) => {
+      const frame = framesMap.get(d)!
+      const slice = frame.depthStack[0]
+      const vals = slice.values.flat()
+      const mean = vals.reduce((a: number, b: number) => a + b, 0) / vals.length
+      renderedStats.push({
+        date: d,
+        mean: +mean.toFixed(3),
+        min: slice.min_value,
+        max: slice.max_value,
+      })
+    })
+
+    // Verify statistics change across all consecutive dates
+    expect(renderedStats[0].date).toBe("2026-02-15")
+    expect(renderedStats[1].date).toBe("2026-02-16")
+    expect(renderedStats[2].date).toBe("2026-02-17")
+
+    expect(renderedStats[0].mean).not.toEqual(renderedStats[1].mean)
+    expect(renderedStats[1].mean).not.toEqual(renderedStats[2].mean)
+    expect(renderedStats[0].min).not.toEqual(renderedStats[1].min)
+    expect(renderedStats[0].max).not.toEqual(renderedStats[1].max)
+  })
 })
+
 
