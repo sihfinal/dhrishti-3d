@@ -84,6 +84,67 @@ export default function Region3DViewport({
   const [viewMode, setViewMode] = useState<"3d" | "top" | "side">("3d")
   const [internalMaximized, setInternalMaximized] = useState<boolean>(false)
 
+  // Interaction Mode UI state (Navigate vs Inspect)
+  const [modeTooltip, setModeTooltip] = useState<"navigate" | "inspect" | null>(null)
+  const modeTooltipTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [showFirstTimeHint, setShowFirstTimeHint] = useState<boolean>(false)
+
+  // First-time discoverability contextual hint (persisted in localStorage)
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem("dhrishti_interaction_mode_hint_seen")
+      if (!seen) {
+        setShowFirstTimeHint(true)
+        const timer = setTimeout(() => {
+          setShowFirstTimeHint(false)
+          try {
+            localStorage.setItem("dhrishti_interaction_mode_hint_seen", "true")
+          } catch {}
+        }, 6000)
+        return () => clearTimeout(timer)
+      }
+    } catch {
+      // Ignore if localStorage unavailable
+    }
+  }, [])
+
+  const handleDismissHint = useCallback(() => {
+    setShowFirstTimeHint(false)
+    try {
+      localStorage.setItem("dhrishti_interaction_mode_hint_seen", "true")
+    } catch {}
+  }, [])
+
+  const handleModeMouseEnter = (mode: "navigate" | "inspect") => {
+    if (modeTooltipTimerRef.current) clearTimeout(modeTooltipTimerRef.current)
+    modeTooltipTimerRef.current = setTimeout(() => {
+      setModeTooltip(mode)
+    }, 350)
+  }
+
+  const handleModeMouseLeave = () => {
+    if (modeTooltipTimerRef.current) clearTimeout(modeTooltipTimerRef.current)
+    setModeTooltip(null)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (modeTooltipTimerRef.current) clearTimeout(modeTooltipTimerRef.current)
+    }
+  }, [])
+
+  const selectNavigate = () => {
+    setIsNavActive(true)
+    handleDismissHint()
+    setModeTooltip(null)
+  }
+
+  const selectInspect = () => {
+    setIsNavActive(false)
+    handleDismissHint()
+    setModeTooltip(null)
+  }
+
   const isMaximized = isMaximizedProp !== undefined ? isMaximizedProp : internalMaximized
   const toggleMaximize = onToggleMaximize || (() => setInternalMaximized((prev) => !prev))
 
@@ -1359,7 +1420,11 @@ export default function Region3DViewport({
       {/* ─── Center: 3D Depth-Resolved WebGL Viewport ─── */}
       <div
         className={`relative flex-1 w-full h-full min-h-[320px] my-1 rounded-xl border border-slate-100 bg-white flex items-center justify-center overflow-hidden ${
-          isNavActive ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+          isNavActive
+            ? "cursor-grab active:cursor-grabbing"
+            : hoveredObs || hoveredCluster
+            ? "cursor-pointer"
+            : "cursor-crosshair"
         }`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -1398,24 +1463,104 @@ export default function Region3DViewport({
           </div>
         )}
 
-        {/* Tiny Hand Navigation Tool (Top-Left) */}
-        <div className="absolute top-3 left-3 z-30">
-          <button
-            type="button"
-            onClick={() => setIsNavActive((prev) => !prev)}
-            className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-all border shadow-xs backdrop-blur-md ${
-              isNavActive
-                ? "bg-[#0284c7] border-sky-400 text-white shadow-sky-500/30"
-                : "bg-white/90 border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
-            }`}
-            title={
-              isNavActive
-                ? "Hand Tool Active (Drag to Orbit/Pan, Scroll to Zoom). Click to switch to Marker Selection."
-                : "Marker Selection Mode (Click markers to inspect profiles). Click to enable 3D Orbit/Zoom."
-            }
+        {/* Interaction Mode Control (Top-Left): ✋ Navigate vs ⌖ Inspect */}
+        <div className="absolute top-3 left-3 z-30 flex flex-col items-start gap-1">
+          {/* Segmented Control */}
+          <div
+            role="radiogroup"
+            aria-label="3D interaction mode"
+            className="inline-flex items-center p-0.5 bg-white/95 border border-slate-200/90 rounded-xl shadow-md backdrop-blur-md"
           >
-            ✋
-          </button>
+            {/* 1. Navigate Mode Button */}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={isNavActive}
+              aria-label="Navigate 3D view"
+              onClick={selectNavigate}
+              onMouseEnter={() => handleModeMouseEnter("navigate")}
+              onMouseLeave={handleModeMouseLeave}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none ${
+                isNavActive
+                  ? "bg-[#0284c7] text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+              }`}
+            >
+              <span className="text-xs">✋</span>
+              <span className="hidden sm:inline">Navigate</span>
+            </button>
+
+            {/* 2. Inspect Mode Button */}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={!isNavActive}
+              aria-label="Inspect data points"
+              onClick={selectInspect}
+              onMouseEnter={() => handleModeMouseEnter("inspect")}
+              onMouseLeave={handleModeMouseLeave}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none ${
+                !isNavActive
+                  ? "bg-[#0284c7] text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+              }`}
+            >
+              <span className="text-xs font-bold">⌖</span>
+              <span className="hidden sm:inline">Inspect</span>
+            </button>
+          </div>
+
+          {/* Mode Status Feedback Subtext */}
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-white/90 border border-slate-200/80 rounded-md shadow-2xs backdrop-blur-xs text-[10px] font-mono text-slate-500">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+            <span>{isNavActive ? "Drag to explore" : "Select observations"}</span>
+          </div>
+
+          {/* Hover Tooltip (Appears after ~350ms delay) */}
+          {modeTooltip && (
+            <div
+              className={`absolute top-full mt-2 z-50 pointer-events-none transition-all duration-200 ${
+                modeTooltip === "navigate" ? "left-0" : "left-12 sm:left-16"
+              }`}
+            >
+              <div className="relative bg-slate-900/95 text-white text-xs rounded-xl p-2.5 shadow-xl border border-slate-700/80 backdrop-blur-md w-56">
+                {/* Arrow pointing up */}
+                <div
+                  className={`absolute -top-1.5 w-3 h-3 bg-slate-900/95 rotate-45 border-l border-t border-slate-700/80 ${
+                    modeTooltip === "navigate" ? "left-5" : "left-8"
+                  }`}
+                />
+                <div className="font-bold text-slate-100 flex items-center gap-1.5 mb-1">
+                  <span>{modeTooltip === "navigate" ? "✋" : "⌖"}</span>
+                  <span>{modeTooltip === "navigate" ? "Navigate 3D View" : "Inspect Data Points"}</span>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed font-sans">
+                  {modeTooltip === "navigate"
+                    ? "Drag to orbit, pan and resize the 3D view."
+                    : "Hover or click an observation point to view its details."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* First-Time Discoverability Hint (Non-blocking contextual hint) */}
+          {showFirstTimeHint && (
+            <div
+              className="absolute left-0 top-full mt-2 z-40 flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-900/95 text-white rounded-xl shadow-xl border border-slate-700/80 text-[11px] font-sans whitespace-nowrap backdrop-blur-md animate-in fade-in slide-in-from-top-1 duration-300 pointer-events-auto"
+            >
+              <span className="font-semibold text-sky-300">✋ Navigate</span>
+              <span className="text-slate-400">•</span>
+              <span className="font-semibold text-emerald-300">⌖ Inspect data points</span>
+              <button
+                type="button"
+                onClick={handleDismissHint}
+                className="ml-1 text-slate-400 hover:text-white text-xs px-1 cursor-pointer"
+                title="Dismiss hint"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Maximize / Minimize Fullpage Toggle Button (Bottom-Left) */}
@@ -1463,7 +1608,7 @@ export default function Region3DViewport({
         </div>
 
         {/* Synchronized Vertical Depth Reference Axis (Left side of 3D Scene) */}
-        <div className="absolute top-12 left-3 z-20 pointer-events-none flex flex-col justify-between h-64 border-l border-slate-300 pl-2 font-mono text-[10px] text-slate-500">
+        <div className="absolute top-[78px] left-3 z-20 pointer-events-none flex flex-col justify-between h-60 border-l border-slate-300 pl-2 font-mono text-[10px] text-slate-500">
           {[0, 200, 400, 800, 1200, 1600, 2000].map((depthTick) => {
             const nearestTick = [0, 200, 400, 800, 1200, 1600, 2000].reduce((prev, curr) =>
               Math.abs(curr - modelState.depth) < Math.abs(prev - modelState.depth) ? curr : prev

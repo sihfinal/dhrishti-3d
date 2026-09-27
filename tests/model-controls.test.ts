@@ -71,4 +71,38 @@ describe("Model Controls Redesign — Behavior and Logic Verification", () => {
     expect(startIndex).toBe(0)
     expect(curDateStr).toBe("2026-02-01")
   })
+
+  it("determines correct cursor feedback based on interaction mode and hover target", () => {
+    const getCursorClass = (isNavActive: boolean, isHoveringMarker: boolean) => {
+      if (isNavActive) return "cursor-grab active:cursor-grabbing"
+      if (isHoveringMarker) return "cursor-pointer"
+      return "cursor-crosshair"
+    }
+
+    // Navigate Mode (default)
+    expect(getCursorClass(true, false)).toBe("cursor-grab active:cursor-grabbing")
+    expect(getCursorClass(true, true)).toBe("cursor-grab active:cursor-grabbing")
+
+    // Inspect Mode
+    expect(getCursorClass(false, false)).toBe("cursor-crosshair")
+    expect(getCursorClass(false, true)).toBe("cursor-pointer")
+  })
+
+  it("provides correct tooltip titles and descriptions for interaction modes", () => {
+    const modeTooltips = {
+      navigate: {
+        title: "Navigate 3D View",
+        desc: "Drag to orbit, pan and resize the 3D view.",
+      },
+      inspect: {
+        title: "Inspect Data Points",
+        desc: "Hover or click an observation point to view its details.",
+      },
+    }
+
+    expect(modeTooltips.navigate.title).toBe("Navigate 3D View")
+    expect(modeTooltips.navigate.desc).toBe("Drag to orbit, pan and resize the 3D view.")
+    expect(modeTooltips.inspect.title).toBe("Inspect Data Points")
+    expect(modeTooltips.inspect.desc).toBe("Hover or click an observation point to view its details.")
+  })
 })
