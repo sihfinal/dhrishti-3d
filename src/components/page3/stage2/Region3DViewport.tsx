@@ -1308,7 +1308,7 @@ export default function Region3DViewport({
 
   return (
     <div
-      className="relative w-full h-full min-h-[480px] flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-3.5 select-none"
+      className="relative w-full flex-1 min-h-[360px] h-full flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)] p-3.5 select-none"
     >
       {/* ─── Top Header: Selected Region & Synchronized Model Coordinates ─── */}
       <div className="relative z-20 flex flex-col gap-1 pb-1">
@@ -1366,7 +1366,13 @@ export default function Region3DViewport({
 
         {/* Small, polished 3D Ocean Data Loading Indicator */}
         {(isPreloading || (monthlyDataReady === false && depthStack.length === 0 && uDepthStack.length === 0) || (modelLoading && depthStack.length === 0 && uDepthStack.length === 0)) && !modelError && (
-          <OceanData3DLoader label="Loading data…" />
+          <OceanData3DLoader
+            label={
+              preloadProgress && preloadProgress.total > 0
+                ? `Loading data… ${preloadProgress.loaded}/${preloadProgress.total}`
+                : "Loading data…"
+            }
+          />
         )}
 
         {/* Error Indicator with Retry Option */}

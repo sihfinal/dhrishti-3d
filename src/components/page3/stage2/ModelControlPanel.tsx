@@ -79,7 +79,7 @@ export default function ModelControlPanel({
   }, [isControlled, activeIsPlaying, activeSpeed, onChange])
 
   const handleTogglePlay = () => {
-    if (!isReady || isPreloading) return
+    if (!isReady) return
     if (onTogglePlay) {
       onTogglePlay()
     } else {
@@ -97,7 +97,7 @@ export default function ModelControlPanel({
   }
 
   const handlePrev = () => {
-    if (isPreloading) return
+    if (!isReady) return
     if (onPrevDay) {
       onPrevDay()
     } else {
@@ -106,7 +106,7 @@ export default function ModelControlPanel({
   }
 
   const handleNext = () => {
-    if (isPreloading) return
+    if (!isReady) return
     if (onNextDay) {
       onNextDay()
     } else {
@@ -241,7 +241,13 @@ export default function ModelControlPanel({
               {(modelLoading || isPreloading) && (
                 <span className="text-[10px] font-mono text-sky-600 flex items-center gap-1 font-semibold">
                   <LoadingSpinner size="xs" color="#0284c7" label={isPreloading ? "Loading monthly data" : "Updating time step"} />
-                  {isPreloading && <span className="hidden sm:inline">Preloading…</span>}
+                  {isPreloading && (
+                    <span className="hidden sm:inline">
+                      {preloadProgress && preloadProgress.total > 0
+                        ? `Preloading (${preloadProgress.loaded}/${preloadProgress.total})…`
+                        : "Preloading…"}
+                    </span>
+                  )}
                 </span>
               )}
             </div>
@@ -266,10 +272,10 @@ export default function ModelControlPanel({
           <div className="flex items-center justify-center gap-2 pt-2 border-t border-slate-100">
             <button
               type="button"
-              disabled={isPreloading}
+              disabled={!isReady}
               onClick={handlePrev}
               className={`w-7 h-7 rounded-lg border text-xs flex items-center justify-center transition shadow-xs ${
-                isPreloading
+                !isReady
                   ? "bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed"
                   : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 cursor-pointer"
               }`}
@@ -281,17 +287,15 @@ export default function ModelControlPanel({
             </button>
             <button
               type="button"
-              disabled={!isReady || isPreloading}
+              disabled={!isReady}
               onClick={handleTogglePlay}
               className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition ${
-                !isReady || isPreloading
+                !isReady
                   ? "bg-slate-300 text-slate-400 cursor-not-allowed shadow-none"
                   : "bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-sky-500/20 cursor-pointer"
               }`}
               title={
-                isPreloading
-                  ? "Loading monthly ocean data before playback..."
-                  : !isReady
+                !isReady
                   ? "Preparing ocean dataset..."
                   : activeIsPlaying
                   ? "Pause Timeline"
@@ -310,10 +314,10 @@ export default function ModelControlPanel({
             </button>
             <button
               type="button"
-              disabled={isPreloading}
+              disabled={!isReady}
               onClick={handleNext}
               className={`w-7 h-7 rounded-lg border text-xs flex items-center justify-center transition shadow-xs ${
-                isPreloading
+                !isReady
                   ? "bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed"
                   : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 cursor-pointer"
               }`}
