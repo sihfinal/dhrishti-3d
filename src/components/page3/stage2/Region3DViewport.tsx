@@ -1440,7 +1440,9 @@ export default function Region3DViewport({
           <OceanData3DLoader
             label={
               preloadProgress && preloadProgress.total > 0
-                ? `Loading data… ${preloadProgress.loaded}/${preloadProgress.total}`
+                ? preloadProgress.loaded >= preloadProgress.total
+                  ? `Loading complete · ${preloadProgress.loaded} / ${preloadProgress.total}`
+                  : `Loading data… ${preloadProgress.loaded} / ${preloadProgress.total} ${preloadProgress.total === 1 ? "frame" : "frames"}`
                 : "Loading data…"
             }
           />

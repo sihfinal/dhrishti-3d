@@ -6,6 +6,7 @@ import {
   dateStringToTimeStepIndex,
   formatDisplayDate,
   getMonthDates,
+  getDateRangeDates,
 } from "../src/lib/modelApi"
 
 describe("Stage 2 3D Depth View — Monthly Preload & Date Lifecycle", () => {
@@ -265,6 +266,111 @@ describe("Stage 2 3D Depth View — Monthly Preload & Date Lifecycle", () => {
     expect(renderedStats[1].mean).not.toEqual(renderedStats[2].mean)
     expect(renderedStats[0].min).not.toEqual(renderedStats[1].min)
     expect(renderedStats[0].max).not.toEqual(renderedStats[1].max)
+  })
+
+  it("getDateRangeDates generates unbroken chronological dates across multi-month boundaries", () => {
+    // 15 Jan 2026 -> 15 Mar 2026: 17 days in Jan + 28 days in Feb + 15 days in Mar = 60 days
+    const rangeDates = getDateRangeDates("2026-01-15", "2026-03-15")
+    expect(rangeDates).toHaveLength(60)
+    expect(rangeDates[0]).toBe("2026-01-15")
+    expect(rangeDates[16]).toBe("2026-01-31")
+    expect(rangeDates[17]).toBe("2026-02-01")
+    expect(rangeDates[44]).toBe("2026-02-28")
+    expect(rangeDates[45]).toBe("2026-03-01")
+    expect(rangeDates[59]).toBe("2026-03-15")
+
+    // Single day: start === end -> 1 frame
+    const singleDay = getDateRangeDates("2026-02-15", "2026-02-15")
+    expect(singleDay).toEqual(["2026-02-15"])
+
+    // Invalid range: start > end -> empty
+    const invalidRange = getDateRangeDates("2026-03-15", "2026-01-15")
+    expect(invalidRange).toEqual([])
+  })
+
+  it("reuses already cached frames when expanding range from February to Jan 15 - Mar 15", () => {
+    const frameCache = new Map<string, any>()
+
+    // Step 1: Preload February (28 frames)
+    const febDates = getDateRangeDates("2026-02-01", "2026-02-28")
+    febDates.forEach((d) => {
+      frameCache.set(`key_${d}`, { date: d, data: `frame_${d}` })
+    })
+    expect(frameCache.size).toBe(28)
+
+    // Step 2: User requests 15 Jan -> 15 Mar (60 dates)
+    const newRangeDates = getDateRangeDates("2026-01-15", "2026-03-15")
+    expect(newRangeDates).toHaveLength(60)
+
+    // Check which frames are already in cache
+    const cachedDates = newRangeDates.filter((d) => frameCache.has(`key_${d}`))
+    const missingDates = newRangeDates.filter((d) => !frameCache.has(`key_${d}`))
+
+    // February (28 days) is completely cached!
+    expect(cachedDates).toHaveLength(28)
+    // Only 17 days in Jan (15-31) and 15 days in Mar (1-15) need to be fetched = 32
+    expect(missingDates).toHaveLength(32)
+    expect(missingDates[0]).toBe("2026-01-15")
+    expect(missingDates[16]).toBe("2026-01-31")
+    expect(missingDates[17]).toBe("2026-03-01")
+    expect(missingDates[31]).toBe("2026-03-15")
+  })
+
+  it("selects initial frame intelligently based on whether current date is inside or outside range", () => {
+    const targetDates = getDateRangeDates("2026-02-01", "2026-03-15")
+
+    // Case 1: Current date is 15 Feb (inside range) -> keep 15 Feb
+    const curDateInside = "2026-02-15"
+    const priorityInside =
+      curDateInside >= "2026-02-01" && curDateInside <= "2026-03-15" && targetDates.includes(curDateInside)
+        ? curDateInside
+        : targetDates[0]
+    expect(priorityInside).toBe("2026-02-15")
+
+    // Case 2: Current date is 15 Feb, new range is 01 Jan - 31 Jan (outside range) -> jump to start date (01 Jan)
+    const janDates = getDateRangeDates("2026-01-01", "2026-01-31")
+    const curDateOutside = "2026-02-15"
+    const priorityOutside =
+      curDateOutside >= "2026-01-01" && curDateOutside <= "2026-01-31" && janDates.includes(curDateOutside)
+        ? curDateOutside
+        : janDates[0]
+    expect(priorityOutside).toBe("2026-01-01")
+  })
+
+  it("executes one-shot continuous playback across month boundaries and stops at final frame", () => {
+    const rangeDates = getDateRangeDates("2026-01-30", "2026-02-03") // 5 days across Jan/Feb boundary
+    expect(rangeDates).toEqual([
+      "2026-01-30",
+      "2026-01-31",
+      "2026-02-01",
+      "2026-02-02",
+      "2026-02-03",
+    ])
+
+    let playbackIdx = 0
+    let isPlaying = true
+    const playedSequence: string[] = [rangeDates[playbackIdx]]
+
+    // Advance frame by frame until stopping condition
+    while (isPlaying) {
+      const nextIdx = playbackIdx + 1
+      if (nextIdx >= rangeDates.length) {
+        isPlaying = false // Stop at end of loaded range, no modulo wrap
+        break
+      }
+      playbackIdx = nextIdx
+      playedSequence.push(rangeDates[playbackIdx])
+    }
+
+    expect(playedSequence).toEqual([
+      "2026-01-30",
+      "2026-01-31",
+      "2026-02-01",
+      "2026-02-02",
+      "2026-02-03",
+    ])
+    expect(isPlaying).toBe(false)
+    expect(playbackIdx).toBe(4) // Stopped at last frame
   })
 })
 

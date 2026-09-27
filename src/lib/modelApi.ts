@@ -104,6 +104,27 @@ export function getMonthDates(year: number, month: number): string[] {
 }
 
 /**
+ * Return all YYYY-MM-DD days between startDate and endDate inclusive in UTC.
+ */
+export function getDateRangeDates(startDate: string, endDate: string): string[] {
+  const dates: string[] = []
+  const start = new Date(startDate + "T00:00:00Z")
+  const end = new Date(endDate + "T00:00:00Z")
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+    return dates
+  }
+  const curr = new Date(start)
+  while (curr <= end) {
+    const yyyy = curr.getUTCFullYear()
+    const mm = String(curr.getUTCMonth() + 1).padStart(2, "0")
+    const dd = String(curr.getUTCDate()).padStart(2, "0")
+    dates.push(`${yyyy}-${mm}-${dd}`)
+    curr.setUTCDate(curr.getUTCDate() + 1)
+  }
+  return dates
+}
+
+/**
  * Decodes a Sagar Netra 3D (SD3D) binary envelope containing a 16-byte fixed header,
  * UTF-8 JSON metadata, and contiguous Little-Endian Float32 values.
  */

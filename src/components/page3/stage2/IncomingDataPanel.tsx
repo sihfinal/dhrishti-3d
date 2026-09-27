@@ -15,6 +15,7 @@ interface IncomingDataPanelProps {
   totalCount: number
   isPreloading: boolean
   monthlyDataReady: boolean
+  currentFrameNumber?: number
 }
 
 const VARIABLE_UNITS: Record<string, string> = {
@@ -100,6 +101,7 @@ export default function IncomingDataPanel({
   totalCount,
   isPreloading,
   monthlyDataReady,
+  currentFrameNumber,
 }: IncomingDataPanelProps) {
   const dateStr = timeStepIndexToDateString(timeStepIndex)
   const isCurrents = variable.toLowerCase() === "currents"
@@ -207,8 +209,8 @@ export default function IncomingDataPanel({
         )}
 
         <Row label="GRID" value={gridW > 0 ? `${gridW} × ${gridH}` : "—"} />
-        <Row label="FRAME" value={totalCount > 0 ? `${currentDay} / ${totalCount}` : "—"} />
-        <Row label="STATUS" value={!hasData ? "No Data" : isPreloading ? "Preloading…" : "Loaded"} />
+        <Row label="FRAME" value={totalCount > 0 ? `${currentFrameNumber ?? currentDay} / ${totalCount}` : "—"} />
+        <Row label="STATUS" value={!hasData ? "No Data" : isPreloading ? "Loading…" : "Loaded"} />
       </div>
     </div>
   )
