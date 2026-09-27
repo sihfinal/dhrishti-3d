@@ -472,9 +472,11 @@ export default function Region3DViewport({
           canvas.width = width
           canvas.height = height
           const ctx = canvas.getContext("2d")!
+          ctx.imageSmoothingEnabled = false
           const texture = new THREE.CanvasTexture(canvas)
-          texture.minFilter = THREE.LinearFilter
-          texture.magFilter = THREE.LinearFilter
+          texture.minFilter = THREE.NearestFilter
+          texture.magFilter = THREE.NearestFilter
+          texture.generateMipmaps = false
 
           const planeMat = new THREE.MeshBasicMaterial({
             map: texture,
@@ -513,6 +515,10 @@ export default function Region3DViewport({
           record.canvas.width = width
           record.canvas.height = height
         }
+        record.ctx.imageSmoothingEnabled = false
+        record.texture.minFilter = THREE.NearestFilter
+        record.texture.magFilter = THREE.NearestFilter
+        record.texture.generateMipmaps = false
 
         const imgData = record.ctx.createImageData(width, height)
         const data = imgData.data
@@ -870,17 +876,17 @@ export default function Region3DViewport({
       const totalObs = validObservations.length
 
       if (!sharedObsGeoRef.current) {
-        sharedObsGeoRef.current = new THREE.SphereGeometry(0.24, 12, 12)
+        sharedObsGeoRef.current = new THREE.SphereGeometry(0.075, 12, 12)
         obsMaterialsRef.current = {
-          argo: new THREE.MeshBasicMaterial({ color: 0x22c55e }),
-          glider: new THREE.MeshBasicMaterial({ color: 0x06b6d4 }),
-          ctd: new THREE.MeshBasicMaterial({ color: 0xf97316 }),
-          bgc: new THREE.MeshBasicMaterial({ color: 0xa855f7 }),
+          argo: new THREE.MeshBasicMaterial({ color: 0x10b981 }), // emerald green
+          glider: new THREE.MeshBasicMaterial({ color: 0x06b6d4 }), // cyan
+          ctd: new THREE.MeshBasicMaterial({ color: 0xf97316 }), // amber orange
+          bgc: new THREE.MeshBasicMaterial({ color: 0xa855f7 }), // purple
         }
       }
 
       if (!sharedClusterGeoRef.current) {
-        sharedClusterGeoRef.current = new THREE.SphereGeometry(0.38, 14, 14)
+        sharedClusterGeoRef.current = new THREE.SphereGeometry(0.09, 12, 12)
         clusterMaterialRef.current = new THREE.MeshStandardMaterial({
           color: 0x6366f1,
           roughness: 0.3,
@@ -897,8 +903,8 @@ export default function Region3DViewport({
 
       if (totalObs === 0) {
         lodLevel = 2
-      } else if (totalObs <= 80 || dist <= 15) {
-        // LOD 2: Close-up / Detailed view - 100% individual markers rendered!
+      } else if (totalObs <= 2500 || dist <= 35) {
+        // LOD 2: Full Scientific Precision - 100% individual markers rendered!
         lodLevel = 2
         singles = validObservations.map((obs) => {
           const xRel = (obs.longitude - bounds.lonMin) / lonSpan - 0.5
@@ -1040,7 +1046,7 @@ export default function Region3DViewport({
 
       for (let i = 0; i < clusters.length; i++) {
         _tempPos.set(clusters[i].centroidX, clusters[i].centroidY, clusters[i].centroidZ)
-        const scaleVal = Math.min(1.6, 1.0 + Math.log2(clusters[i].count) * 0.1)
+        const scaleVal = Math.min(1.25, 1.0 + Math.log2(clusters[i].count) * 0.04)
         _tempScale.set(scaleVal, scaleVal, scaleVal)
         _tempMatrix.compose(_tempPos, _tempQuat, _tempScale)
         clusterMesh.setMatrixAt(i, _tempMatrix)
@@ -1051,7 +1057,7 @@ export default function Region3DViewport({
 
       // 3. Update Selected Observation Highlight Ring
       if (!selectedHighlightMeshRef.current) {
-        const ringGeo = new THREE.RingGeometry(0.32, 0.44, 32)
+        const ringGeo = new THREE.RingGeometry(0.10, 0.14, 32)
         const ringMat = new THREE.MeshBasicMaterial({
           color: 0x38bdf8,
           side: THREE.DoubleSide,

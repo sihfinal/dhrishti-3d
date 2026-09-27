@@ -240,7 +240,7 @@ export default function Stage2Workstation({
     currentDate: string
   } | null>(null)
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
-  const [speed, setSpeed] = useState<number>(1)
+  const [speed, setSpeed] = useState<number>(4)
   const [retryCount, setRetryCount] = useState<number>(0)
 
   const [is3DMaximized, setIs3DMaximized] = useState<boolean>(false)

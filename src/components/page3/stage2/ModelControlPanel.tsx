@@ -56,7 +56,7 @@ export default function ModelControlPanel({
   preloadProgress,
 }: ModelControlPanelProps) {
   const [internalPlaying, setInternalPlaying] = useState(false)
-  const [internalSpeed, setInternalSpeed] = useState(1)
+  const [internalSpeed, setInternalSpeed] = useState(4)
 
   const isControlled = isPlayingProp !== undefined && onTogglePlay !== undefined
   const activeIsPlaying = isControlled ? isPlayingProp : internalPlaying

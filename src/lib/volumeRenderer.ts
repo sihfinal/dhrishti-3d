@@ -202,8 +202,9 @@ export function createVolumeMesh(
   const data3DTexture = new THREE.Data3DTexture(texData, wCount, hCount, dCount)
   data3DTexture.format = THREE.RGBAFormat
   data3DTexture.type = THREE.UnsignedByteType
-  data3DTexture.minFilter = THREE.LinearFilter
-  data3DTexture.magFilter = THREE.LinearFilter
+  data3DTexture.minFilter = THREE.NearestFilter
+  data3DTexture.magFilter = THREE.NearestFilter
+  data3DTexture.generateMipmaps = false
   data3DTexture.wrapS = THREE.ClampToEdgeWrapping
   data3DTexture.wrapT = THREE.ClampToEdgeWrapping
   data3DTexture.wrapR = THREE.ClampToEdgeWrapping
