@@ -815,7 +815,7 @@ export default function Stage2Workstation({
   }
 
   return (
-    <div className="relative w-screen h-screen flex flex-col justify-between overflow-hidden select-none bg-[#f0f6fc] text-slate-900 font-sans">
+    <div className="relative w-full min-h-screen flex flex-col justify-between overflow-x-hidden select-none bg-[#f0f6fc] text-slate-900 font-sans">
       
       {/* ─── Observation Detail Modal / Inspector ─── */}
       <ObservationDetailModal
@@ -1054,11 +1054,11 @@ export default function Stage2Workstation({
       {/* ────────────────────────────────────────────────────────────
           3. MAIN 3-COLUMN WORKSPACE: 21% LEFT | 54% CENTER | 25% RIGHT
       ──────────────────────────────────────────────────────────── */}
-      <main className="relative flex-1 w-full w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pb-2 overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row gap-3">
+      <main className="relative flex-1 w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pb-6 overflow-y-auto lg:overflow-visible flex flex-col lg:flex-row gap-3">
         
         {/* ─── LEFT COLUMN: Model Controls & Visualization Options ─── */}
         {!is3DMaximized && (
-          <section className="w-full lg:w-[22%] h-full flex flex-col shrink-0 overflow-y-auto pr-0 lg:pr-1 no-scrollbar">
+          <section className="w-full lg:w-[22%] flex flex-col shrink-0 pr-0 lg:pr-1">
             <ModelControlPanel
               state={modelState}
               onChange={setModelState}
@@ -1077,7 +1077,7 @@ export default function Stage2Workstation({
         )}
 
         {/* ─── CENTER COLUMN: Selected Region — 3D Depth-Resolved View + Data Panels ─── */}
-        <section className={`w-full ${is3DMaximized ? "lg:w-full" : "lg:w-[53%]"} h-full flex flex-col overflow-hidden`}>
+        <section className={`w-full ${is3DMaximized ? "lg:w-full" : "lg:w-[53%]"} flex flex-col min-h-0`}>
           <Region3DViewport
             selectedRegion={selectedRegion}
             modelState={modelState}
@@ -1128,7 +1128,7 @@ export default function Stage2Workstation({
 
         {/* ─── RIGHT COLUMN: Region Info, Model Data, Instruments & How To Use ─── */}
         {!is3DMaximized && (
-          <section className="w-full lg:w-[25%] h-full flex flex-col shrink-0 overflow-y-auto pl-0 lg:pl-1 no-scrollbar">
+          <section className="w-full lg:w-[25%] flex flex-col shrink-0 pl-0 lg:pl-1">
             <RegionInformationPanel
               selectedRegion={selectedRegion}
               modelState={modelState}
@@ -1143,40 +1143,6 @@ export default function Stage2Workstation({
           </section>
         )}
       </main>
-
-      {/* ────────────────────────────────────────────────────────────
-          4. WORKSTATION INSTITUTIONAL FOOTER
-      ──────────────────────────────────────────────────────────── */}
-      <footer className="w-full bg-white border-t border-slate-200/80 px-4 sm:px-6 lg:px-8 h-8 flex items-center justify-between shrink-0 text-[11px] text-slate-500 font-sans">
-        <div className="flex items-center gap-3">
-          <span className="font-semibold text-slate-700">Data Sources:</span>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 hover:text-slate-800 transition">
-              <span className="text-[#0284c7] font-bold">●</span> Copernicus Marine Service (CMEMS)
-            </span>
-            <span className="flex items-center gap-1 hover:text-slate-800 transition">
-              <span className="text-sky-500 font-bold">●</span> IFREMER
-            </span>
-            <span className="flex items-center gap-1 hover:text-slate-800 transition">
-              <span className="text-blue-500 font-bold">●</span> NOAA
-            </span>
-            <span className="flex items-center gap-1 hover:text-slate-800 transition">
-              <span className="text-indigo-500 font-bold">●</span> NCEI WOD
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-emerald-600 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
-            <span>Official Data Sources Configured</span>
-          </div>
-          <span className="text-slate-400">|</span>
-          <span className="text-slate-500">
-            Last Updated: 15 Feb 2026, 12:30 UTC
-          </span>
-        </div>
-      </footer>
     </div>
   )
 }
