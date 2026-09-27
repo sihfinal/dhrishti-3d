@@ -18,17 +18,9 @@ interface InfoModalData {
 
 export default function LandingPage() {
   const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState("")
   const [videoModalOpen, setVideoModalOpen] = useState(false)
   const [infoModal, setInfoModal] = useState<InfoModalData | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
-    if (!searchQuery.trim()) return
-    useOcean.getState().setViewMode("volume")
-    router.push(`/explore?q=${encodeURIComponent(searchQuery.trim())}`)
-  }
 
   function launchExplorer(mode: "volume" | "globe" = "volume") {
     useOcean.getState().setViewMode(mode)
@@ -158,23 +150,6 @@ export default function LandingPage() {
       ctaText: "Launch Interactive Explorer →",
       ctaAction: () => launchExplorer("volume"),
     },
-    about: {
-      title: "About SAGAR NETRA 3D — The Ocean Eye",
-      subtitle: "Sagar Numerical & Environmental Three-dimensional Rendering Architecture · INCOIS · SIH 2026",
-      icon: "🇮🇳",
-      sections: [
-        {
-          heading: "Executive Vision",
-          body: "An interactive, web-based 3D visualization and analytical workstation built to democratize ocean intelligence for researchers, disaster managers, and the blue economy.",
-        },
-        {
-          heading: "Technology Stack",
-          body: "Engineered with Next.js App Router, Three.js / WebGL, Fast NetCDF-4/xarray backend engines, and responsive institutional design.",
-        },
-      ],
-      ctaText: "Experience the Workstation →",
-      ctaAction: () => launchExplorer("volume"),
-    },
   }
 
   return (
@@ -219,8 +194,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Center: National Tagline + Tricolor Swirl Ribbon */}
-            <div className="hidden xl:flex items-center justify-center flex-1 px-4">
+            {/* Right: National Tagline + Tricolor Swirl Ribbon */}
+            <div className="hidden md:flex items-center justify-end flex-1">
               <Image
                 src="/landing/header-tagline-swirl.png"
                 alt="Oceans for a Safer, Sustainable and Prosperous India"
@@ -228,62 +203,8 @@ export default function LandingPage() {
                 height={70}
                 priority
                 unoptimized
-                className="h-[52px] sm:h-[54px] w-auto object-contain -translate-x-24"
+                className="h-10 sm:h-[52px] w-auto object-contain"
               />
-            </div>
-
-            {/* Right: Search Pill Input & User Avatar */}
-            <div className="flex items-center gap-3 shrink-0">
-              {/* Search Bar */}
-              <form onSubmit={handleSearch} className="relative hidden md:flex items-center">
-                <div className="relative flex items-center bg-white border border-slate-200/90 rounded-full px-3.5 py-1 w-60 lg:w-64 shadow-[0_1px_2px_rgba(0,0,0,0.04)] focus-within:ring-2 focus-within:ring-sky-500/40 focus-within:border-sky-500 transition-all">
-                  <svg
-                    className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search datasets, variables, regions..."
-                    className="w-full text-xs text-slate-700 bg-transparent placeholder-slate-400 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="ml-1 text-slate-400 hover:text-sky-600 transition cursor-pointer"
-                    title="Search"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </button>
-                </div>
-              </form>
-
-              {/* User Avatar Circle */}
-              <button
-                onClick={() => setInfoModal(navModals.about)}
-                className="w-8 h-8 rounded-full bg-[#0a2540] flex items-center justify-center text-white shadow-sm hover:bg-[#0f3458] transition-colors cursor-pointer"
-                title="User Profile & Ministry Session"
-              >
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.8}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </button>
             </div>
 
           </div>
@@ -292,10 +213,10 @@ export default function LandingPage() {
         {/* Row 2: Institutional Navbar */}
         <div className="w-full bg-white border-t border-slate-100">
           <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-[38px] sm:h-[40px]">
+            <div className="flex items-center h-[38px] sm:h-[40px]">
               
               {/* Navigation Links */}
-              <nav className="flex items-center gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-0.5">
+              <nav className="flex items-center gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-0.5 w-full">
                 {/* Home (Active) */}
                 <button
                   onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -363,10 +284,10 @@ export default function LandingPage() {
                   className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
                 >
                   <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="7" height="7" rx="1.5" strokeWidth="1.8" />
-                    <rect x="14" y="3" width="7" height="7" rx="1.5" strokeWidth="1.8" />
-                    <rect x="14" y="14" width="7" height="7" rx="1.5" strokeWidth="1.8" />
-                    <rect x="3" y="14" width="7" height="7" rx="1.5" strokeWidth="1.8" />
+                    <rect x="3" y="3" width="7" height="7" rx="1.5" strokeWidth={1.8} />
+                    <rect x="14" y="3" width="7" height="7" rx="1.5" strokeWidth={1.8} />
+                    <rect x="14" y="14" width="7" height="7" rx="1.5" strokeWidth={1.8} />
+                    <rect x="3" y="14" width="7" height="7" rx="1.5" strokeWidth={1.8} />
                   </svg>
                   <span>Operational Applications</span>
                 </Link>
@@ -381,30 +302,7 @@ export default function LandingPage() {
                   </svg>
                   <span>Resources</span>
                 </Link>
-
-                {/* About */}
-                <Link
-                  href="/about"
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" strokeWidth={1.8} />
-                    <path strokeLinecap="round" strokeWidth={1.8} d="M12 16v-4m0-4h.01" />
-                  </svg>
-                  <span>About</span>
-                </Link>
               </nav>
-
-              {/* Right: Launch Explorer Pill Button */}
-              <div className="shrink-0 pl-4">
-                <button
-                  onClick={() => launchExplorer("volume")}
-                  className="rounded-full bg-[#0a2e5c] hover:bg-[#072142] text-white px-4 py-1 text-xs font-semibold flex items-center gap-1.5 shadow-[0_2px_4px_rgba(10,46,92,0.18)] hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <span>Launch Explorer</span>
-                  <span className="text-xs transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-                </button>
-              </div>
 
             </div>
           </div>

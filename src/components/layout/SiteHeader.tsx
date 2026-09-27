@@ -15,7 +15,6 @@ export type NavRouteId =
   | "data-services"
   | "operational-applications"
   | "resources"
-  | "about"
   | "watch-demo"
 
 interface SiteHeaderProps {
@@ -28,12 +27,10 @@ interface SiteHeaderProps {
 export function SiteHeader({
   currentRoute: customRoute,
   onSearch,
-  onOpenAbout,
   onLaunchExplorer,
 }: SiteHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const [searchQuery, setSearchQuery] = useState("")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Determine active route automatically if not passed explicitly
@@ -53,25 +50,9 @@ export function SiteHeader({
       ? "operational-applications"
       : pathname.startsWith("/resources")
       ? "resources"
-      : pathname.startsWith("/about")
-      ? "about"
       : pathname.startsWith("/watch-demo")
       ? "watch-demo"
       : "home")
-
-  function handleSearchSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmed = searchQuery.trim()
-    if (!trimmed) return
-    setMobileMenuOpen(false)
-
-    if (onSearch) {
-      onSearch(trimmed)
-    } else {
-      useOcean.getState().setViewMode("volume")
-      router.push(`/explore?q=${encodeURIComponent(trimmed)}`)
-    }
-  }
 
   function handleLaunch(mode: "volume" | "globe" = "volume") {
     setMobileMenuOpen(false)
@@ -80,15 +61,6 @@ export function SiteHeader({
     } else {
       useOcean.getState().setViewMode(mode)
       router.push(mode === "globe" ? "/explore?view=globe" : "/explore")
-    }
-  }
-
-  function handleProfileClick() {
-    setMobileMenuOpen(false)
-    if (onOpenAbout) {
-      onOpenAbout()
-    } else {
-      router.push("/about")
     }
   }
 
@@ -245,8 +217,8 @@ export function SiteHeader({
             </Link>
           </div>
 
-          {/* Center: National Tagline + Tricolor Swirl Ribbon (Visible on 2XL / Ultra-wide) */}
-          <div className="hidden 2xl:flex items-center justify-center flex-1 px-4 min-w-0">
+          {/* Right: National Tagline + Tricolor Swirl Ribbon (Desktop) & Mobile Hamburger */}
+          <div className="hidden md:flex items-center justify-end flex-1 min-w-0">
             <Image
               src="/landing/header-tagline-swirl.png"
               alt="Oceans for a Safer, Sustainable and Prosperous India"
@@ -258,66 +230,12 @@ export function SiteHeader({
             />
           </div>
 
-          {/* Right: Search Pill Input & User Avatar & Mobile Hamburger */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            
-            {/* Desktop Search Bar (md+) */}
-            <form onSubmit={handleSearchSubmit} className="relative hidden md:flex items-center">
-              <div className="relative flex items-center bg-white border border-slate-200/90 rounded-full px-3.5 py-1 w-48 lg:w-60 xl:w-64 shadow-[0_1px_2px_rgba(0,0,0,0.04)] focus-within:ring-2 focus-within:ring-sky-500/40 focus-within:border-sky-500 transition-all">
-                <svg
-                  className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search datasets, variables..."
-                  className="w-full text-xs text-slate-700 bg-transparent placeholder-slate-400 focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  className="ml-1 text-slate-400 hover:text-sky-600 transition cursor-pointer"
-                  title="Search"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </button>
-              </div>
-            </form>
-
-            {/* User Avatar Circle */}
-            <button
-              type="button"
-              onClick={handleProfileClick}
-              className="w-8 h-8 rounded-full bg-[#0a2540] flex items-center justify-center text-white shadow-sm hover:bg-[#0f3458] transition-colors cursor-pointer shrink-0"
-              title="User Profile & Ministry Session"
-            >
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.8}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </button>
-
-            {/* Mobile / Tablet Menu Hamburger Button (Hidden on lg+) */}
+          {/* Mobile / Tablet Menu Hamburger Button (Hidden on lg+) */}
+          <div className="flex items-center lg:hidden shrink-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0"
               aria-label="Toggle Navigation Menu"
               aria-expanded={mobileMenuOpen}
             >
@@ -331,7 +249,6 @@ export function SiteHeader({
                 </svg>
               )}
             </button>
-
           </div>
 
         </div>
@@ -340,10 +257,10 @@ export function SiteHeader({
       {/* ─── Row 2: Desktop Institutional Navbar (lg+) ─── */}
       <div className="hidden lg:block w-full bg-white border-t border-slate-100">
         <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
-          <div className="flex items-center justify-between h-[38px] sm:h-[40px]">
+          <div className="flex items-center h-[38px] sm:h-[40px]">
             
             {/* Navigation Links */}
-            <nav className="flex items-center gap-4 xl:gap-6 py-0.5 overflow-x-auto no-scrollbar">
+            <nav className="flex items-center gap-4 xl:gap-6 py-0.5 overflow-x-auto no-scrollbar w-full">
               {navItems.map((item) => {
                 const isActive = activeRoute === item.id
                 return (
@@ -382,25 +299,6 @@ export function SiteHeader({
             className="lg:hidden w-full bg-white border-t border-slate-200 shadow-xl overflow-hidden"
           >
             <div className="px-4 py-3 space-y-3">
-              
-              {/* Mobile Search Input */}
-              <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full">
-                <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 w-full">
-                  <svg className="w-4 h-4 text-slate-400 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search datasets, variables, regions..."
-                    className="w-full text-xs text-slate-700 bg-transparent placeholder-slate-400 focus:outline-none"
-                  />
-                  <button type="submit" className="ml-1 text-sky-600 font-semibold text-xs">
-                    Search
-                  </button>
-                </div>
-              </form>
 
               {/* Mobile Nav Links Grid */}
               <nav className="grid grid-cols-1 sm:grid-cols-2 gap-1 pt-1 border-t border-slate-100">

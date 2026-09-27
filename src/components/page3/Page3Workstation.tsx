@@ -55,8 +55,7 @@ export default function Page3Workstation({
     lonMax: 85.0,
   })
 
-  // Search & Navigation Modals
-  const [searchQuery, setSearchQuery] = useState("")
+  // Navigation Modals
   const [infoModal, setInfoModal] = useState<InfoModalData | null>(null)
 
   // Real In-Situ Observations State
@@ -366,12 +365,6 @@ export default function Page3Workstation({
     setStage(2)
   }
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!searchQuery.trim()) return
-    // Handle search query
-  }
-
   const navModals: Record<string, InfoModalData> = {
     observations: {
       title: "In-situ Ocean Observations",
@@ -433,17 +426,6 @@ export default function Page3Workstation({
         },
       ],
     },
-    about: {
-      title: "About SAGAR NETRA 3D — The Ocean Eye",
-      subtitle: "Ministry of Earth Sciences · INCOIS · Smart India Hackathon 2026",
-      icon: "🇮🇳",
-      sections: [
-        {
-          heading: "Executive Vision",
-          body: "An interactive, web-based 3D visualization and analytical workstation built to democratize ocean intelligence for researchers, disaster managers, and the blue economy.",
-        },
-      ],
-    },
   }
 
   // If Stage 2 is active, render Stage2Workstation
@@ -499,8 +481,8 @@ export default function Page3Workstation({
               </Link>
             </div>
 
-            {/* Center: National Tagline + Tricolor Swirl Ribbon */}
-            <div className="hidden xl:flex items-center justify-center flex-1 px-4">
+            {/* Right: National Tagline + Tricolor Swirl Ribbon */}
+            <div className="hidden md:flex items-center justify-end flex-1 min-w-0">
               <Image
                 src="/landing/header-tagline-swirl.png"
                 alt="Oceans for a Safer, Sustainable and Prosperous India"
@@ -512,71 +494,16 @@ export default function Page3Workstation({
               />
             </div>
 
-            {/* Right: Search Pill Input & User Avatar */}
-            <div className="flex items-center gap-3 shrink-0">
-              {/* Search Bar */}
-              <form onSubmit={handleSearchSubmit} className="relative hidden md:flex items-center">
-                <div className="relative flex items-center bg-white border border-slate-200/90 rounded-full px-3.5 py-1 w-60 lg:w-64 shadow-[0_1px_2px_rgba(0,0,0,0.04)] focus-within:ring-2 focus-within:ring-sky-500/40 focus-within:border-sky-500 transition-all">
-                  <svg
-                    className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search datasets, variables, regions..."
-                    className="w-full text-xs text-slate-700 bg-transparent placeholder-slate-400 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="ml-1 text-slate-400 hover:text-sky-600 transition cursor-pointer"
-                    title="Search"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </button>
-                </div>
-              </form>
-
-              {/* User Avatar Circle */}
-              <button
-                type="button"
-                onClick={() => setInfoModal(navModals.about)}
-                className="w-8 h-8 rounded-full bg-[#0a2540] flex items-center justify-center text-white shadow-sm hover:bg-[#0f3458] transition-colors cursor-pointer"
-                title="User Profile & Ministry Session"
-              >
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.8}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </button>
-            </div>
-
           </div>
         </div>
 
         {/* Row 2: Institutional Navbar with EXPLORER ACTIVE */}
         <div className="w-full bg-white border-t border-slate-100">
           <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
-            <div className="flex items-center justify-between h-[38px] sm:h-[40px]">
+            <div className="flex items-center h-[38px] sm:h-[40px]">
               
               {/* Navigation Links */}
-              <nav className="flex items-center gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-0.5">
+              <nav className="flex items-center gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-0.5 w-full">
                 {/* Home */}
                 <Link
                   href="/"

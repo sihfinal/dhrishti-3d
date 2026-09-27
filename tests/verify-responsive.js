@@ -26,7 +26,6 @@ const ROUTES = [
   '/data-services',
   '/operational-applications',
   '/resources',
-  '/about',
   '/watch-demo',
   '/explore'
 ];
