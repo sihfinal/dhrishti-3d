@@ -440,7 +440,7 @@ export default function Page3Workstation({
   }
 
   return (
-    <div className="relative w-screen h-screen flex flex-col justify-between overflow-hidden select-none bg-[#f0f6fc] text-slate-900 font-sans">
+    <div className="relative w-full min-h-screen flex flex-col justify-between overflow-x-hidden select-none bg-[#f0f6fc] text-slate-900 font-sans">
       
       {/* ────────────────────────────────────────────────────────────
           1. TOP INSTITUTIONAL HEADER (ROW 1 + ROW 2)
@@ -600,9 +600,9 @@ export default function Page3Workstation({
       {/* ────────────────────────────────────────────────────────────
           2. APPROVED 3-COLUMN WORKSPACE: 24% LEFT | 52% CENTER | 24% RIGHT
       ──────────────────────────────────────────────────────────── */}
-      <main className="relative flex-1 w-full flex flex-col lg:flex-row gap-3 p-3 overflow-y-auto lg:overflow-hidden bg-[#f0f6fc]">
+      <main className="relative flex-1 w-full flex flex-col lg:flex-row gap-3 p-3 pb-6 overflow-y-auto lg:overflow-visible bg-[#f0f6fc]">
         {/* ─── LEFT 24% PANEL: Observation Counts & Controls ─── */}
-        <aside className="w-full lg:w-[24%] h-full flex flex-col gap-3 overflow-y-auto pr-0 lg:pr-1 no-scrollbar">
+        <aside className="w-full lg:w-[24%] flex flex-col gap-3 pr-0 lg:pr-1">
           <ObservationCounts
             counts={obsCounts}
             visibleTypes={obsVisibility}
@@ -646,7 +646,7 @@ export default function Page3Workstation({
         </aside>
 
         {/* ─── CENTER 52% VIEWPORT: 3D Earth Globe ─── */}
-        <section className="w-full lg:w-[52%] h-full flex flex-col min-h-[420px]">
+        <section className="w-full lg:w-[52%] flex flex-col min-h-[420px]">
           <Page3CenterViewport
             selectedRegion={selectedRegion}
             onConfirmRegionExplore={handleConfirmRegionExplore}
@@ -677,7 +677,7 @@ export default function Page3Workstation({
         </section>
 
         {/* ─── RIGHT 24% PANEL: Context, Colorbar, Description & Legend ─── */}
-        <aside className="w-full lg:w-[24%] h-full flex flex-col gap-3 overflow-y-auto pl-0 lg:pl-1 no-scrollbar">
+        <aside className="w-full lg:w-[24%] flex flex-col gap-3 pl-0 lg:pl-1">
           <DescriptionCard
             onResetRegion={() =>
               setSelectedRegion({
@@ -704,26 +704,6 @@ export default function Page3Workstation({
           <InstrumentLegend />
         </aside>
       </main>
-
-      {/* ────────────────────────────────────────────────────────────
-          3. APPROVED INSTITUTIONAL FOOTER
-      ──────────────────────────────────────────────────────────── */}
-      <footer className="relative z-30 h-8 px-4 sm:px-6 flex items-center justify-between border-t border-slate-200/90 bg-white text-[11px] text-slate-500 shrink-0 select-none">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-600">Data Source:</span>
-          <span>Copernicus Marine Service • IFREMER • NOAA / NCEI WOD</span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-emerald-600 font-semibold font-mono text-[10.5px]">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
-            <span>Official Data Sources Configured</span>
-          </div>
-          <span className="hidden sm:inline text-slate-400 font-mono text-[10px]">
-            15 Feb 2026, 12:30 UTC
-          </span>
-        </div>
-      </footer>
 
       {/* ─── Navigation Info Modal ─── */}
       {infoModal && (
