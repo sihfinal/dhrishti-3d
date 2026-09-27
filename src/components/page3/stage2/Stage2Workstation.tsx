@@ -11,7 +11,14 @@ import RegionInformationPanel from "./RegionInformationPanel"
 import ObservationDetailModal from "../ObservationDetailModal"
 import Manual from "@/ui/Manual"
 import { fetchObservations, ObservationItem } from "@/lib/observationsApi"
-import { fetchModelFieldStack, ModelFieldResponse } from "@/lib/modelApi"
+import {
+  fetchModelFieldStack,
+  fetchModelTimes,
+  timeStepIndexToDateString,
+  dateStringToTimeStepIndex,
+  getMonthDates,
+  ModelFieldResponse,
+} from "@/lib/modelApi"
 
 interface Stage2WorkstationProps {
   selectedRegion: GeographicBounds | null
@@ -66,30 +73,55 @@ export default function Stage2Workstation({
   const [obsError, setObsError] = useState<string | null>(null)
   const [selectedObs, setSelectedObs] = useState<ObservationItem | null>(null)
 
-  // Real 3D Depth-Resolved Model Fields State
+  // ─── Monthly Dataset & 3D Depth-Resolved Model Fields State ───
   const [depthStack, setDepthStack] = useState<ModelFieldResponse[]>([])
   const [uDepthStack, setUDepthStack] = useState<ModelFieldResponse[]>([])
   const [vDepthStack, setVDepthStack] = useState<ModelFieldResponse[]>([])
   const [modelLoading, setModelLoading] = useState<boolean>(false)
   const [modelError, setModelError] = useState<string | null>(null)
 
+  // Preloading & Playback State Machine
+  const [monthlyDataReady, setMonthlyDataReady] = useState<boolean>(false)
+  const [isPreloading, setIsPreloading] = useState<boolean>(false)
+  const [preloadProgress, setPreloadProgress] = useState<{
+    loaded: number
+    total: number
+    currentDate: string
+  } | null>(null)
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+  const [speed, setSpeed] = useState<number>(1)
+  const [retryCount, setRetryCount] = useState<number>(0)
+
   const [is3DMaximized, setIs3DMaximized] = useState<boolean>(false)
   const [manualOpen, setManualOpen] = useState<boolean>(false)
 
+  // In-memory Multi-Month Cache: key -> { frames: Map<dateStr, PreloadedFrameData>, dates: string[] }
+  type PreloadedFrameData = {
+    depthStack: ModelFieldResponse[]
+    uDepthStack?: ModelFieldResponse[]
+    vDepthStack?: ModelFieldResponse[]
+  }
+  const monthlyCacheRef = useRef<Map<string, { frames: Map<string, PreloadedFrameData>; dates: string[] }>>(new Map())
+  const activeFramesMapRef = useRef<Map<string, PreloadedFrameData>>(new Map())
+  const activeDatesRef = useRef<string[]>([])
+  const playbackIndexRef = useRef<number>(0)
+
   // Race-condition guards and abort controllers
-  const modelAbortRef = useRef<AbortController | null>(null)
-  const modelReqIdRef = useRef<number>(0)
+  const monthPreloadAbortRef = useRef<AbortController | null>(null)
+  const monthPreloadReqIdRef = useRef<number>(0)
   const obsAbortRef = useRef<AbortController | null>(null)
 
-  // Convert timeline index (0..89) to date string (2026-01-01 to 2026-03-31)
+  // Convert timeline index (0..89) to date string (2026-01-01 to 2026-03-31) in UTC
   const getDateStr = useCallback((idx: number) => {
-    const start = new Date(2026, 0, 1)
-    start.setDate(start.getDate() + idx)
-    const yyyy = start.getFullYear()
-    const mm = String(start.getMonth() + 1).padStart(2, "0")
-    const dd = String(start.getDate()).padStart(2, "0")
-    return `${yyyy}-${mm}-${dd}`
+    return timeStepIndexToDateString(idx)
   }, [])
+
+  const timeStepIndexRef = useRef(modelState.timeStepIndex)
+  timeStepIndexRef.current = modelState.timeStepIndex
+
+  // Active month prefix derived strictly from UTC timeStepIndex (e.g. "2026-02")
+  const currentDateStr = timeStepIndexToDateString(modelState.timeStepIndex)
+  const activeMonthKey = currentDateStr.slice(0, 7)
 
   // 1. Fetch real in-situ observations filtered strictly by the selected ROI
   useEffect(() => {
@@ -151,98 +183,308 @@ export default function Stage2Workstation({
     }
   }, [selectedRegion])
 
-  // 2. Fetch real 3D CMEMS multi-depth stack whenever variable, region, or time changes
+  // 2. Preload complete 1-month dataset whenever Region, Variable, or Month changes
   useEffect(() => {
     let isMounted = true
-    if (!selectedRegion) return
+    if (!selectedRegion) {
+      setIsPreloading(false)
+      setMonthlyDataReady(false)
+      return
+    }
 
-    if (modelAbortRef.current) {
-      modelAbortRef.current.abort()
+    // Stop active playback immediately when loading new data
+    setIsPlaying(false)
+
+    if (monthPreloadAbortRef.current) {
+      monthPreloadAbortRef.current.abort()
     }
     const abortController = new AbortController()
-    modelAbortRef.current = abortController
-    const currentReqId = ++modelReqIdRef.current
+    monthPreloadAbortRef.current = abortController
+    const currentReqId = ++monthPreloadReqIdRef.current
 
     const latMin = Math.min(selectedRegion.latMin, selectedRegion.latMax)
     const latMax = Math.max(selectedRegion.latMin, selectedRegion.latMax)
     const lonMin = Math.min(selectedRegion.lonMin, selectedRegion.lonMax)
     const lonMax = Math.max(selectedRegion.lonMin, selectedRegion.lonMax)
-    const currentDate = getDateStr(modelState.timeStepIndex)
-
-    setModelLoading(true)
-    setModelError(null)
-
     const span = Math.max(latMax - latMin, lonMax - lonMin)
     const stride = span > 20 ? 3 : span > 10 ? 2 : 1
 
-    if (modelState.variable === "currents") {
-      fetchModelFieldStack({
-        variable: "currents",
-        time: currentDate,
-        depths: TARGET_DEPTH_LEVELS,
-        lat_min: latMin,
-        lat_max: latMax,
-        lon_min: lonMin,
-        lon_max: lonMax,
-        stride,
-        signal: abortController.signal,
-      })
-        .then(({ uSlices, vSlices }) => {
-          if (!isMounted || currentReqId !== modelReqIdRef.current) return
-          setUDepthStack(uSlices || [])
-          setVDepthStack(vSlices || [])
-          setDepthStack([])
-          setModelLoading(false)
-          setModelError(null)
-        })
-        .catch((err) => {
-          if (err?.name === "AbortError") return
-          if (!isMounted || currentReqId !== modelReqIdRef.current) return
-          console.warn("3D currents model fetch error:", err)
-          setModelLoading(false)
-          setModelError("3D Currents model data unavailable")
-        })
-    } else {
-      const varName =
-        modelState.variable === "salinity"
-          ? "salinity"
-          : modelState.variable === "chlorophyll"
-          ? "chlorophyll"
-          : "temperature"
+    const varName =
+      modelState.variable === "salinity"
+        ? "salinity"
+        : modelState.variable === "chlorophyll"
+        ? "chlorophyll"
+        : modelState.variable === "currents"
+        ? "currents"
+        : "temperature"
+    const isCurrents = varName === "currents"
 
-      fetchModelFieldStack({
-        variable: varName,
-        time: currentDate,
-        depths: TARGET_DEPTH_LEVELS,
-        lat_min: latMin,
-        lat_max: latMax,
-        lon_min: lonMin,
-        lon_max: lonMax,
-        stride,
-        signal: abortController.signal,
-      })
-        .then(({ slices }) => {
-          if (!isMounted || currentReqId !== modelReqIdRef.current) return
-          setDepthStack(slices)
-          setUDepthStack([])
-          setVDepthStack([])
-          setModelLoading(false)
-          setModelError(null)
-        })
-        .catch((err) => {
-          if (err?.name === "AbortError") return
-          if (!isMounted || currentReqId !== modelReqIdRef.current) return
-          console.warn(`3D ${varName} model fetch error:`, err)
-          setModelLoading(false)
-          setModelError(`3D ${varName.toUpperCase()} model data unavailable`)
-        })
+    const cacheKey = `${latMin.toFixed(2)}_${latMax.toFixed(2)}_${lonMin.toFixed(2)}_${lonMax.toFixed(2)}_${stride}_${varName}_${activeMonthKey}`
+
+    // ── Fast path: Entire month is already loaded in memory ──
+    if (monthlyCacheRef.current.has(cacheKey)) {
+      const cached = monthlyCacheRef.current.get(cacheKey)!
+      activeFramesMapRef.current = cached.frames
+      activeDatesRef.current = cached.dates
+
+      const reqDateStr = timeStepIndexToDateString(timeStepIndexRef.current)
+      const targetDate = cached.dates.includes(reqDateStr) ? reqDateStr : cached.dates[0]
+      playbackIndexRef.current = cached.dates.indexOf(targetDate)
+      const frame = cached.frames.get(targetDate)
+      if (frame) {
+        setDepthStack(frame.depthStack)
+        setUDepthStack(frame.uDepthStack || [])
+        setVDepthStack(frame.vDepthStack || [])
+        const frameIdx = dateStringToTimeStepIndex(targetDate)
+        if (frameIdx !== timeStepIndexRef.current) {
+          setModelState((prev) => ({ ...prev, timeStepIndex: frameIdx }))
+        }
+      }
+
+      setIsPreloading(false)
+      setPreloadProgress(null)
+      setModelLoading(false)
+      setModelError(null)
+      setMonthlyDataReady(true)
+      return
     }
+
+    // ── Slow path: Clear stale data and preload the complete required 1-month dataset ──
+    setDepthStack([])
+    setUDepthStack([])
+    setVDepthStack([])
+    setIsPreloading(true)
+    setMonthlyDataReady(false)
+    setModelLoading(true)
+    setModelError(null)
+    setPreloadProgress(null)
+
+    async function loadMonth() {
+      try {
+        const allTimes = await fetchModelTimes(abortController.signal)
+        if (!isMounted || currentReqId !== monthPreloadReqIdRef.current) return
+
+        let targetDates = allTimes.filter((t) => t.startsWith(activeMonthKey))
+        if (targetDates.length === 0) {
+          const [y, m] = activeMonthKey.split("-").map(Number)
+          targetDates = getMonthDates(y, m)
+        }
+        targetDates.sort()
+
+        const framesMap = new Map<string, PreloadedFrameData>()
+
+        for (let i = 0; i < targetDates.length; i++) {
+          if (!isMounted || currentReqId !== monthPreloadReqIdRef.current) return
+          const dStr = targetDates[i]
+
+          setPreloadProgress({
+            loaded: i + 1,
+            total: targetDates.length,
+            currentDate: dStr,
+          })
+
+          if (isCurrents) {
+            const { uSlices, vSlices } = await fetchModelFieldStack({
+              variable: "currents",
+              time: dStr,
+              depths: TARGET_DEPTH_LEVELS,
+              lat_min: latMin,
+              lat_max: latMax,
+              lon_min: lonMin,
+              lon_max: lonMax,
+              stride,
+              signal: abortController.signal,
+            })
+            framesMap.set(dStr, {
+              depthStack: [],
+              uDepthStack: uSlices || [],
+              vDepthStack: vSlices || [],
+            })
+          } else {
+            const { slices } = await fetchModelFieldStack({
+              variable: varName,
+              time: dStr,
+              depths: TARGET_DEPTH_LEVELS,
+              lat_min: latMin,
+              lat_max: latMax,
+              lon_min: lonMin,
+              lon_max: lonMax,
+              stride,
+              signal: abortController.signal,
+            })
+            framesMap.set(dStr, {
+              depthStack: slices || [],
+              uDepthStack: [],
+              vDepthStack: [],
+            })
+          }
+
+          // Render the target or first loaded frame in the background immediately
+          const reqDateStr = timeStepIndexToDateString(timeStepIndexRef.current)
+          if (dStr === reqDateStr || (i === 0 && !framesMap.has(reqDateStr))) {
+            const initialFrame = framesMap.get(dStr)!
+            setDepthStack(initialFrame.depthStack)
+            setUDepthStack(initialFrame.uDepthStack || [])
+            setVDepthStack(initialFrame.vDepthStack || [])
+          }
+        }
+
+        if (!isMounted || currentReqId !== monthPreloadReqIdRef.current) return
+
+        // Verify dataset availability and cache
+        monthlyCacheRef.current.set(cacheKey, { frames: framesMap, dates: targetDates })
+        activeFramesMapRef.current = framesMap
+        activeDatesRef.current = targetDates
+
+        const finalReqDate = timeStepIndexToDateString(timeStepIndexRef.current)
+        const finalActiveDate = targetDates.includes(finalReqDate) ? finalReqDate : targetDates[0]
+        playbackIndexRef.current = targetDates.indexOf(finalActiveDate)
+        const activeFrame = framesMap.get(finalActiveDate)
+        if (activeFrame) {
+          setDepthStack(activeFrame.depthStack)
+          setUDepthStack(activeFrame.uDepthStack || [])
+          setVDepthStack(activeFrame.vDepthStack || [])
+          const finalIdx = dateStringToTimeStepIndex(finalActiveDate)
+          if (finalIdx !== timeStepIndexRef.current) {
+            setModelState((prev) => ({ ...prev, timeStepIndex: finalIdx }))
+          }
+        }
+
+        setIsPreloading(false)
+        setPreloadProgress(null)
+        setModelLoading(false)
+        setModelError(null)
+        setMonthlyDataReady(true)
+      } catch (err: any) {
+        if (err?.name === "AbortError") return
+        if (!isMounted || currentReqId !== monthPreloadReqIdRef.current) return
+        console.error("Monthly dataset preload error:", err)
+        setIsPreloading(false)
+        setPreloadProgress(null)
+        setModelLoading(false)
+        setMonthlyDataReady(false)
+        setModelError("Unable to load ocean data")
+      }
+    }
+
+    loadMonth()
 
     return () => {
       isMounted = false
       abortController.abort()
     }
-  }, [selectedRegion, modelState.variable, modelState.timeStepIndex, getDateStr])
+  }, [selectedRegion, modelState.variable, activeMonthKey, retryCount])
+
+  // Playback timer: cycles through preloaded month frames strictly one frame at a time in chronological order
+  useEffect(() => {
+    if (!isPlaying || !monthlyDataReady) return
+    const dates = activeDatesRef.current
+    if (!dates || dates.length <= 1) return
+
+    // Single source of truth: align playback pointer with current selected date in preloaded list
+    const curDateStr = timeStepIndexToDateString(modelState.timeStepIndex)
+    let startIndex = dates.indexOf(curDateStr)
+    if (startIndex === -1) {
+      let minDiff = Infinity
+      startIndex = 0
+      const curTime = new Date(curDateStr).getTime()
+      for (let i = 0; i < dates.length; i++) {
+        const diff = Math.abs(new Date(dates[i]).getTime() - curTime)
+        if (diff < minDiff) {
+          minDiff = diff
+          startIndex = i
+        }
+      }
+    }
+    playbackIndexRef.current = startIndex
+
+    const intervalMs = Math.max(350, Math.round(1000 / speed))
+    const timer = setInterval(() => {
+      const datesList = activeDatesRef.current
+      if (!datesList || datesList.length <= 1) return
+
+      // Advance strictly one frame at a time: current frame → next available frame
+      const nextIdx = (playbackIndexRef.current + 1) % datesList.length
+      playbackIndexRef.current = nextIdx
+      const nextDate = datesList[nextIdx]
+
+      const frame = activeFramesMapRef.current.get(nextDate)
+      if (frame) {
+        setDepthStack(frame.depthStack)
+        setUDepthStack(frame.uDepthStack || [])
+        setVDepthStack(frame.vDepthStack || [])
+        setModelState((prev) => ({
+          ...prev,
+          timeStepIndex: dateStringToTimeStepIndex(nextDate),
+        }))
+      }
+    }, intervalMs)
+
+    return () => clearInterval(timer)
+  }, [isPlaying, monthlyDataReady, speed])
+
+  // Scrubbing/Timeline manual slider updates within loaded month
+  useEffect(() => {
+    if (isPlaying || isPreloading || !monthlyDataReady) return
+    const curDateStr = timeStepIndexToDateString(modelState.timeStepIndex)
+    const dates = activeDatesRef.current
+    if (dates && dates.length > 0) {
+      const idx = dates.indexOf(curDateStr)
+      if (idx !== -1) {
+        playbackIndexRef.current = idx
+      }
+    }
+    const frame = activeFramesMapRef.current.get(curDateStr)
+    if (frame) {
+      setDepthStack(frame.depthStack)
+      setUDepthStack(frame.uDepthStack || [])
+      setVDepthStack(frame.vDepthStack || [])
+    }
+  }, [modelState.timeStepIndex, isPlaying, isPreloading, monthlyDataReady])
+
+  const handlePrevDay = useCallback(() => {
+    if (isPreloading || !monthlyDataReady) return
+    const dates = activeDatesRef.current
+    if (!dates || dates.length === 0) return
+    const curDateStr = timeStepIndexToDateString(modelState.timeStepIndex)
+    let curIdx = dates.indexOf(curDateStr)
+    if (curIdx === -1) curIdx = playbackIndexRef.current
+    const prevIdx = (curIdx - 1 + dates.length) % dates.length
+    playbackIndexRef.current = prevIdx
+    const prevDate = dates[prevIdx]
+    const frame = activeFramesMapRef.current.get(prevDate)
+    if (frame) {
+      setDepthStack(frame.depthStack)
+      setUDepthStack(frame.uDepthStack || [])
+      setVDepthStack(frame.vDepthStack || [])
+      setModelState((prev) => ({
+        ...prev,
+        timeStepIndex: dateStringToTimeStepIndex(prevDate),
+      }))
+    }
+  }, [isPreloading, monthlyDataReady, modelState.timeStepIndex])
+
+  const handleNextDay = useCallback(() => {
+    if (isPreloading || !monthlyDataReady) return
+    const dates = activeDatesRef.current
+    if (!dates || dates.length === 0) return
+    const curDateStr = timeStepIndexToDateString(modelState.timeStepIndex)
+    let curIdx = dates.indexOf(curDateStr)
+    if (curIdx === -1) curIdx = playbackIndexRef.current
+    const nextIdx = (curIdx + 1) % dates.length
+    playbackIndexRef.current = nextIdx
+    const nextDate = dates[nextIdx]
+    const frame = activeFramesMapRef.current.get(nextDate)
+    if (frame) {
+      setDepthStack(frame.depthStack)
+      setUDepthStack(frame.uDepthStack || [])
+      setVDepthStack(frame.vDepthStack || [])
+      setModelState((prev) => ({
+        ...prev,
+        timeStepIndex: dateStringToTimeStepIndex(nextDate),
+      }))
+    }
+  }, [isPreloading, monthlyDataReady, modelState.timeStepIndex])
 
   // Get single primary slice matching the selected depth for the right panel metadata
   const activePrimarySlice = depthStack.find((s) => s.depth && Math.abs(s.depth - modelState.depth) < 100) || depthStack[0] || null
@@ -581,35 +823,7 @@ export default function Stage2Workstation({
                   </svg>
                   <span>Resources</span>
                 </button>
-
-                {/* About */}
-                <button
-                  type="button"
-                  onClick={() => setInfoModal(navModals.about)}
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" strokeWidth="1.8" />
-                    <path strokeLinecap="round" strokeWidth={1.8} d="M12 16v-4m0-4h.01" />
-                  </svg>
-                  <span>About</span>
-                </button>
               </nav>
-
-              {/* Right CTA: Launch Explorer Button */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={onBackToGlobal}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-[#0a2540] hover:bg-[#0f3458] text-white text-xs font-semibold rounded-md shadow-sm transition cursor-pointer"
-                >
-                  <span>Launch Explorer</span>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </button>
-              </div>
-
             </div>
           </div>
         </div>
@@ -656,7 +870,20 @@ export default function Stage2Workstation({
         {/* ─── LEFT COLUMN: Model Controls & Visualization Options ─── */}
         {!is3DMaximized && (
           <section className="w-full lg:w-[22%] h-full flex flex-col shrink-0 overflow-y-auto pr-0 lg:pr-1 no-scrollbar">
-            <ModelControlPanel state={modelState} onChange={setModelState} modelLoading={modelLoading} />
+            <ModelControlPanel
+              state={modelState}
+              onChange={setModelState}
+              modelLoading={modelLoading}
+              isReady={monthlyDataReady}
+              isPreloading={isPreloading}
+              isPlaying={isPlaying}
+              onTogglePlay={() => setIsPlaying((p) => !p)}
+              onPrevDay={handlePrevDay}
+              onNextDay={handleNextDay}
+              speed={speed}
+              onSpeedChange={setSpeed}
+              preloadProgress={preloadProgress}
+            />
           </section>
         )}
 
@@ -677,6 +904,10 @@ export default function Stage2Workstation({
             onSelectObservation={setSelectedObs}
             isMaximized={is3DMaximized}
             onToggleMaximize={() => setIs3DMaximized((prev) => !prev)}
+            isPreloading={isPreloading}
+            monthlyDataReady={monthlyDataReady}
+            preloadProgress={preloadProgress}
+            onRetry={() => setRetryCount((c) => c + 1)}
           />
         </section>
 
@@ -691,7 +922,7 @@ export default function Stage2Workstation({
               scalarFieldData={activePrimarySlice}
               uFieldData={activeUSlice}
               vFieldData={activeVSlice}
-              modelLoading={modelLoading}
+              modelLoading={modelLoading || isPreloading}
               obsLoading={obsLoading}
             />
           </section>

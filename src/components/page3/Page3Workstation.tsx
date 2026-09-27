@@ -663,19 +663,6 @@ export default function Page3Workstation({
                   </svg>
                   <span>Resources</span>
                 </button>
-
-                {/* About */}
-                <button
-                  type="button"
-                  onClick={() => setInfoModal(navModals.about)}
-                  className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-700 hover:text-[#0284c7] shrink-0 py-1.5 transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" strokeWidth="1.8" />
-                    <path strokeLinecap="round" strokeWidth={1.8} d="M12 16v-4m0-4h.01" />
-                  </svg>
-                  <span>About</span>
-                </button>
               </nav>
 
             </div>

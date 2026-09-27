@@ -1,8 +1,7 @@
 "use client"
 
-import React, { useRef, useState, useCallback } from "react"
+import React, { useRef, useState, useCallback, useEffect } from "react"
 import * as THREE from "three"
-import { useTexture } from "@react-three/drei"
 import { ThreeEvent } from "@react-three/fiber"
 import AtmosphereGlow from "./AtmosphereGlow"
 import CountryBoundaries from "./CountryBoundaries"
@@ -15,6 +14,31 @@ import { ModelFieldResponse } from "@/lib/modelApi"
 
 const EARTH_TEXTURE = "/textures/earth_4k_v3.jpg"
 const INITIAL_ROTATION_Y = -Math.PI / 2
+
+let _cachedEarthTexture: THREE.Texture | null = null
+
+function configureEarthTexture(t: THREE.Texture) {
+  t.colorSpace = THREE.SRGBColorSpace
+  t.generateMipmaps = true
+  t.minFilter = THREE.LinearMipmapLinearFilter
+  t.magFilter = THREE.LinearFilter
+  t.anisotropy = 16
+  t.needsUpdate = true
+}
+
+// Pre-initiate texture loading in browser environment so it is ready immediately
+if (typeof window !== "undefined") {
+  const loader = new THREE.TextureLoader()
+  loader.load(
+    EARTH_TEXTURE,
+    (tex) => {
+      configureEarthTexture(tex)
+      _cachedEarthTexture = tex
+    },
+    undefined,
+    (err) => console.warn("Earth texture preload notice:", err)
+  )
+}
 
 interface EarthSphereProps {
   onHoverCoordinates?: (coords: { lat: number; lon: number } | null) => void
@@ -60,15 +84,26 @@ export default function EarthSphere({
   const isDraggingRef = useRef(false)
   const dragStartCoordsRef = useRef<{ lat: number; lon: number } | null>(null)
   const [activeDragBounds, setActiveDragBounds] = useState<GeographicBounds | null>(null)
+  const [texture, setTexture] = useState<THREE.Texture | null>(() => _cachedEarthTexture)
 
-  const texture = useTexture(EARTH_TEXTURE, (t) => {
-    t.colorSpace = THREE.SRGBColorSpace
-    t.generateMipmaps = true
-    t.minFilter = THREE.LinearMipmapLinearFilter
-    t.magFilter = THREE.LinearFilter
-    t.anisotropy = 16
-    t.needsUpdate = true
-  })
+  useEffect(() => {
+    if (texture) return
+    if (_cachedEarthTexture) {
+      setTexture(_cachedEarthTexture)
+      return
+    }
+    const loader = new THREE.TextureLoader()
+    loader.load(
+      EARTH_TEXTURE,
+      (tex) => {
+        configureEarthTexture(tex)
+        _cachedEarthTexture = tex
+        setTexture(tex)
+      },
+      undefined,
+      (err) => console.warn("Earth texture load notice:", err)
+    )
+  }, [texture])
 
   // Convert raycast 3D intersection to exact geographic coordinates (lat, lon)
   const getGeoCoordsFromEvent = useCallback((e: ThreeEvent<PointerEvent>): { lat: number; lon: number } | null => {
@@ -166,7 +201,8 @@ export default function EarthSphere({
       >
         <sphereGeometry args={[radius, 128, 128]} />
         <meshStandardMaterial
-          map={texture}
+          map={texture || undefined}
+          color={texture ? "#ffffff" : "#142d4c"}
           roughness={0.65}
           metalness={0.08}
           toneMapped={false}

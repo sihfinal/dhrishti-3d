@@ -24,6 +24,85 @@ import { API_BASE } from "./apiBase"
 const fieldCache = new Map<string, ModelFieldResponse>()
 const MAX_CACHE_SIZE = 40
 
+export interface FieldStackCacheItem {
+  slices: ModelFieldResponse[]
+  uSlices?: ModelFieldResponse[]
+  vSlices?: ModelFieldResponse[]
+}
+const fieldStackCache = new Map<string, FieldStackCacheItem>()
+const MAX_STACK_CACHE_SIZE = 120
+
+/**
+ * Fetch available discrete model timestamps (YYYY-MM-DD) from the backend.
+ */
+export async function fetchModelTimes(signal?: AbortSignal): Promise<string[]> {
+  try {
+    const res = await fetch(`${API_BASE}/model/times`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal,
+    })
+    if (!res.ok) return []
+    const data = await res.json()
+    return Array.isArray(data.times) ? data.times : []
+  } catch (err: any) {
+    if (err?.name === "AbortError") return []
+    console.warn("Could not fetch model times:", err)
+    return []
+  }
+}
+
+/**
+ * Convert timeStepIndex (0..89) to YYYY-MM-DD in UTC.
+ * Index 0 corresponds to 2026-01-01, index 89 to 2026-03-31.
+ */
+export function timeStepIndexToDateString(index: number): string {
+  const base = new Date(Date.UTC(2026, 0, 1 + index))
+  const yyyy = base.getUTCFullYear()
+  const mm = String(base.getUTCMonth() + 1).padStart(2, "0")
+  const dd = String(base.getUTCDate()).padStart(2, "0")
+  return `${yyyy}-${mm}-${dd}`
+}
+
+/**
+ * Convert YYYY-MM-DD to timeStepIndex (0..89).
+ */
+export function dateStringToTimeStepIndex(dateStr: string): number {
+  const parts = dateStr.split("-").map(Number)
+  if (parts.length < 3) return 45
+  const [y, m, d] = parts
+  const target = Date.UTC(y, m - 1, d)
+  const start = Date.UTC(2026, 0, 1)
+  const diffDays = Math.round((target - start) / (24 * 60 * 60 * 1000))
+  return Math.max(0, Math.min(89, diffDays))
+}
+
+/**
+ * Return formatted display date string from timeStepIndex in UTC (e.g. "15 Feb 2026").
+ */
+export function formatDisplayDate(index: number): string {
+  const base = new Date(Date.UTC(2026, 0, 1 + index))
+  const day = base.getUTCDate().toString().padStart(2, "0")
+  const month = base.toLocaleString("en-US", { month: "short", timeZone: "UTC" })
+  const year = base.getUTCFullYear()
+  return `${day} ${month} ${year}`
+}
+
+/**
+ * Return all YYYY-MM-DD days for a given year and 1-based month (e.g. 2026, 2).
+ */
+export function getMonthDates(year: number, month: number): string[] {
+  const dates: string[] = []
+  // Month is 1-based. Date(Date.UTC(year, month, 0)) gets last day of month.
+  const numDays = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  const mm = String(month).padStart(2, "0")
+  for (let d = 1; d <= numDays; d++) {
+    const dd = String(d).padStart(2, "0")
+    dates.push(`${year}-${mm}-${dd}`)
+  }
+  return dates
+}
+
 /**
  * Decodes a Sagar Netra 3D (SD3D) binary envelope containing a 16-byte fixed header,
  * UTF-8 JSON metadata, and contiguous Little-Endian Float32 values.
@@ -224,6 +303,11 @@ export async function fetchModelFieldStack(params: {
   const lon_min = params.lon_min ?? 40.0
   const lon_max = params.lon_max ?? 100.0
 
+  const cacheKey = `${variable}_${time}_${depths.join(",")}_${stride}_${lat_min}_${lat_max}_${lon_min}_${lon_max}`
+  if (fieldStackCache.has(cacheKey)) {
+    return fieldStackCache.get(cacheKey)!
+  }
+
   const query = new URLSearchParams({
     variable,
     time,
@@ -297,7 +381,13 @@ export async function fetchModelFieldStack(params: {
         unit: "m/s",
       }))
 
-      return { slices: [], uSlices, vSlices }
+      const result: FieldStackCacheItem = { slices: [], uSlices, vSlices }
+      if (fieldStackCache.size >= MAX_STACK_CACHE_SIZE) {
+        const oldest = fieldStackCache.keys().next().value
+        if (oldest) fieldStackCache.delete(oldest)
+      }
+      fieldStackCache.set(cacheKey, result)
+      return result
     } else {
       // Scalar stack (temperature, salinity, chlorophyll, etc.)
       const slicesMeta = metadata.slices || []
@@ -319,7 +409,13 @@ export async function fetchModelFieldStack(params: {
         unit: metadata.unit || "",
       }))
 
-      return { slices }
+      const result: FieldStackCacheItem = { slices }
+      if (fieldStackCache.size >= MAX_STACK_CACHE_SIZE) {
+        const oldest = fieldStackCache.keys().next().value
+        if (oldest) fieldStackCache.delete(oldest)
+      }
+      fieldStackCache.set(cacheKey, result)
+      return result
     }
   } else {
     // Standard JSON fallback
@@ -347,7 +443,13 @@ export async function fetchModelFieldStack(params: {
     const uSlices = stack.u_slices ? stack.u_slices.map((s) => mapSlice(s, "u_velocity", "m/s")) : undefined
     const vSlices = stack.v_slices ? stack.v_slices.map((s) => mapSlice(s, "v_velocity", "m/s")) : undefined
 
-    return { slices, uSlices, vSlices }
+    const result: FieldStackCacheItem = { slices, uSlices, vSlices }
+    if (fieldStackCache.size >= MAX_STACK_CACHE_SIZE) {
+      const oldest = fieldStackCache.keys().next().value
+      if (oldest) fieldStackCache.delete(oldest)
+    }
+    fieldStackCache.set(cacheKey, result)
+    return result
   }
 }
 

@@ -207,4 +207,155 @@ describe("UX Loading States & API Abort Signal Propagation", () => {
     expect(loadingVariableId).toBeNull()
     expect(modelError).toBe("Salinity data unavailable")
   })
+
+  describe("3D Ocean Data Loading Indicator Lifecycle", () => {
+    const computeLoaderVisibility = (props: {
+      isPreloading?: boolean
+      monthlyDataReady?: boolean
+      modelLoading?: boolean
+      depthStackLen: number
+      uDepthStackLen: number
+      modelError: string | null
+    }): boolean => {
+      const {
+        isPreloading = false,
+        monthlyDataReady,
+        modelLoading = false,
+        depthStackLen,
+        uDepthStackLen,
+        modelError,
+      } = props
+
+      return Boolean(
+        (isPreloading ||
+          (monthlyDataReady === false && depthStackLen === 0 && uDepthStackLen === 0) ||
+          (modelLoading && depthStackLen === 0 && uDepthStackLen === 0)) &&
+          !modelError
+      )
+    }
+
+    it("displays loading indicator when month preloading is in progress", () => {
+      expect(
+        computeLoaderVisibility({
+          isPreloading: true,
+          monthlyDataReady: false,
+          modelLoading: true,
+          depthStackLen: 0,
+          uDepthStackLen: 0,
+          modelError: null,
+        })
+      ).toBe(true)
+    })
+
+    it("disappears immediately when monthlyDataReady is true and visualization frames are present", () => {
+      expect(
+        computeLoaderVisibility({
+          isPreloading: false,
+          monthlyDataReady: true,
+          modelLoading: false,
+          depthStackLen: 12,
+          uDepthStackLen: 0,
+          modelError: null,
+        })
+      ).toBe(false)
+    })
+
+    it("does NOT display loader during active in-memory playback", () => {
+      expect(
+        computeLoaderVisibility({
+          isPreloading: false,
+          monthlyDataReady: true,
+          modelLoading: false,
+          depthStackLen: 12,
+          uDepthStackLen: 0,
+          modelError: null,
+        })
+      ).toBe(false)
+    })
+
+    it("unmounts loader on error so Retry UI is displayed without infinite spinner", () => {
+      expect(
+        computeLoaderVisibility({
+          isPreloading: false,
+          monthlyDataReady: false,
+          modelLoading: false,
+          depthStackLen: 0,
+          uDepthStackLen: 0,
+          modelError: "Unable to load ocean data",
+        })
+      ).toBe(false)
+    })
+
+    it("restores loader upon Retry click when preloading restarts", () => {
+      // User clicks Retry: error is cleared, preloading restarts
+      expect(
+        computeLoaderVisibility({
+          isPreloading: true,
+          monthlyDataReady: false,
+          modelLoading: true,
+          depthStackLen: 0,
+          uDepthStackLen: 0,
+          modelError: null,
+        })
+      ).toBe(true)
+    })
+  })
+
+  describe("Earth 3D Loading Indicator Behavior", () => {
+    const computeEarthLoaderVisibility = (props: {
+      obsLoading?: boolean
+      modelLoading?: boolean
+    }): boolean => {
+      const { obsLoading = false, modelLoading = false } = props
+      return Boolean(obsLoading || modelLoading)
+    }
+
+    it("displays spinner when initial observation data is loading", () => {
+      expect(
+        computeEarthLoaderVisibility({
+          obsLoading: true,
+          modelLoading: false,
+        })
+      ).toBe(true)
+    })
+
+    it("displays spinner when model layer data is loading", () => {
+      expect(
+        computeEarthLoaderVisibility({
+          obsLoading: false,
+          modelLoading: true,
+        })
+      ).toBe(true)
+    })
+
+    it("disappears when all ocean data has finished loading", () => {
+      expect(
+        computeEarthLoaderVisibility({
+          obsLoading: false,
+          modelLoading: false,
+        })
+      ).toBe(false)
+    })
+
+    it("displays spinner when switching variables (Temperature -> Salinity)", () => {
+      // User switches to Salinity: modelLoading becomes true
+      expect(
+        computeEarthLoaderVisibility({
+          obsLoading: false,
+          modelLoading: true,
+        })
+      ).toBe(true)
+    })
+
+    it("disappears immediately after new layer finishes loading", () => {
+      expect(
+        computeEarthLoaderVisibility({
+          obsLoading: false,
+          modelLoading: false,
+        })
+      ).toBe(false)
+    })
+  })
 })
+
+

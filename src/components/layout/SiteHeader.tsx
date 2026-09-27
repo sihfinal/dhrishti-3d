@@ -206,22 +206,6 @@ export function SiteHeader({
         router.push("/resources")
       },
     },
-    {
-      id: "about" as NavRouteId,
-      label: "About",
-      href: "/about",
-      icon: (
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" strokeWidth={1.8} />
-          <path strokeLinecap="round" strokeWidth={1.8} d="M12 16v-4m0-4h.01" />
-        </svg>
-      ),
-      isAction: false,
-      onClick: () => {
-        setMobileMenuOpen(false)
-        router.push("/about")
-      },
-    },
   ]
 
   return (
@@ -383,18 +367,6 @@ export function SiteHeader({
               })}
             </nav>
 
-            {/* Right: Launch Explorer Pill Button */}
-            <div className="shrink-0 pl-4">
-              <button
-                type="button"
-                onClick={() => handleLaunch("volume")}
-                className="rounded-full bg-[#0a2e5c] hover:bg-[#072142] text-white px-4 py-1 text-xs font-semibold flex items-center gap-1.5 shadow-[0_2px_4px_rgba(10,46,92,0.18)] hover:shadow-md transition-all cursor-pointer group"
-              >
-                <span>Launch Explorer</span>
-                <span className="text-xs transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-              </button>
-            </div>
-
           </div>
         </div>
       </div>
@@ -454,17 +426,9 @@ export function SiteHeader({
                 })}
               </nav>
 
-              {/* Mobile Explorer CTA & Tagline */}
-              <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pb-1">
-                <button
-                  type="button"
-                  onClick={() => handleLaunch("volume")}
-                  className="w-full sm:w-auto rounded-xl bg-[#0a2e5c] hover:bg-[#072142] text-white px-4 py-2 text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition"
-                >
-                  <span>Launch 3D Explorer</span>
-                  <span>→</span>
-                </button>
-                <div className="text-[10px] text-slate-500 text-center sm:text-right">
+              {/* Mobile Tagline */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 pb-1">
+                <div className="text-[10px] text-slate-500 text-center sm:text-right w-full">
                   SIH 26067 · INCOIS · MoES
                 </div>
               </div>

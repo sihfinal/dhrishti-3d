@@ -6,6 +6,7 @@ import { GeographicBounds } from "./globe/RegionSelectionBox"
 import RegionConfirmationModal from "./RegionConfirmationModal"
 import ObservationDetailModal from "./ObservationDetailModal"
 import LoadingSpinner from "@/components/ui/LoadingSpinner"
+import InitialEarthLoader from "./InitialEarthLoader"
 import { ObservationItem } from "@/lib/observationsApi"
 import { ModelFieldResponse } from "@/lib/modelApi"
 
@@ -80,6 +81,9 @@ export default function Page3CenterViewport({
   const [selectionMode, setSelectionMode] = useState<boolean>(false)
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false)
   const [internalHoverCoords, setInternalHoverCoords] = useState<{ lat: number; lon: number } | null>(null)
+
+  // Authoritative data loading state: active whenever observations or numerical model data are loading
+  const isDataLoading = Boolean(obsLoading || modelLoading)
 
   const activeHover = externalHoverCoords !== undefined ? externalHoverCoords : internalHoverCoords
 
@@ -173,29 +177,7 @@ export default function Page3CenterViewport({
         </div>
       )}
 
-      {/* ─── Non-Blocking Data Loading Banner ─── */}
-      {modelLoading && !selectionMode && !isInitialModelLoad && (
-        <div className="absolute top-3.5 inset-x-0 z-20 flex justify-center pointer-events-none">
-          <div className="bg-white/95 border border-sky-300 rounded-full px-4 py-1.5 shadow-lg backdrop-blur-md flex items-center gap-2 text-xs font-semibold text-slate-800 pointer-events-auto animate-in fade-in duration-200">
-            <LoadingSpinner size="xs" color="#0284c7" label={loadingVariableId ? `Fetching ${activeLayerLabel} model data` : "Updating ocean data"} />
-            {loadingVariableId ? (
-              <>
-                <span>Fetching {activeLayerLabel} model data…</span>
-                <span className="text-[10.5px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                  Depth: {depth}m · {currentDateStr}
-                </span>
-              </>
-            ) : (
-              <>
-                <span>Updating ocean data…</span>
-                <span className="text-[10.5px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                  {isDepthUpdating ? `Depth: ${depth}m` : currentDateStr}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+
 
       {/* ─── Right Floating Camera Toolbar ─── */}
       <div className="absolute right-3 top-4 z-20 pointer-events-auto flex flex-col items-center gap-1.5 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-md p-1.5">
@@ -273,8 +255,11 @@ export default function Page3CenterViewport({
           vFieldData={vFieldData}
           vectorDensity={vectorDensity}
           showEEZ={showEEZ}
-          isModelLoading={modelLoading && !isInitialModelLoad}
+          isModelLoading={modelLoading}
         />
+
+        {/* ─── Minimal Earth Data Loading Spinner Overlay ─── */}
+        {isDataLoading && <InitialEarthLoader />}
       </div>
 
       {/* ─── Bottom Sub-status Bar ─── */}
@@ -296,7 +281,7 @@ export default function Page3CenterViewport({
               <span>Loading observations…</span>
             </span>
           )}
-          {modelLoading && !isInitialModelLoad && (
+          {modelLoading && (
             <span className="text-sky-700 font-semibold flex items-center gap-1.5">
               <LoadingSpinner size="xs" color="#0284c7" label={`Loading ${activeLayerId} model layer`} />
               <span>Loading {activeLayerLabel || activeLayerId} model layer…</span>

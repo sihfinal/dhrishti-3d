@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react"
 import LoadingSpinner from "@/components/ui/LoadingSpinner"
 
+import { formatDisplayDate } from "@/lib/modelApi"
+
 export interface ModelControlState {
   variable: string
   depth: number
@@ -21,6 +23,15 @@ interface ModelControlPanelProps {
   state: ModelControlState
   onChange: (updater: (prev: ModelControlState) => ModelControlState) => void
   modelLoading?: boolean
+  isReady?: boolean
+  isPreloading?: boolean
+  isPlaying?: boolean
+  onTogglePlay?: () => void
+  onPrevDay?: () => void
+  onNextDay?: () => void
+  speed?: number
+  onSpeedChange?: (speed: number) => void
+  preloadProgress?: { loaded: number; total: number; currentDate: string } | null
 }
 
 const VARIABLES = [
@@ -30,16 +41,33 @@ const VARIABLES = [
   { id: "chlorophyll", label: "Chlorophyll (mg/m³)", icon: "🌿", unit: "mg/m³", min: 0.01, max: 5.0 },
 ]
 
-export default function ModelControlPanel({ state, onChange, modelLoading = false }: ModelControlPanelProps) {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [speed, setSpeed] = useState(1)
+export default function ModelControlPanel({
+  state,
+  onChange,
+  modelLoading = false,
+  isReady = true,
+  isPreloading = false,
+  isPlaying: isPlayingProp,
+  onTogglePlay,
+  onPrevDay,
+  onNextDay,
+  speed: speedProp,
+  onSpeedChange,
+  preloadProgress,
+}: ModelControlPanelProps) {
+  const [internalPlaying, setInternalPlaying] = useState(false)
+  const [internalSpeed, setInternalSpeed] = useState(1)
+
+  const isControlled = isPlayingProp !== undefined && onTogglePlay !== undefined
+  const activeIsPlaying = isControlled ? isPlayingProp : internalPlaying
+  const activeSpeed = speedProp !== undefined ? speedProp : internalSpeed
 
   const activeVar = VARIABLES.find((v) => v.id === state.variable) || VARIABLES[0]
 
-  // Time Playback Timer: Advances through real model daily steps (0..89)
+  // Fallback Time Playback Timer if uncontrolled
   useEffect(() => {
-    if (!isPlaying) return
-    const intervalMs = Math.max(350, Math.round(1100 / speed))
+    if (isControlled || !activeIsPlaying) return
+    const intervalMs = Math.max(350, Math.round(1100 / activeSpeed))
     const timer = setInterval(() => {
       onChange((prev) => ({
         ...prev,
@@ -48,16 +76,47 @@ export default function ModelControlPanel({ state, onChange, modelLoading = fals
     }, intervalMs)
 
     return () => clearInterval(timer)
-  }, [isPlaying, speed, onChange])
+  }, [isControlled, activeIsPlaying, activeSpeed, onChange])
 
-  // Calculate formatted time date from timeStepIndex (0 - 89)
+  const handleTogglePlay = () => {
+    if (!isReady || isPreloading) return
+    if (onTogglePlay) {
+      onTogglePlay()
+    } else {
+      setInternalPlaying(!internalPlaying)
+    }
+  }
+
+  const handleSpeedToggle = () => {
+    const nextSpeed = activeSpeed === 1 ? 2 : activeSpeed === 2 ? 4 : 1
+    if (onSpeedChange) {
+      onSpeedChange(nextSpeed)
+    } else {
+      setInternalSpeed(nextSpeed)
+    }
+  }
+
+  const handlePrev = () => {
+    if (isPreloading) return
+    if (onPrevDay) {
+      onPrevDay()
+    } else {
+      onChange((prev) => ({ ...prev, timeStepIndex: Math.max(0, prev.timeStepIndex - 1) }))
+    }
+  }
+
+  const handleNext = () => {
+    if (isPreloading) return
+    if (onNextDay) {
+      onNextDay()
+    } else {
+      onChange((prev) => ({ ...prev, timeStepIndex: (prev.timeStepIndex + 1) % 90 }))
+    }
+  }
+
+  // Calculate formatted time date from timeStepIndex (0 - 89) in UTC
   const getDateStr = (index: number) => {
-    const baseDate = new Date(Date.UTC(2026, 0, 1))
-    baseDate.setUTCDate(baseDate.getUTCDate() + index)
-    const day = baseDate.getUTCDate().toString().padStart(2, "0")
-    const month = baseDate.toLocaleString("en-US", { month: "short", timeZone: "UTC" })
-    const year = baseDate.getUTCFullYear()
-    return `${day} ${month} ${year}`
+    return formatDisplayDate(index)
   }
 
   // Determine variable-specific isosurface thresholds
@@ -179,8 +238,11 @@ export default function ModelControlPanel({ state, onChange, modelLoading = fals
               <label className="text-[11px] font-semibold text-slate-700">
                 Time
               </label>
-              {modelLoading && (
-                <LoadingSpinner size="xs" color="#0284c7" label="Updating time step" />
+              {(modelLoading || isPreloading) && (
+                <span className="text-[10px] font-mono text-sky-600 flex items-center gap-1 font-semibold">
+                  <LoadingSpinner size="xs" color="#0284c7" label={isPreloading ? "Loading monthly data" : "Updating time step"} />
+                  {isPreloading && <span className="hidden sm:inline">Preloading…</span>}
+                </span>
               )}
             </div>
             <span className="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-sky-50 border border-sky-200 text-[#0284c7]">
@@ -204,8 +266,13 @@ export default function ModelControlPanel({ state, onChange, modelLoading = fals
           <div className="flex items-center justify-center gap-2 pt-2 border-t border-slate-100">
             <button
               type="button"
-              onClick={() => onChange((prev) => ({ ...prev, timeStepIndex: Math.max(0, prev.timeStepIndex - 1) }))}
-              className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs flex items-center justify-center text-slate-600 hover:text-slate-900 transition shadow-xs cursor-pointer"
+              disabled={isPreloading}
+              onClick={handlePrev}
+              className={`w-7 h-7 rounded-lg border text-xs flex items-center justify-center transition shadow-xs ${
+                isPreloading
+                  ? "bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed"
+                  : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 cursor-pointer"
+              }`}
               title="Previous Day"
             >
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -214,11 +281,24 @@ export default function ModelControlPanel({ state, onChange, modelLoading = fals
             </button>
             <button
               type="button"
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="w-8 h-8 rounded-full bg-[#0284c7] hover:bg-[#0369a1] text-white flex items-center justify-center shadow-md shadow-sky-500/20 transition cursor-pointer"
-              title={isPlaying ? "Pause Timeline" : "Play Timeline Animation"}
+              disabled={!isReady || isPreloading}
+              onClick={handleTogglePlay}
+              className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition ${
+                !isReady || isPreloading
+                  ? "bg-slate-300 text-slate-400 cursor-not-allowed shadow-none"
+                  : "bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-sky-500/20 cursor-pointer"
+              }`}
+              title={
+                isPreloading
+                  ? "Loading monthly ocean data before playback..."
+                  : !isReady
+                  ? "Preparing ocean dataset..."
+                  : activeIsPlaying
+                  ? "Pause Timeline"
+                  : "Play Timeline Animation"
+              }
             >
-              {isPlaying ? (
+              {activeIsPlaying ? (
                 <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
@@ -230,8 +310,13 @@ export default function ModelControlPanel({ state, onChange, modelLoading = fals
             </button>
             <button
               type="button"
-              onClick={() => onChange((prev) => ({ ...prev, timeStepIndex: (prev.timeStepIndex + 1) % 90 }))}
-              className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs flex items-center justify-center text-slate-600 hover:text-slate-900 transition shadow-xs cursor-pointer"
+              disabled={isPreloading}
+              onClick={handleNext}
+              className={`w-7 h-7 rounded-lg border text-xs flex items-center justify-center transition shadow-xs ${
+                isPreloading
+                  ? "bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed"
+                  : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 cursor-pointer"
+              }`}
               title="Next Day"
             >
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -240,11 +325,11 @@ export default function ModelControlPanel({ state, onChange, modelLoading = fals
             </button>
             <button
               type="button"
-              onClick={() => setSpeed((s) => (s === 1 ? 2 : s === 2 ? 4 : 1))}
+              onClick={handleSpeedToggle}
               className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[11px] font-mono font-bold text-[#0284c7] transition shadow-xs cursor-pointer"
               title="Toggle Playback Speed"
             >
-              {speed}x
+              {activeSpeed}x
             </button>
           </div>
         </div>

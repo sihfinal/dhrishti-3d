@@ -54,9 +54,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if not data_dir.is_absolute():
             data_dir = Path(__file__).resolve().parent.parent / data_dir_env
     else:
-        deploy_dir = Path(__file__).resolve().parent.parent / "sagar-netra-deployment-data"
         full_dir = Path(__file__).resolve().parent.parent / "data"
-        data_dir = deploy_dir if deploy_dir.exists() else full_dir
+        deploy_dir = Path(__file__).resolve().parent.parent / "sagar-netra-deployment-data"
+        data_dir = full_dir if full_dir.exists() else deploy_dir
     incoming_dir = data_dir / "incoming"
     log.info("Authoritative datasets directory: %s", data_dir)
     log.info("Automated incoming directory: %s", incoming_dir)

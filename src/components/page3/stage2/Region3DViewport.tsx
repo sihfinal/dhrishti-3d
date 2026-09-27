@@ -10,6 +10,7 @@ import { buildLut, cssGradient, PaletteId } from "@/lib/colormaps"
 import { extractIsosurface } from "@/lib/marchingCubes"
 import { createVolumeMesh, VolumeMeshHandle } from "@/lib/volumeRenderer"
 import LoadingSpinner from "@/components/ui/LoadingSpinner"
+import OceanData3DLoader from "./OceanData3DLoader"
 
 export interface ObservationCluster {
   id: string
@@ -48,6 +49,10 @@ interface Region3DViewportProps {
   onSelectObservation?: (obs: ObservationItem) => void
   isMaximized?: boolean
   onToggleMaximize?: () => void
+  isPreloading?: boolean
+  monthlyDataReady?: boolean
+  preloadProgress?: { loaded: number; total: number; currentDate: string } | null
+  onRetry?: () => void
 }
 
 export default function Region3DViewport({
@@ -65,6 +70,10 @@ export default function Region3DViewport({
   onSelectObservation,
   isMaximized: isMaximizedProp,
   onToggleMaximize,
+  isPreloading = false,
+  monthlyDataReady,
+  preloadProgress,
+  onRetry,
 }: Region3DViewportProps) {
   const [isNavActive, setIsNavActive] = useState<boolean>(true)
   const [hoveredObs, setHoveredObs] = useState<ObservationItem | null>(null)
@@ -1355,18 +1364,25 @@ export default function Region3DViewport({
         {/* WebGL Canvas Mount */}
         <div ref={mountRef} className="absolute inset-0 w-full h-full pointer-events-auto" />
 
-        {/* Loading Indicator */}
-        {modelLoading && (
-          <div className="absolute top-4 left-14 z-30 px-3 py-1.5 rounded-lg bg-white/95 border border-sky-300 text-sky-700 text-[11px] font-mono font-bold flex items-center gap-2 shadow-lg backdrop-blur-md">
-            <LoadingSpinner size="sm" color="#0284c7" label={`Loading 3D CMEMS ${modelState.variable} depth planes`} />
-            <span>Loading 3D CMEMS {modelState.variable} depth planes…</span>
-          </div>
+        {/* Small, polished 3D Ocean Data Loading Indicator */}
+        {(isPreloading || (monthlyDataReady === false && depthStack.length === 0 && uDepthStack.length === 0) || (modelLoading && depthStack.length === 0 && uDepthStack.length === 0)) && !modelError && (
+          <OceanData3DLoader label="Loading data…" />
         )}
 
-        {/* Error Indicator */}
+        {/* Error Indicator with Retry Option */}
         {modelError && (
-          <div className="absolute top-4 left-14 z-30 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-300 text-rose-700 text-[11px] font-mono font-bold shadow-lg">
-            {modelError}
+          <div className="absolute top-4 left-14 z-30 px-3.5 py-2 rounded-xl bg-rose-50/95 border border-rose-300 text-rose-800 text-xs font-mono flex items-center gap-3 shadow-lg backdrop-blur-md">
+            <span className="text-rose-500 font-bold">⚠️</span>
+            <span className="font-semibold">{modelError}</span>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="px-2 py-0.5 text-[11px] font-sans font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-md transition shadow-xs cursor-pointer pointer-events-auto"
+              >
+                Retry
+              </button>
+            )}
           </div>
         )}
 
