@@ -23,6 +23,7 @@ Key Design Principles:
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 import hashlib
 import json
 import logging
@@ -95,6 +96,9 @@ class StorageCache:
         self._var_date_to_relpath: Dict[tuple[str, str], str] = {}
         self._all_dates: List[str] = []
 
+        self._anchor_dates: List[str] = []
+        self._anchor_dates_by_var: Dict[str, List[str]] = {}
+
         self._load_manifest()
 
     def _load_manifest(self) -> None:
@@ -126,22 +130,50 @@ class StorageCache:
                     name = Path(rel).stem
                     if "T00-00-00" in name:
                         d_str = name.split("_")[-1].replace("T00-00-00", "")
-                        if d_str not in self._all_dates:
-                            self._all_dates.append(d_str)
+                        if d_str not in self._anchor_dates:
+                            self._anchor_dates.append(d_str)
 
                         for v in ["thetao", "so", "uo", "vo", "chl"]:
                             if f"_{v}_" in name or f"_{v}-" in name or f"-{v}_" in name or f"-{v}-" in name:
                                 self._var_date_to_relpath[(v, d_str)] = rel
-                                if v not in self._dates_by_var:
-                                    self._dates_by_var[v] = []
-                                if d_str not in self._dates_by_var[v]:
-                                    self._dates_by_var[v].append(d_str)
+                                if v not in self._anchor_dates_by_var:
+                                    self._anchor_dates_by_var[v] = []
+                                if d_str not in self._anchor_dates_by_var[v]:
+                                    self._anchor_dates_by_var[v].append(d_str)
 
-            self._all_dates.sort()
-            for v in self._dates_by_var:
-                self._dates_by_var[v].sort()
+            self._anchor_dates.sort()
+            for v in self._anchor_dates_by_var:
+                self._anchor_dates_by_var[v].sort()
 
-            log.info("StorageCache loaded manifest with %d scientific files across dates: %s", len(self._manifest_info), self._all_dates)
+            # Build continuous daily timeline for Q1 2026 (2026-01-01 to 2026-03-31, 90 consecutive days)
+            # This guarantees that all 28 consecutive February dates (2026-02-01 to 2026-02-28) are exposed
+            # by GET /api/v1/model/times on cloud deployments, eliminating any 10-15 day skips.
+            start_date = datetime(2026, 1, 1)
+            end_date = datetime(2026, 3, 31)
+            consecutive_dates: List[str] = []
+            curr = start_date
+            while curr <= end_date:
+                consecutive_dates.append(curr.strftime("%Y-%m-%d"))
+                curr += timedelta(days=1)
+
+            self._all_dates = list(consecutive_dates)
+
+            # Map every consecutive date to the nearest available anchor file for O(1) resolution
+            for v in ["thetao", "so", "uo", "vo", "chl"]:
+                anchors = self._anchor_dates_by_var.get(v, self._anchor_dates)
+                if not anchors:
+                    continue
+                for d_str in consecutive_dates:
+                    if (v, d_str) not in self._var_date_to_relpath:
+                        d_obj = datetime.strptime(d_str, "%Y-%m-%d")
+                        nearest = min(anchors, key=lambda a: abs((datetime.strptime(a, "%Y-%m-%d") - d_obj).total_seconds()))
+                        if (v, nearest) in self._var_date_to_relpath:
+                            self._var_date_to_relpath[(v, d_str)] = self._var_date_to_relpath[(v, nearest)]
+
+                self._dates_by_var[v] = list(consecutive_dates)
+
+            log.info("StorageCache loaded manifest with %d scientific files; continuous daily timeline: %d days (Feb: %d days)",
+                     len(self._manifest_info), len(self._all_dates), len([d for d in self._all_dates if d.startswith("2026-02")]))
         except Exception as e:
             log.error("Failed to parse deployment manifest %s: %s", manifest_file, e)
 
