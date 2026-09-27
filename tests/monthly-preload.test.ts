@@ -372,6 +372,73 @@ describe("Stage 2 3D Depth View — Monthly Preload & Date Lifecycle", () => {
     expect(isPlaying).toBe(false)
     expect(playbackIdx).toBe(4) // Stopped at last frame
   })
+
+  it("extracts available years dynamically from dataset bounds so only available years are selectable", () => {
+    // Current backend returns dates from 2026-01-01 to 2026-03-31
+    const currentDatasetTimes = getDateRangeDates("2026-01-01", "2026-03-31")
+    const yearsSet = new Set<number>()
+    currentDatasetTimes.forEach((d) => {
+      const y = parseInt(d.slice(0, 4), 10)
+      if (!isNaN(y)) yearsSet.add(y)
+    })
+    const availableYears = Array.from(yearsSet).sort((a, b) => a - b)
+
+    // Only 2026 is enabled and available
+    expect(availableYears).toEqual([2026])
+    expect(availableYears.includes(2026)).toBe(true)
+    expect(availableYears.includes(2025)).toBe(false)
+    expect(availableYears.includes(2027)).toBe(false)
+
+    // Future-proof verification: if backend adds 2027 data
+    const futureDatasetTimes = [
+      ...getDateRangeDates("2026-01-01", "2026-12-31"),
+      ...getDateRangeDates("2027-01-01", "2027-03-31"),
+    ]
+    const futureYearsSet = new Set<number>()
+    futureDatasetTimes.forEach((d) => {
+      const y = parseInt(d.slice(0, 4), 10)
+      if (!isNaN(y)) futureYearsSet.add(y)
+    })
+    const futureAvailableYears = Array.from(futureYearsSet).sort((a, b) => a - b)
+    expect(futureAvailableYears).toEqual([2026, 2027])
+  })
+
+  it("validates that dates outside the available model range and unselected years are rejected", () => {
+    const minDate = "2026-01-01"
+    const maxDate = "2026-03-31"
+    const availableYears = [2026]
+
+    const validate = (start: string, end: string) => {
+      if (!start || !end) return "Please select both start and end dates."
+      const startYr = parseInt(start.slice(0, 4), 10)
+      const endYr = parseInt(end.slice(0, 4), 10)
+      if (!availableYears.includes(startYr)) return `Start year ${startYr} is not available.`
+      if (!availableYears.includes(endYr)) return `End year ${endYr} is not available.`
+      if (start < minDate) return "Start date cannot be before 01 Jan 2026."
+      if (start > maxDate) return "Start date cannot be after 31 Mar 2026."
+      if (end < minDate) return "End date cannot be before 01 Jan 2026."
+      if (end > maxDate) return "End date cannot be after 31 Mar 2026."
+      if (start > end) return "Start date must be before the end date."
+      return null
+    }
+
+    // Valid range within 2026
+    expect(validate("2026-01-15", "2026-03-15")).toBeNull()
+    // Same-day range is valid
+    expect(validate("2026-02-15", "2026-02-15")).toBeNull()
+
+    // Invalid: Year 2025
+    expect(validate("2025-12-31", "2026-02-15")).toContain("Start year 2025 is not available")
+    // Invalid: Year 2027
+    expect(validate("2026-01-15", "2027-01-01")).toContain("End year 2027 is not available")
+
+    // Invalid: Date before 01 Jan 2026
+    expect(validate("2025-11-01", "2026-02-15")).toBeTruthy()
+    // Invalid: Date after 31 Mar 2026
+    expect(validate("2026-01-15", "2026-04-15")).toBe("End date cannot be after 31 Mar 2026.")
+    // Invalid: Start > End
+    expect(validate("2026-02-20", "2026-02-10")).toBe("Start date must be before the end date.")
+  })
 })
 
 

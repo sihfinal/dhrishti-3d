@@ -1133,8 +1133,9 @@ export default function Stage2Workstation({
               totalFrames={totalFrames}
               startDate={selectedDateRange.start}
               endDate={selectedDateRange.end}
-              availableMinDate={availableDates[0] || "2026-01-01"}
-              availableMaxDate={availableDates[availableDates.length - 1] || "2026-03-31"}
+              availableMinDate={availableDates.length > 0 ? availableDates[0] : undefined}
+              availableMaxDate={availableDates.length > 0 ? availableDates[availableDates.length - 1] : undefined}
+              availableDates={availableDates}
               onLoadDateRange={handleLoadDateRange}
               activeDates={activeLoadedDates}
             />

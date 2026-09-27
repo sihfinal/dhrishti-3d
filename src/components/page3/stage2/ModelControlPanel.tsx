@@ -37,6 +37,7 @@ interface ModelControlPanelProps {
   endDate?: string
   availableMinDate?: string
   availableMaxDate?: string
+  availableDates?: string[]
   onLoadDateRange?: (start: string, end: string) => void
   activeDates?: string[]
 }
@@ -64,55 +65,191 @@ export default function ModelControlPanel({
   totalFrames,
   startDate,
   endDate,
-  availableMinDate = "2026-01-01",
-  availableMaxDate = "2026-03-31",
+  availableMinDate: availableMinDateProp,
+  availableMaxDate: availableMaxDateProp,
+  availableDates,
   onLoadDateRange,
   activeDates,
 }: ModelControlPanelProps) {
   const [internalPlaying, setInternalPlaying] = useState(false)
   const [internalSpeed, setInternalSpeed] = useState(4)
 
-  const [inputStart, setInputStart] = useState<string>(startDate || "2026-02-01")
-  const [inputEnd, setInputEnd] = useState<string>(endDate || "2026-02-28")
+  // Derive dynamic bounds strictly from available model dates
+  const effectiveMinDate =
+    availableDates && availableDates.length > 0
+      ? availableDates[0]
+      : availableMinDateProp || "2026-01-01"
+
+  const effectiveMaxDate =
+    availableDates && availableDates.length > 0
+      ? availableDates[availableDates.length - 1]
+      : availableMaxDateProp || "2026-03-31"
+
+  // Derive available years strictly from backend dataset (e.g. [2026])
+  const availableYears = React.useMemo(() => {
+    if (availableDates && availableDates.length > 0) {
+      const set = new Set<number>()
+      for (const d of availableDates) {
+        const y = parseInt(d.slice(0, 4), 10)
+        if (!isNaN(y)) set.add(y)
+      }
+      return Array.from(set).sort((a, b) => a - b)
+    }
+    if (effectiveMinDate && effectiveMaxDate) {
+      const yMin = parseInt(effectiveMinDate.slice(0, 4), 10)
+      const yMax = parseInt(effectiveMaxDate.slice(0, 4), 10)
+      if (!isNaN(yMin) && !isNaN(yMax)) {
+        const yrs: number[] = []
+        for (let y = yMin; y <= yMax; y++) yrs.push(y)
+        return yrs
+      }
+    }
+    return [2026]
+  }, [availableDates, effectiveMinDate, effectiveMaxDate])
+
+  const hasAvailableData = availableYears.length > 0 && Boolean(effectiveMinDate && effectiveMaxDate)
+
+  const formatBoundDate = (dateStr: string) => {
+    if (!dateStr) return ""
+    return formatDisplayDate(dateStringToTimeStepIndex(dateStr))
+  }
+
+  const displayAvailableRange = hasAvailableData
+    ? `${formatBoundDate(effectiveMinDate)} – ${formatBoundDate(effectiveMaxDate)}`
+    : ""
+
+  const [selectedYear, setSelectedYear] = useState<number>(() => {
+    if (startDate) {
+      const y = parseInt(startDate.slice(0, 4), 10)
+      if (!isNaN(y) && availableYears.includes(y)) return y
+    }
+    return availableYears[0] || 2026
+  })
+
+  useEffect(() => {
+    if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
+      setSelectedYear(availableYears[0])
+    }
+  }, [availableYears, selectedYear])
+
+  const [inputStart, setInputStart] = useState<string>(() => {
+    if (startDate && (!effectiveMinDate || startDate >= effectiveMinDate) && (!effectiveMaxDate || startDate <= effectiveMaxDate)) {
+      return startDate
+    }
+    return effectiveMinDate || "2026-02-01"
+  })
+  const [inputEnd, setInputEnd] = useState<string>(() => {
+    if (endDate && (!effectiveMinDate || endDate >= effectiveMinDate) && (!effectiveMaxDate || endDate <= effectiveMaxDate)) {
+      return endDate
+    }
+    return effectiveMaxDate || "2026-02-28"
+  })
   const [rangeError, setRangeError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (startDate) setInputStart(startDate)
-  }, [startDate])
+    if (startDate) {
+      if (effectiveMinDate && startDate < effectiveMinDate) {
+        setInputStart(effectiveMinDate)
+      } else if (effectiveMaxDate && startDate > effectiveMaxDate) {
+        setInputStart(effectiveMaxDate)
+      } else {
+        setInputStart(startDate)
+      }
+    }
+  }, [startDate, effectiveMinDate, effectiveMaxDate])
 
   useEffect(() => {
-    if (endDate) setInputEnd(endDate)
-  }, [endDate])
+    if (endDate) {
+      if (effectiveMinDate && endDate < effectiveMinDate) {
+        setInputEnd(effectiveMinDate)
+      } else if (effectiveMaxDate && endDate > effectiveMaxDate) {
+        setInputEnd(effectiveMaxDate)
+      } else {
+        setInputEnd(endDate)
+      }
+    }
+  }, [endDate, effectiveMinDate, effectiveMaxDate])
+
+  const validateDateRange = (start: string, end: string): string | null => {
+    if (!start || !end) {
+      return "Please select both start and end dates."
+    }
+
+    const startYr = parseInt(start.slice(0, 4), 10)
+    const endYr = parseInt(end.slice(0, 4), 10)
+
+    if (availableYears.length > 0) {
+      if (!availableYears.includes(startYr)) {
+        return `Start year ${startYr} is not available. Only ${availableYears.join(", ")} is available in the model dataset.`
+      }
+      if (!availableYears.includes(endYr)) {
+        return `End year ${endYr} is not available. Only ${availableYears.join(", ")} is available in the model dataset.`
+      }
+    }
+
+    if (effectiveMinDate && start < effectiveMinDate) {
+      return `Start date cannot be before ${formatBoundDate(effectiveMinDate)}.`
+    }
+    if (effectiveMaxDate && start > effectiveMaxDate) {
+      return `Start date cannot be after ${formatBoundDate(effectiveMaxDate)}.`
+    }
+    if (effectiveMinDate && end < effectiveMinDate) {
+      return `End date cannot be before ${formatBoundDate(effectiveMinDate)}.`
+    }
+    if (effectiveMaxDate && end > effectiveMaxDate) {
+      return `End date cannot be after ${formatBoundDate(effectiveMaxDate)}.`
+    }
+
+    if (start > end) {
+      return "Start date must be before the end date."
+    }
+
+    return null
+  }
 
   const handleStartChange = (val: string) => {
     setInputStart(val)
-    if (!val || !inputEnd) {
-      setRangeError("Please select both start and end dates.")
-    } else if (val > inputEnd) {
-      setRangeError("Start date must be before the end date.")
-    } else {
-      setRangeError(null)
-    }
+    const err = validateDateRange(val, inputEnd)
+    setRangeError(err)
   }
 
   const handleEndChange = (val: string) => {
     setInputEnd(val)
-    if (!inputStart || !val) {
-      setRangeError("Please select both start and end dates.")
-    } else if (inputStart > val) {
-      setRangeError("Start date must be before the end date.")
-    } else {
-      setRangeError(null)
+    const err = validateDateRange(inputStart, val)
+    setRangeError(err)
+  }
+
+  const handleYearChange = (newYear: number) => {
+    setSelectedYear(newYear)
+    const startYr = parseInt(inputStart.slice(0, 4), 10)
+    const endYr = parseInt(inputEnd.slice(0, 4), 10)
+    let newStart = inputStart
+    let newEnd = inputEnd
+
+    if (startYr !== newYear) {
+      const datesInYear = availableDates?.filter((d) => d.startsWith(`${newYear}-`)) || []
+      newStart = datesInYear.length > 0 ? datesInYear[0] : `${newYear}-01-01`
     }
+    if (endYr !== newYear) {
+      const datesInYear = availableDates?.filter((d) => d.startsWith(`${newYear}-`)) || []
+      newEnd = datesInYear.length > 0 ? datesInYear[datesInYear.length - 1] : `${newYear}-12-31`
+    }
+
+    if (effectiveMinDate && newStart < effectiveMinDate) newStart = effectiveMinDate
+    if (effectiveMaxDate && newStart > effectiveMaxDate) newStart = effectiveMaxDate
+    if (effectiveMinDate && newEnd < effectiveMinDate) newEnd = effectiveMinDate
+    if (effectiveMaxDate && newEnd > effectiveMaxDate) newEnd = effectiveMaxDate
+
+    setInputStart(newStart)
+    setInputEnd(newEnd)
+    const err = validateDateRange(newStart, newEnd)
+    setRangeError(err)
   }
 
   const handleLoadData = () => {
-    if (!inputStart || !inputEnd) {
-      setRangeError("Please select both start and end dates.")
-      return
-    }
-    if (inputStart > inputEnd) {
-      setRangeError("Start date must be before the end date.")
+    const err = validateDateRange(inputStart, inputEnd)
+    if (err) {
+      setRangeError(err)
       return
     }
     setRangeError(null)
@@ -373,9 +510,29 @@ export default function ModelControlPanel({
             <label className="text-[10px] font-bold tracking-wider text-slate-600 uppercase">
               DATA RANGE
             </label>
-            <span className="text-[10px] font-mono text-slate-400">
-              {hasActiveDates ? `${activeTotalFrames} ${activeTotalFrames === 1 ? "day" : "days"} loaded` : ""}
-            </span>
+            <div className="flex items-center gap-2">
+              {hasAvailableData && (
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Year:</span>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => handleYearChange(Number(e.target.value))}
+                    disabled={availableYears.length <= 1 || isPreloading || modelLoading}
+                    className="bg-slate-100 hover:bg-slate-200/80 border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500 disabled:cursor-default"
+                    title="Select model year"
+                  >
+                    {availableYears.map((yr) => (
+                      <option key={yr} value={yr}>
+                        {yr}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <span className="text-[10px] font-mono text-slate-400">
+                {hasActiveDates ? `${activeTotalFrames} ${activeTotalFrames === 1 ? "day" : "days"} loaded` : ""}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -383,11 +540,12 @@ export default function ModelControlPanel({
               <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Start</span>
               <input
                 type="date"
-                min={availableMinDate}
-                max={availableMaxDate}
+                min={effectiveMinDate}
+                max={effectiveMaxDate}
                 value={inputStart}
                 onChange={(e) => handleStartChange(e.target.value)}
-                className="w-full bg-slate-50 hover:bg-slate-100/90 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
+                disabled={!hasAvailableData || isPreloading || modelLoading}
+                className="w-full bg-slate-50 hover:bg-slate-100/90 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
             <span className="text-slate-400 font-bold mt-3 shrink-0">→</span>
@@ -395,13 +553,18 @@ export default function ModelControlPanel({
               <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">End</span>
               <input
                 type="date"
-                min={availableMinDate}
-                max={availableMaxDate}
+                min={effectiveMinDate}
+                max={effectiveMaxDate}
                 value={inputEnd}
                 onChange={(e) => handleEndChange(e.target.value)}
-                className="w-full bg-slate-50 hover:bg-slate-100/90 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
+                disabled={!hasAvailableData || isPreloading || modelLoading}
+                className="w-full bg-slate-50 hover:bg-slate-100/90 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
+          </div>
+
+          <div className="text-[10px] text-slate-400 font-normal">
+            {hasAvailableData ? `Available data: ${displayAvailableRange}` : "No model date data available"}
           </div>
 
           {rangeError && (
@@ -413,13 +576,19 @@ export default function ModelControlPanel({
           <button
             type="button"
             onClick={handleLoadData}
-            disabled={isPreloading || modelLoading || !!rangeError}
+            disabled={!hasAvailableData || isPreloading || modelLoading || !!rangeError}
             className={`w-full py-1.5 px-3 rounded-xl text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 ${
-              isPreloading || modelLoading || !!rangeError
+              !hasAvailableData || isPreloading || modelLoading || !!rangeError
                 ? "bg-slate-200 text-slate-400 cursor-not-allowed"
                 : "bg-[#0284c7] hover:bg-[#0369a1] text-white cursor-pointer active:scale-[0.98] shadow-sky-500/20"
             }`}
-            title="Load selected date range frames"
+            title={
+              !hasAvailableData
+                ? "No model dates available"
+                : rangeError
+                ? rangeError
+                : "Load selected date range frames"
+            }
           >
             <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -464,15 +633,15 @@ export default function ModelControlPanel({
             <span>
               {hasActiveDates && activeDates
                 ? formatDisplayDate(dateStringToTimeStepIndex(activeDates[0]))
-                : availableMinDate
-                ? formatDisplayDate(dateStringToTimeStepIndex(availableMinDate))
+                : effectiveMinDate
+                ? formatDisplayDate(dateStringToTimeStepIndex(effectiveMinDate))
                 : "01 Jan 2026"}
             </span>
             <span>
               {hasActiveDates && activeDates
                 ? formatDisplayDate(dateStringToTimeStepIndex(activeDates[activeDates.length - 1]))
-                : availableMaxDate
-                ? formatDisplayDate(dateStringToTimeStepIndex(availableMaxDate))
+                : effectiveMaxDate
+                ? formatDisplayDate(dateStringToTimeStepIndex(effectiveMaxDate))
                 : "31 Mar 2026"}
             </span>
           </div>
