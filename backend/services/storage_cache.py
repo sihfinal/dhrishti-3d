@@ -185,6 +185,50 @@ class StorageCache:
         """Return available dates for a specific variable."""
         return list(self._dates_by_var.get(nc_var, self._all_dates))
 
+    def get_anchor_dates(self, nc_var: Optional[str] = None) -> List[str]:
+        """Return sorted list of anchor dates that have actual physical NetCDF files in the manifest."""
+        if nc_var and nc_var in self._anchor_dates_by_var:
+            return list(self._anchor_dates_by_var[nc_var])
+        return list(self._anchor_dates)
+
+    def resolve_bounding_anchors_and_weight(self, nc_var: str, date_str: str) -> tuple[Optional[str], Optional[str], float]:
+        """
+        Return (anchor_A, anchor_B, alpha) for a requested date and variable.
+        - If date_str is an exact anchor date, returns (date_str, None, 0.0).
+        - If date_str is between anchor_A and anchor_B, returns (anchor_A, anchor_B, alpha) with alpha in (0.0, 1.0).
+        - If date_str is before first anchor, returns (anchors[0], None, 0.0).
+        - If date_str is after last anchor, returns (anchors[-1], None, 0.0).
+        """
+        anchors = self.get_anchor_dates(nc_var)
+        if not anchors:
+            return None, None, 0.0
+
+        if date_str in anchors:
+            return date_str, None, 0.0
+
+        if date_str <= anchors[0]:
+            return anchors[0], None, 0.0
+
+        if date_str >= anchors[-1]:
+            return anchors[-1], None, 0.0
+
+        try:
+            d_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            anchor_objs = [(datetime.strptime(a, "%Y-%m-%d"), a) for a in anchors]
+            anchor_objs.sort(key=lambda x: x[0])
+
+            for i in range(len(anchor_objs) - 1):
+                t1, a1 = anchor_objs[i]
+                t2, a2 = anchor_objs[i + 1]
+                if t1 <= d_obj <= t2:
+                    delta = (t2 - t1).total_seconds()
+                    alpha = (d_obj - t1).total_seconds() / delta if delta > 0 else 0.0
+                    return a1, a2, float(alpha)
+        except Exception as e:
+            log.warning("Date parsing error in resolve_bounding_anchors_and_weight for %s: %s", date_str, e)
+
+        return anchors[0], None, 0.0
+
     def _get_file_lock(self, rel_path: str) -> threading.Lock:
         """Acquire or create a per-file threading lock to prevent duplicate downloads."""
         with self._meta_lock:

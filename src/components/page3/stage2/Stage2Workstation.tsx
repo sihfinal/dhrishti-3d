@@ -36,6 +36,67 @@ interface InfoModalData {
 // 7 Representative valid model depth levels spanning the water column
 const TARGET_DEPTH_LEVELS = [0, 25, 50, 100, 250, 500, 1000]
 
+export type PreloadedFrameData = {
+  depthStack: ModelFieldResponse[]
+  uDepthStack?: ModelFieldResponse[]
+  vDepthStack?: ModelFieldResponse[]
+}
+
+function computeFrameDiagnostics(
+  frame: PreloadedFrameData | undefined,
+  variable: string,
+  date: string
+) {
+  if (!frame) {
+    return { date, frameFound: false, variable, depthCount: 0, grid: "N/A", sample: "null", min: "N/A", max: "N/A", checksum: "none" }
+  }
+  const isCur = variable.toLowerCase() === "currents"
+  const slices = isCur ? frame.uDepthStack || [] : frame.depthStack || []
+  const depthCount = slices.length
+  if (depthCount === 0) {
+    return { date, frameFound: true, variable, depthCount: 0, grid: "N/A", sample: "null", min: "N/A", max: "N/A", checksum: "empty" }
+  }
+  const s0 = slices[0]
+  const vals = s0.values || []
+  const rowCount = vals.length
+  const colCount = rowCount > 0 ? vals[0]?.length || 0 : 0
+  const midRow = Math.floor(rowCount / 2)
+  const midCol = Math.floor(colCount / 2)
+  const sample = vals[midRow]?.[midCol] ?? null
+
+  // Fast deterministic 32-bit FNV-1a checksum of sampled float values
+  let hash = 0x811c9dc5
+  let count = 0
+  for (let r = 0; r < rowCount && count < 250; r++) {
+    const row = vals[r]
+    if (!row) continue
+    for (let c = 0; c < row.length && count < 250; c++) {
+      const v = row[c]
+      if (v !== null && v !== undefined && !Number.isNaN(v)) {
+        const intVal = Math.round(Number(v) * 1000)
+        hash ^= intVal & 0xff
+        hash = Math.imul(hash, 0x01000193)
+        hash ^= (intVal >> 8) & 0xff
+        hash = Math.imul(hash, 0x01000193)
+        count++
+      }
+    }
+  }
+  const checksum = (hash >>> 0).toString(16).padStart(8, "0")
+
+  return {
+    date,
+    frameFound: true,
+    variable,
+    depthCount,
+    grid: `${colCount}x${rowCount}`,
+    min: s0.min_value != null ? Number(s0.min_value).toFixed(3) : "N/A",
+    max: s0.max_value != null ? Number(s0.max_value).toFixed(3) : "N/A",
+    sample: sample != null ? Number(sample).toFixed(4) : "null",
+    checksum,
+  }
+}
+
 export default function Stage2Workstation({
   selectedRegion,
   onBackToGlobal,
@@ -95,11 +156,6 @@ export default function Stage2Workstation({
   const [manualOpen, setManualOpen] = useState<boolean>(false)
 
   // In-memory Multi-Month Cache: key -> { frames: Map<dateStr, PreloadedFrameData>, dates: string[] }
-  type PreloadedFrameData = {
-    depthStack: ModelFieldResponse[]
-    uDepthStack?: ModelFieldResponse[]
-    vDepthStack?: ModelFieldResponse[]
-  }
   const monthlyCacheRef = useRef<Map<string, { frames: Map<string, PreloadedFrameData>; dates: string[] }>>(new Map())
   const activeFramesMapRef = useRef<Map<string, PreloadedFrameData>>(new Map())
   const activeDatesRef = useRef<string[]>([])
@@ -409,6 +465,13 @@ export default function Stage2Workstation({
 
       const frame = activeFramesMapRef.current.get(nextDate)
       if (frame) {
+        // Production diagnostics: log frame checksum to verify data varies per date
+        const diag = computeFrameDiagnostics(frame, modelState.variable, nextDate)
+        console.log(
+          `[PLAYBACK] date: ${diag.date}, frameFound: ${diag.frameFound}, depthCount: ${diag.depthCount}, ` +
+          `min: ${diag.min}, max: ${diag.max}, sample: ${diag.sample}, checksum: ${diag.checksum}`
+        )
+
         setDepthStack(frame.depthStack)
         setUDepthStack(frame.uDepthStack || [])
         setVDepthStack(frame.vDepthStack || [])

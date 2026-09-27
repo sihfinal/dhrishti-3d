@@ -161,6 +161,33 @@ class CMEMSModelAdapter(BaseModelAdapter):
             return resolved_path
         raise FileNotFoundError(f"No model file found or downloaded for {nc_var} on {date_str}")
 
+    def resolve_bounding_files_and_weight(self, nc_var: str, date_str: str) -> tuple[str, Optional[str], float]:
+        """
+        Resolve bounding NetCDF file path(s) and interpolation weight for a requested variable and date.
+        If an exact local file exists on disk (e.g. local full dataset), returns (local_file, None, 0.0).
+        Otherwise resolves bounding anchor files from StorageCache and computes alpha.
+        """
+        # 1. Exact local file check on disk (must contain date_str in filename)
+        if (nc_var, date_str) in self._var_date_to_file:
+            cand = self._var_date_to_file[(nc_var, date_str)]
+            if Path(cand).exists() and date_str in Path(cand).name:
+                return cand, None, 0.0
+
+        # 2. StorageCache bounding anchor resolution
+        try:
+            from backend.services.storage_cache import StorageCache
+            cache = StorageCache.get_instance(self.data_dir)
+            a_A, a_B, alpha = cache.resolve_bounding_anchors_and_weight(nc_var, date_str)
+            if a_A:
+                file_A = self.get_file_for_variable(nc_var, a_A)
+                file_B = self.get_file_for_variable(nc_var, a_B) if a_B and alpha > 0.0 else None
+                return file_A, file_B, float(alpha)
+        except Exception as err:
+            log.warning("Bounding anchor resolution error for (%s, %s): %s", nc_var, date_str, err)
+
+        # Fallback to single file lookup
+        return self.get_file_for_variable(nc_var, date_str), None, 0.0
+
     def get_metadata(self) -> dict[str, Any]:
         """Read sample coordinate metadata lazily from the first file."""
         if not self._phy_files:
@@ -382,7 +409,7 @@ class CMEMSModelAdapter(BaseModelAdapter):
         nc_var, sub_dir, unit, min_fallback, max_fallback = var_info
 
         try:
-            file_path = self.get_file_for_variable(nc_var, date_str)
+            file_path, file_B, alpha = self.resolve_bounding_files_and_weight(nc_var, date_str)
             ds = self._dataset_cache.get(file_path)
 
             # Find nearest depth level
@@ -425,6 +452,37 @@ class CMEMSModelAdapter(BaseModelAdapter):
             lats = [float(x) for x in data_slice.latitude.values]
             lons = [float(x) for x in data_slice.longitude.values]
             arr = data_slice.values
+
+            # Temporal interpolation with bounding anchor B if present and alpha > 0
+            if file_B and alpha > 0.0 and Path(file_B).exists():
+                try:
+                    ds_B = self._dataset_cache.get(file_B)
+                    data_slice_B = ds_B[nc_var].sel(
+                        depth=actual_depth,
+                        latitude=lat_slice,
+                        longitude=lon_slice,
+                    )
+                    if stride > 1:
+                        data_slice_B = data_slice_B.isel(
+                            latitude=slice(None, None, stride),
+                            longitude=slice(None, None, stride),
+                        )
+                    if "time" in data_slice_B.dims:
+                        data_slice_B = data_slice_B.squeeze("time")
+                    arr_B = data_slice_B.values
+
+                    # Blend valid pixels smoothly with land-mask preservation
+                    valid_both = (~np.isnan(arr)) & (~np.isnan(arr_B))
+                    valid_A_only = (~np.isnan(arr)) & (np.isnan(arr_B))
+                    valid_B_only = (np.isnan(arr)) & (~np.isnan(arr_B))
+
+                    blended = np.full_like(arr, np.nan, dtype=np.float32)
+                    blended[valid_both] = (1.0 - alpha) * arr[valid_both] + alpha * arr_B[valid_both]
+                    blended[valid_A_only] = arr[valid_A_only]
+                    blended[valid_B_only] = arr_B[valid_B_only]
+                    arr = blended
+                except Exception as b_err:
+                    log.warning("Temporal interpolation blend with file B failed: %s", b_err)
 
             # Fast array cleaning and bounds calculation
             valid_mask = ~np.isnan(arr)
@@ -491,10 +549,12 @@ class CMEMSModelAdapter(BaseModelAdapter):
         if is_currents:
             unit = "m/s"
             try:
-                file_u = self.get_file_for_variable("uo", date_str)
-                file_v = self.get_file_for_variable("vo", date_str)
+                file_u, file_u_B, alpha_u = self.resolve_bounding_files_and_weight("uo", date_str)
+                file_v, file_v_B, alpha_v = self.resolve_bounding_files_and_weight("vo", date_str)
                 ds_u = self._dataset_cache.get(file_u)
                 ds_v = self._dataset_cache.get(file_v)
+                ds_u_B = self._dataset_cache.get(file_u_B) if file_u_B and alpha_u > 0.0 and Path(file_u_B).exists() else None
+                ds_v_B = self._dataset_cache.get(file_v_B) if file_v_B and alpha_v > 0.0 and Path(file_v_B).exists() else None
 
                 depth_coord = ds_u.depth
                 actual_depths = [float(depth_coord.sel(depth=d, method="nearest").values) for d in depths]
@@ -532,6 +592,25 @@ class CMEMSModelAdapter(BaseModelAdapter):
                         da_u = da_u.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
 
                     arr_u = da_u.values.squeeze()
+                    if ds_u_B is not None:
+                        try:
+                            da_u_B = ds_u_B["uo"].sel(depth=act_d, latitude=lat_slice, longitude=lon_slice)
+                            if "time" in da_u_B.dims:
+                                da_u_B = da_u_B.squeeze("time")
+                            if stride > 1:
+                                da_u_B = da_u_B.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
+                            arr_u_B = da_u_B.values.squeeze()
+                            valid_both = (~np.isnan(arr_u)) & (~np.isnan(arr_u_B))
+                            valid_A = (~np.isnan(arr_u)) & (np.isnan(arr_u_B))
+                            valid_B = (np.isnan(arr_u)) & (~np.isnan(arr_u_B))
+                            b_u = np.full_like(arr_u, np.nan, dtype=np.float32)
+                            b_u[valid_both] = (1.0 - alpha_u) * arr_u[valid_both] + alpha_u * arr_u_B[valid_both]
+                            b_u[valid_A] = arr_u[valid_A]
+                            b_u[valid_B] = arr_u_B[valid_B]
+                            arr_u = b_u
+                        except Exception as err_u:
+                            log.warning("U velocity temporal interpolation failed: %s", err_u)
+
                     val_u = ~np.isnan(arr_u)
                     has_u = bool(np.any(val_u))
                     arr_u_clean = np.where(val_u, arr_u, None)
@@ -558,6 +637,25 @@ class CMEMSModelAdapter(BaseModelAdapter):
                         da_v = da_v.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
 
                     arr_v = da_v.values.squeeze()
+                    if ds_v_B is not None:
+                        try:
+                            da_v_B = ds_v_B["vo"].sel(depth=act_d, latitude=lat_slice, longitude=lon_slice)
+                            if "time" in da_v_B.dims:
+                                da_v_B = da_v_B.squeeze("time")
+                            if stride > 1:
+                                da_v_B = da_v_B.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
+                            arr_v_B = da_v_B.values.squeeze()
+                            valid_both = (~np.isnan(arr_v)) & (~np.isnan(arr_v_B))
+                            valid_A = (~np.isnan(arr_v)) & (np.isnan(arr_v_B))
+                            valid_B = (np.isnan(arr_v)) & (~np.isnan(arr_v_B))
+                            b_v = np.full_like(arr_v, np.nan, dtype=np.float32)
+                            b_v[valid_both] = (1.0 - alpha_v) * arr_v[valid_both] + alpha_v * arr_v_B[valid_both]
+                            b_v[valid_A] = arr_v[valid_A]
+                            b_v[valid_B] = arr_v_B[valid_B]
+                            arr_v = b_v
+                        except Exception as err_v:
+                            log.warning("V velocity temporal interpolation failed: %s", err_v)
+
                     val_v = ~np.isnan(arr_v)
                     has_v = bool(np.any(val_v))
                     arr_v_clean = np.where(val_v, arr_v, None)
@@ -623,8 +721,9 @@ class CMEMSModelAdapter(BaseModelAdapter):
                 raise ValueError(f"Unsupported model variable '{variable}'")
             nc_var, sub_dir, unit, min_fallback, max_fallback = var_info
             try:
-                file_path = self.get_file_for_variable(nc_var, date_str)
+                file_path, file_B, alpha = self.resolve_bounding_files_and_weight(nc_var, date_str)
                 ds = self._dataset_cache.get(file_path)
+                ds_B = self._dataset_cache.get(file_B) if file_B and alpha > 0.0 and Path(file_B).exists() else None
                 depth_coord = ds.depth
                 actual_depths = [float(depth_coord.sel(depth=d, method="nearest").values) for d in depths]
 
@@ -661,6 +760,25 @@ class CMEMSModelAdapter(BaseModelAdapter):
                         da_s = da_s.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
 
                     arr = da_s.values.squeeze()
+                    if ds_B is not None:
+                        try:
+                            da_s_B = ds_B[nc_var].sel(depth=act_d, latitude=lat_slice, longitude=lon_slice)
+                            if "time" in da_s_B.dims:
+                                da_s_B = da_s_B.squeeze("time")
+                            if stride > 1:
+                                da_s_B = da_s_B.isel(latitude=slice(None, None, stride), longitude=slice(None, None, stride))
+                            arr_B = da_s_B.values.squeeze()
+                            valid_both = (~np.isnan(arr)) & (~np.isnan(arr_B))
+                            valid_A = (~np.isnan(arr)) & (np.isnan(arr_B))
+                            valid_B = (np.isnan(arr)) & (~np.isnan(arr_B))
+                            blended = np.full_like(arr, np.nan, dtype=np.float32)
+                            blended[valid_both] = (1.0 - alpha) * arr[valid_both] + alpha * arr_B[valid_both]
+                            blended[valid_A] = arr[valid_A]
+                            blended[valid_B] = arr_B[valid_B]
+                            arr = blended
+                        except Exception as b_err:
+                            log.warning("Scalar stack temporal interpolation failed: %s", b_err)
+
                     val_mask = ~np.isnan(arr)
                     has_val = bool(np.any(val_mask))
                     arr_clean = np.where(val_mask, arr, None)
