@@ -465,9 +465,9 @@ export default function ResourcesPage() {
                 <div className="flex items-center gap-2.5"><div className="w-6 h-6 rounded-md bg-violet-50 border border-violet-200 flex items-center justify-center shrink-0 text-violet-600"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg></div><span className="text-xs font-semibold text-slate-800">Join the Discussion</span></div>
                 <p className="text-[10px] text-slate-400 text-right">Be part of our community</p>
               </div>
-              <div onClick={() => router.push("/watch-demo")} className="px-4 py-2.5 flex items-center justify-between gap-2 hover:bg-slate-50/70 transition cursor-pointer">
+              <div onClick={() => window.open("https://www.youtube.com/watch?v=HRV6rZuUDnc", "_blank")} className="px-4 py-2.5 flex items-center justify-between gap-2 hover:bg-slate-50/70 transition cursor-pointer">
                 <div className="flex items-center gap-2.5"><div className="w-6 h-6 rounded-md bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0 text-sky-600"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div><span className="text-xs font-semibold text-slate-800">Watch Demo</span></div>
-                <Link href="/watch-demo" className="text-[10px] text-sky-600 hover:underline">View →</Link>
+                <Link href="https://www.youtube.com/watch?v=HRV6rZuUDnc" target="_blank" className="text-[10px] text-sky-600 hover:underline">View →</Link>
               </div>
             </div>
           </div>

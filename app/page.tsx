@@ -484,7 +484,7 @@ export default function LandingPage() {
 
               {/* Secondary CTA: Watch Demo */}
               <button
-                onClick={() => router.push("/watch-demo")}
+                onClick={() => window.open("https://www.youtube.com/watch?v=HRV6rZuUDnc", "_blank")}
                 className="w-48 sm:w-52 h-11 sm:h-12 rounded-xl bg-white hover:bg-blue-50/70 text-[#0f2942] border border-blue-400/90 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
               >
                 {/* Solid Blue Play Circle Icon */}
